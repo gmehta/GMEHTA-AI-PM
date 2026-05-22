@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AgenticMOps — Gaurav Mehta</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+    <style>
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body, #root { height: 100%; }
+      body {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-family: 'DM Sans', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+        font-size: 15px;
+        line-height: 1.5;
+      }
+      #demo-banner {
+        position: relative; z-index: 100;
+        background: rgba(45,183,87,.1);
+        border-bottom: 1px solid rgba(45,183,87,.22);
+        padding: 7px 20px;
+        font-size: 13px;
+        color: #9ea3b0;
+        text-align: center;
+        font-family: 'DM Sans', sans-serif;
+        display: flex; align-items: center; justify-content: center; gap: 16px;
+        flex-wrap: wrap;
+      }
+      #demo-banner strong { color: #2db757; }
+      #demo-banner a { color: #2db757; text-decoration: none; font-weight: 600; }
+      #demo-banner a:hover { text-decoration: underline; }
+      /* Ensure root doesn't cover the banner */
+      #root { height: calc(100% - 36px); overflow: hidden; }
+    </style>
+
+    <!-- ── DEMO MODE: Fetch interceptor + UI bootstrap ───────────────── -->
+    <script>
+    (function() {
+      'use strict';
+
+      /* ── Demo response strings ──────────────────────────────────────── */
+
+      const AUDIENCE_RESPONSE = `## Audience Analysis — ELM5334: SMB Payroll Core Upsell
+
+**🔍 Fetching QuickBase record** \`bq22my296?rid=5334\` … ✓
+
+**Campaign:** TurboTax SMB Payroll Core → Upsell (Q4 FY25)
+**Owner:** Gaurav Mehta · GBSG MOps
+**Status:** Audience Readiness Review
+
+---
+
+### 📄 SOT Validation
+Reading source-of-truth Google Slides deck … ✓
+
+| Field | Value |
+|---|---|
+| Objective | Upsell Core→Payroll bundle, SMB segment |
+| Channel | Email + In-product |
+| Est. reach | 1.2M (pre-filter) |
+| Target | SMB 1–10 employees, payroll intent ≥ 70 |
+| Flight dates | Nov 1 – Dec 15, 2025 |
+
+---
+
+### 🕸️ KG Sibling Mining
+Querying Neo4j knowledge graph for structurally similar campaigns …
+
+Found **4 sibling campaigns** (cosine sim > 0.81):
+
+| ELM | Name | Reach | CTR | Outcome |
+|---|---|---|---|---|
+| ELM4892 | Payroll Upsell Q3 | 1.18M | 3.4% | ✓ Launched |
+| ELM5101 | Core Bundle Cross-sell | 903K | 2.8% | ✓ Launched |
+| ELM5220 | SMB Payroll Re-eng | 622K | 4.1% | ✓ Launched |
+| ELM4712 | Q2 Payroll Core Upgrade | 1.09M | 3.1% | ✓ Launched |
+
+**Benchmark CTR for this audience archetype: 3.35%**
+
+KG insight: All sibling campaigns used \`trait_payroll_intent_high\` + \`trait_smb_1_10\`. Campaigns missing the intent signal underperformed by ~40%.
+
+---
+
+### 🎯 Segment CDP Trait Resolution
+Resolving 6 audience attributes → Segment traits …
+
+| QB Attribute | Segment Trait | Match |
+|---|---|---|
+| \`payroll_intent_score ≥ 70\` | \`trait_payroll_intent_high\` | ✓ Active |
+| \`days_since_last_login ≤ 365\` | \`trait_engaged_ltm\` | ✓ Active |
+| \`sku_name contains 'Core'\` | \`trait_sku_core_current\` | ✓ Active |
+| \`employee_count between 1–10\` | \`trait_smb_1_10\` | ✓ Active |
+| \`region = 'NA'\` | \`trait_region_na\` | ✓ Active |
+| \`email_opt_in = true\` | \`trait_email_optin\` | ⚠️ Review |
+
+---
+
+### 🔬 CDC Data Quality Check
+Validating freshness and DQ star ratings …
+
+| Trait | ⭐ Stars | Last Refreshed | Status |
+|---|---|---|---|
+| \`trait_payroll_intent_high\` | ⭐⭐⭐⭐⭐ | 2h ago | ✓ Fresh |
+| \`trait_engaged_ltm\` | ⭐⭐⭐⭐ | 6h ago | ✓ Fresh |
+| \`trait_sku_core_current\` | ⭐⭐⭐⭐⭐ | 1h ago | ✓ Fresh |
+| \`trait_smb_1_10\` | ⭐⭐⭐⭐ | 8h ago | ✓ Fresh |
+| \`trait_region_na\` | ⭐⭐⭐⭐⭐ | 45min ago | ✓ Fresh |
+| \`trait_email_optin\` | ⭐⭐⭐ | 26h ago | ⚠️ Stale |
+
+---
+
+### ✅ Summary
+
+**5/6 attributes validated** — audience is nearly ready.
+
+**Action required:**
+- \`trait_email_optin\` is 26h stale (threshold: 12h). Trigger AEP → Segment sync before deployment.
+
+**Estimated sendable audience after DQ filter:** ~847,000 contacts (−353K on stale consent filter)
+
+**Recommendation:** Proceed to Creative Agent once consent trait is refreshed. KG benchmark suggests 3.3–3.5% CTR is achievable with current segment composition.`;
+
+      const AUDIENCE_FOLLOWUP_RESPONSE = `Good question. Looking at the KG data for ELM4892 and ELM5220 (your closest siblings):
+
+**ELM4892 (Payroll Upsell Q3):**
+- Sent Mon 9am PT → 3.4% CTR
+- A/B tested subject line: "Payroll is easier than you think" outperformed control by 18%
+
+**ELM5220 (SMB Payroll Re-engagement):**
+- Sent Thu 10am PT → 4.1% CTR (highest in cohort)
+- Personalized subject line using \`first_name\` + product tier boosted open rate
+
+**Recommendation:** Send Thursday 10–11am PT. Personalize subject line with first name. Based on sibling data, this combination typically yields +0.6–0.8% CTR over Monday sends.`;
+
+      const CREATIVE_EVENTS = [
+        { delay:300,  e:{type:"status",message:"Connecting to Figma API…"} },
+        { delay:400,  e:{type:"status",message:"Fetching frames from file fig/TurboTax_Q4_Payroll_Core_v3…"} },
+        { delay:600,  e:{type:"frames",totalFrames:3,frames:[
+          {name:"Email_Header_600px",width:600,height:180,imageUrl:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='180' viewBox='0 0 600 180'%3E%3Crect width='600' height='180' fill='%230b0c0e'/%3E%3Crect x='20' y='20' width='160' height='32' rx='6' fill='%232db75730'/%3E%3Crect x='20' y='70' width='360' height='24' rx='4' fill='%231a1c20'/%3E%3Crect x='20' y='104' width='260' height='16' rx='4' fill='%231a1c20'/%3E%3Crect x='20' y='138' width='120' height='28' rx='14' fill='%232db757'/%3E%3C/svg%3E"},
+          {name:"Email_Body_600px",width:600,height:400,imageUrl:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%230b0c0e'/%3E%3Crect x='20' y='20' width='560' height='80' rx='10' fill='%23131417'/%3E%3Crect x='36' y='36' width='200' height='14' rx='4' fill='%231a1c20'/%3E%3Crect x='36' y='58' width='300' height='10' rx='4' fill='%231a1c20'/%3E%3Crect x='36' y='74' width='220' height='10' rx='4' fill='%231a1c20'/%3E%3Crect x='20' y='120' width='270' height='260' rx='10' fill='%23131417'/%3E%3Crect x='310' y='120' width='270' height='260' rx='10' fill='%23131417'/%3E%3C/svg%3E"},
+          {name:"Email_Footer_600px",width:600,height:100,imageUrl:"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='100' viewBox='0 0 600 100'%3E%3Crect width='600' height='100' fill='%230b0c0e'/%3E%3Crect x='20' y='30' width='140' height='10' rx='4' fill='%231a1c20'/%3E%3Crect x='20' y='52' width='240' height='8' rx='4' fill='%231a1c20'/%3E%3C/svg%3E"}
+        ]}},
+        { delay:500,  e:{type:"status",message:"Frame 1/3: Email_Header_600px — generating HTML…"} },
+        { delay:1200, e:{type:"html",frameIndex:0,frameName:"Email_Header_600px",html:"<table width=\"600\" cellpadding=\"0\" cellspacing=\"0\"><tr><td style=\"background:#0b0c0e;padding:24px\"><img src=\"logo.png\" height=\"32\" alt=\"TurboTax\"/><h1 style=\"color:#f0f1f3;font-size:22px;margin-top:16px\">Payroll made simple.</h1><p style=\"color:#9ea3b0\">Upgrade your Core plan and add Payroll today.</p><a href=\"#\" style=\"background:#2db757;color:#fff;padding:10px 24px;border-radius:6px;display:inline-block;margin-top:16px\">Add Payroll</a></td></tr></table>"} },
+        { delay:300,  e:{type:"status",message:"Frame 1/3: deploying to Marketo Design Studio…"} },
+        { delay:800,  e:{type:"marketo",frameIndex:0,assetName:"Email_Header_600px",marketoId:"118432"} },
+        { delay:400,  e:{type:"status",message:"Frame 2/3: Email_Body_600px — generating HTML…"} },
+        { delay:1100, e:{type:"html",frameIndex:1,frameName:"Email_Body_600px",html:"<table width=\"600\"><tr><td style=\"background:#131417;padding:24px\"><h2 style=\"color:#f0f1f3\">Why upgrade to Payroll?</h2><ul style=\"color:#9ea3b0;margin-top:12px\"><li>Run payroll in minutes</li><li>Auto-file taxes</li><li>Direct deposit included</li></ul></td></tr></table>"} },
+        { delay:300,  e:{type:"status",message:"Frame 2/3: deploying to Marketo Design Studio…"} },
+        { delay:900,  e:{type:"marketo",frameIndex:1,assetName:"Email_Body_600px",marketoId:"118433"} },
+        { delay:400,  e:{type:"status",message:"Frame 3/3: Email_Footer_600px — generating HTML…"} },
+        { delay:800,  e:{type:"html",frameIndex:2,frameName:"Email_Footer_600px",html:"<table width=\"600\"><tr><td style=\"background:#0b0c0e;padding:20px;color:#5a5f6e;font-size:11px\">© 2025 Intuit Inc. · <a href=\"#\" style=\"color:#5a5f6e\">Unsubscribe</a> · <a href=\"#\" style=\"color:#5a5f6e\">Privacy</a></td></tr></table>"} },
+        { delay:300,  e:{type:"status",message:"Frame 3/3: deploying to Marketo Design Studio…"} },
+        { delay:700,  e:{type:"marketo",frameIndex:2,assetName:"Email_Footer_600px",marketoId:"118434"} },
+        { delay:400,  e:{type:"done",summary:{framesProcessed:3,assetsCreated:3,assetNames:["Email_Header_600px","Email_Body_600px","Email_Footer_600px"]}} },
+      ];
+
+      const IXP_EVENTS = [
+        { delay:300, e:{type:"status",message:"Fetching SOT from Google Slides…"} },
+        { delay:600, e:{type:"status",message:"Parsing experiment definition from slide deck…"} },
+        { delay:400, e:{type:"sot_parsed",sotFields:{
+          experimentName:"Q4 Payroll Email — Subject Line Test",
+          hypothesis:"Personalized subject lines using first name + product tier will increase open rate by ≥15% vs. generic CTA subject",
+          arms:["Control: 'Payroll is ready for you'","Variant A: '{first_name}, simplify payroll today'","Variant B: '{first_name}, your Core plan + Payroll = done'"],
+          splits:["34%","33%","33%"],
+          assignmentIdType:"cust_id",
+          hashingConstant:"payroll-q4-sltest-2025",
+          isExperiment:true,
+          ixpImplemented:false
+        }}},
+        { delay:500, e:{type:"status",message:"Creating experiment in IXP E2E environment…"} },
+        { delay:900, e:{type:"experiment_created",experiment:{
+          ixpId:40821,
+          ixpKey:"payroll-q4-sltest-2025",
+          name:"Q4 Payroll Email — Subject Line Test",
+          businessUnit:"SBSEG",
+          applicationName:"TurboTax Email",
+          assignmentIdType:"cust_id",
+          type:"A/B",
+          treatments:[
+            {name:"Control",allocation:34,isControl:true},
+            {name:"Variant A",allocation:33,isControl:false},
+            {name:"Variant B",allocation:33,isControl:false}
+          ],
+          hypothesis:"Personalized subject lines using first name + product tier will increase open rate by ≥15% vs. generic CTA subject",
+          startTime:"2025-11-01T09:00:00Z",
+          endTime:"2025-12-15T09:00:00Z",
+          state:"DRAFT",
+          hashingConstant:"payroll-q4-sltest-2025",
+          ixpUrl:"https://ixp.intuit.com/experiments/40821"
+        }}},
+        { delay:200, e:{type:"done"} },
+      ];
+
+      const E2E_EVENTS = [
+        { delay:300, e:{type:"status",message:"Fetching email from Marketo: https://app-ab12.marketo.com/#EM118432A1"} },
+        { delay:800, e:{type:"email_fetched",emailName:"Q4 Payroll Core — Email_Header_600px",emailSubject:"Payroll is ready for you — upgrade today",htmlLength:3420} },
+        { delay:300, e:{type:"status",message:"Sending test to recipient 1/2: gmehta@intuit.com"} },
+        { delay:600, e:{type:"sent",recipient:"gmehta@intuit.com",recipientIndex:0,totalRecipients:2} },
+        { delay:300, e:{type:"status",message:"Sending test to recipient 2/2: aep-qa@intuit.com"} },
+        { delay:600, e:{type:"sent",recipient:"aep-qa@intuit.com",recipientIndex:1,totalRecipients:2} },
+        { delay:200, e:{type:"done",sentCount:2,failedCount:0} },
+      ];
+
+      /* ── SSE stream factory ──────────────────────────────────────────── */
+      function makeTextSseStream(fullText, chunkSize, charDelay) {
+        const encoder = new TextEncoder();
+        return new ReadableStream({
+          async start(controller) {
+            let i = 0;
+            while (i < fullText.length) {
+              await new Promise(r => setTimeout(r, charDelay));
+              const chunk = fullText.slice(i, i + chunkSize);
+              i += chunkSize;
+              controller.enqueue(encoder.encode('data: ' + JSON.stringify({content: chunk}) + '\n\n'));
+            }
+            await new Promise(r => setTimeout(r, 80));
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          }
+        });
+      }
+
+      function makeEventSseStream(events) {
+        const encoder = new TextEncoder();
+        return new ReadableStream({
+          async start(controller) {
+            for (const item of events) {
+              await new Promise(r => setTimeout(r, item.delay || 200));
+              controller.enqueue(encoder.encode('data: ' + JSON.stringify(item.e) + '\n\n'));
+            }
+            await new Promise(r => setTimeout(r, 100));
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            controller.close();
+          }
+        });
+      }
+
+      /* ── Fetch interceptor ──────────────────────────────────────────── */
+      const _origFetch = window.fetch.bind(window);
+
+      window.fetch = async function(input, init) {
+        const url = (typeof input === 'string' ? input : input.url) || '';
+        const path = url.replace(/^https?:\/\/[^/]+/, '');
+
+        // Status endpoint
+        if (path === '/v1/status' || path.endsWith('/v1/status')) {
+          return new Response(JSON.stringify({
+            genos: { configured: false, hasToken: false, isExpired: false },
+            kg: { reachable: false, uri: 'bolt://demo:7688' },
+            service: { port: 3939, env: 'demo' }
+          }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+        }
+
+        // Audience Agent stream
+        if (path.endsWith('/v1/agent/invoke/stream')) {
+          const body = init?.body ? JSON.parse(init.body) : {};
+          const msgs = body.messages || [];
+          const lastUser = [...msgs].reverse().find(m => m.role === 'user');
+          const isFollowUp = msgs.length > 2;
+          const text = isFollowUp ? AUDIENCE_FOLLOWUP_RESPONSE : AUDIENCE_RESPONSE;
+          return new Response(makeTextSseStream(text, 6, 18), {
+            status: 200,
+            headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+          });
+        }
+
+        // Creative Agent stream
+        if (path.endsWith('/v1/creative/run')) {
+          return new Response(makeEventSseStream(CREATIVE_EVENTS), {
+            status: 200,
+            headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+          });
+        }
+
+        // IXP Agent stream
+        if (path.endsWith('/v1/ixp/run')) {
+          return new Response(makeEventSseStream(IXP_EVENTS), {
+            status: 200,
+            headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+          });
+        }
+
+        // E2E QA Agent stream
+        if (path.endsWith('/v1/e2e-qa/send-email')) {
+          return new Response(makeEventSseStream(E2E_EVENTS), {
+            status: 200,
+            headers: { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' }
+          });
+        }
+
+        return _origFetch(input, init);
+      };
+
+      /* ── DOM bootstrap: demo banner + pre-populate inputs ───────────── */
+      function injectBanner() {
+        const banner = document.getElementById('demo-banner');
+        if (!banner) return;
+        // Already in HTML, just ensure it's visible
+        banner.style.display = 'flex';
+      }
+
+      function prefillInputs() {
+        // Pre-populate Audience Agent QB URL input
+        const aaInput = document.querySelector('input[placeholder*="quickbase.com"]');
+        if (aaInput && !aaInput.value) {
+          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+          if (setter) {
+            setter.call(aaInput, 'https://intuitcorp.quickbase.com/db/bq22my296?a=dr&rid=5334');
+            aaInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        // Pre-populate Creative Agent Figma URL
+        const caInput = document.querySelector('input[placeholder*="figma.com"]');
+        if (caInput && !caInput.value) {
+          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+          if (setter) {
+            setter.call(caInput, 'https://www.figma.com/file/TurboTax_Q4_Payroll_Core_v3');
+            caInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        // Pre-populate IXP Agent SOT URL
+        const ixpInput = document.querySelector('input[placeholder*="docs.google.com"], input[placeholder*="SOT"], input[placeholder*="sot"]');
+        if (ixpInput && !ixpInput.value) {
+          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+          if (setter) {
+            setter.call(ixpInput, 'https://docs.google.com/presentation/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms/edit#slide=id.g2ea7b3e');
+            ixpInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+        // Pre-populate E2E QA Marketo URL
+        const qaInput = document.querySelector('input[placeholder*="marketo"], input[placeholder*="Marketo"]');
+        if (qaInput && !qaInput.value) {
+          const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+          if (setter) {
+            setter.call(qaInput, 'https://app-ab12.marketo.com/#EM118432A1');
+            qaInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+      }
+
+      // Poll for inputs since React renders async
+      let _pollCount = 0;
+      function pollAndPrefill() {
+        prefillInputs();
+        _pollCount++;
+        if (_pollCount < 30) setTimeout(pollAndPrefill, 200);
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        injectBanner();
+        setTimeout(pollAndPrefill, 300);
+      });
+
+    })();
+    </script>
+
+    <script type="module" crossorigin src="./assets/index-BR0mLFjY.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CEPDO7wF.css">
+  </head>
+  <body>
+    <!-- Demo banner sits above the React root -->
+    <div id="demo-banner">
+      <span>⚡ <strong>Demo Mode</strong> — live agent runs are simulated with real workflow data · inputs pre-filled for any tab · AI responses are pre-recorded replays</span>
+      <a href="../../index.html#projects">← Back to portfolio</a>
+    </div>
+    <div id="root"></div>
+  </body>
+</html>
