@@ -346,6 +346,16 @@ img, svg { display: block; }
   margin-bottom: 20px;
 }
 
+.hero-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-light);
+  margin-bottom: 20px;
+}
+
 .hero-body {
   font-size: clamp(15px, 1.8vw, 17px);
   color: var(--text-muted);
