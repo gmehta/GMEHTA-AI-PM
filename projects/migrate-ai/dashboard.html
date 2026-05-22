@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MigrateIQ — Campaign Complexity Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F9FAFB; --bg-card: #FFFFFF; --bg-subtle: #F3F4F6; --bg-header: #FFFFFF;
+  --border: #E5E7EB; --border-dark: #D1D5DB;
+  --text: #111827; --text-muted: #6B7280; --text-light: #9CA3AF;
+  --accent: #2563EB; --accent-bg: #EFF6FF;
+  --green: #059669; --green-bg: #ECFDF5;
+  --amber: #B45309; --amber-bg: #FEF3C7;
+  --orange: #D97706; --orange-bg: #FFF7ED;
+  --red: #DC2626; --red-bg: #FEF2F2;
+}
+html, body { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif; background: var(--bg);
+  color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+
+/* ── Header ──────────────────────────────── */
+#header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-card); border-bottom: 1px solid var(--border);
+  padding: 0 20px; height: 52px; display: flex; align-items: center; gap: 14px;
+}
+.logo { font-size: 16px; font-weight: 800; text-decoration: none; letter-spacing: -.02em; }
+.logo-m { color: var(--accent); }
+.logo-iq { color: var(--green); }
+.h-title { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.h-stats { margin-left: auto; font-size: 12px; color: var(--text-light); display: flex; gap: 4px; }
+.h-stats b { color: var(--text); font-weight: 600; }
+.back-link {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+  color: var(--text-muted); text-decoration: none; padding: 5px 10px;
+  border: 1px solid var(--border); border-radius: 7px; transition: all .15s; white-space: nowrap;
+}
+.back-link:hover { background: var(--bg-subtle); color: var(--text); }
+.h-sep { width: 1px; height: 18px; background: var(--border); }
+
+/* ── Filters ──────────────────────────────── */
+#filters {
+  background: var(--bg-card); border-bottom: 1px solid var(--border);
+  padding: 12px 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end;
+  position: sticky; top: 52px; z-index: 90;
+}
+.fg { display: flex; flex-direction: column; gap: 3px; }
+.fg label { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.fg select, .fg input {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text); padding: 5px 8px; font-size: 12px; font-family: inherit; min-width: 130px;
+  -webkit-appearance: none;
+}
+.fg select:focus, .fg input:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+#search-inp { min-width: 210px; }
+#reset-btn {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text-muted); padding: 5px 14px; font-size: 12px; font-weight: 500;
+  cursor: pointer; font-family: inherit; align-self: flex-end; transition: all .15s;
+}
+#reset-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-bg); }
+
+/* ── Summary ──────────────────────────────── */
+#summary { padding: 14px 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+.sc {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; min-width: 140px; flex: 1;
+}
+.sc .lbl { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.sc .val { font-size: 26px; font-weight: 800; margin-top: 4px; letter-spacing: -.02em; }
+.sc .sub { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.v-blue { color: var(--accent); }
+.v-green { color: var(--green); }
+.v-orange { color: var(--orange); }
+.v-red { color: var(--red); }
+
+/* ── Distribution bars ────────────────────── */
+#distributions { padding: 0 20px 14px; display: flex; gap: 12px; flex-wrap: wrap; }
+.dc {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 18px; flex: 1; min-width: 240px;
+}
+.dc h3 { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.bar-label { font-size: 11px; color: var(--text-muted); min-width: 80px; text-align: right; }
+.bar-track { flex: 1; height: 16px; background: var(--bg-subtle); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .4s ease; }
+.bar-count { font-size: 11px; color: var(--text-light); min-width: 50px; }
+
+/* ── Table ─────────────────────────────────── */
+#table-container { padding: 0 20px 20px; }
+table {
+  width: 100%; border-collapse: collapse; font-size: 12.5px;
+  background: var(--bg-card); border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+thead { position: sticky; top: 0; z-index: 50; }
+th {
+  background: var(--bg-subtle); padding: 10px 10px; text-align: left;
+  font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em;
+  border-bottom: 1px solid var(--border); cursor: pointer; white-space: nowrap; user-select: none; font-weight: 600;
+}
+th:hover { color: var(--text-muted); }
+.sort-arrow { color: var(--accent); margin-left: 3px; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--accent-bg); }
+.name-cell { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500; }
+.score-cell { text-align: center; font-weight: 700; }
+.pill {
+  display: inline-block; padding: 2px 8px; border-radius: 6px;
+  font-size: 11px; font-weight: 700; min-width: 22px; text-align: center;
+}
+.pill-1 { background: #DCFCE7; color: #059669; }
+.pill-2 { background: #DBEAFE; color: #2563EB; }
+.pill-3 { background: #FEF3C7; color: #B45309; }
+.pill-4 { background: #FED7AA; color: #D97706; }
+.pill-5 { background: #FEE2E2; color: #DC2626; }
+.sends-cell { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-muted); }
+.sends-pos { color: var(--green); font-weight: 600; }
+.tag-cell { font-size: 11px; color: var(--text-light); }
+.inst-gbsg { color: #D97706; font-weight: 600; }
+.inst-mc { color: #7C3AED; font-weight: 600; }
+.challenge-dots { display: flex; gap: 2px; }
+.dot { width: 8px; height: 8px; border-radius: 2px; }
+.dot-on { background: var(--accent); }
+.dot-off { background: var(--border); }
+
+/* ── Detail panel ──────────────────────────── */
+#panel {
+  position: fixed; top: 0; right: -500px; width: 500px; height: 100vh;
+  background: var(--bg-card); border-left: 1px solid var(--border);
+  z-index: 200; overflow-y: auto; transition: right .3s ease;
+  padding: 24px; box-shadow: -4px 0 30px rgba(0,0,0,.08);
+}
+#panel.open { right: 0; }
+#panel-close {
+  position: absolute; top: 14px; right: 18px;
+  background: none; border: none; font-size: 22px; cursor: pointer;
+  color: var(--text-light); line-height: 1; padding: 4px;
+}
+#panel-close:hover { color: var(--text); }
+.p-name { font-size: 15px; font-weight: 700; color: var(--accent); word-break: break-word; margin-bottom: 4px; }
+.p-meta { font-size: 11.5px; color: var(--text-light); margin-bottom: 14px; line-height: 1.7; }
+.p-scores { display: flex; gap: 10px; margin-bottom: 18px; }
+.p-score {
+  flex: 1; text-align: center; padding: 12px 8px;
+  background: var(--bg-subtle); border-radius: 8px; border: 1px solid var(--border);
+}
+.p-score .pv { font-size: 26px; font-weight: 800; letter-spacing: -.02em; }
+.p-score .pl { font-size: 9px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-top: 2px; font-weight: 600; }
+.p-section { margin-bottom: 16px; }
+.p-section h4 { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 7px; font-weight: 600; }
+.p-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 12px; border-bottom: 1px solid #F3F4F6; }
+.p-row .k { color: var(--text-muted); }
+.p-row .v { color: var(--text); font-weight: 600; }
+.c-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.c-tag { padding: 2px 8px; border-radius: 5px; font-size: 10.5px; font-weight: 600; }
+.c-on { background: var(--accent-bg); color: var(--accent); }
+.c-off { background: var(--bg-subtle); color: var(--text-light); }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <a class="logo" href="index.html"><span class="logo-m">Migrate</span><span class="logo-iq">IQ</span></a>
+  <div class="h-sep"></div>
+  <span class="h-title">Campaign Complexity Dashboard</span>
+  <div class="h-stats">Showing <b id="h-showing">-</b>&nbsp;of&nbsp;<b id="h-total">-</b> campaigns</div>
+  <a href="../../index.html#projects" class="back-link">← Portfolio</a>
+</div>
+
+<div id="filters">
+  <div class="fg"><label>Search</label><input type="text" id="search-inp" placeholder="Campaign name or ID..."></div>
+  <div class="fg"><label>Instance</label><select id="f-inst"><option value="">All</option></select></div>
+  <div class="fg"><label>Geo</label><select id="f-geo"><option value="">All</option></select></div>
+  <div class="fg"><label>On MOps Tracker</label><select id="f-mops"><option value="">All</option></select></div>
+  <div class="fg"><label>Has Sends</label><select id="f-sends"><option value="">All</option><option value="yes">Yes</option><option value="no">No</option></select></div>
+  <div class="fg"><label>Canvas</label><select id="f-canvas"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+  <div class="fg"><label>Upstream</label><select id="f-up"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+  <div class="fg"><label>Dependency</label><select id="f-dep"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></div>
+  <button id="reset-btn">Reset</button>
+</div>
+
+<div id="summary"></div>
+<div id="distributions"></div>
+<div id="table-container"><table id="tbl"><thead></thead><tbody></tbody></table></div>
+
+<div id="panel">
+  <button id="panel-close">&times;</button>
+  <div id="panel-content"></div>
+</div>
+
+<script>
+const LABELS = {
+  canvas:     ['','Trivial','Simple','Moderate','Complex','Very Complex'],
+  upstream:   ['','No upstream','Simple chain','Moderate chain','Complex chain','Very complex chain'],
+  dependency: ['','Independent','Loosely coupled','Moderately coupled','Tightly coupled','Deeply entangled'],
+};
+const COLORS = ['','#059669','#2563EB','#B45309','#D97706','#DC2626'];
+const P_LABELS = ['P1 Branch','P2 Loop','P3 Split','P4 Wait','P5 Exit','P6 Jump','P7 Micro-Wait','P8 Error','P9 Shared','P10 Behav','P11 Multi-Aud','P12 UpdRules'];
+const P_KEYS   = ['p1_branching','p2_loops','p3_splits','p4_waits','p5_exits','p6_jumps','p7_micro_waits','p8_error_routing','p9_shared_assets','p10_behavioral','p11_multi_audience','p12_update_rules'];
+
+const ALL = [{"eloqua_id":"20092","name":"ELMAU2353-EM-AU-QBO-NA-MOPPQB-RET-PROD-NA-EQ-QBMAttach","instance":"GBSG","Geo":"GBSG AU","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":0,"canvas":4,"upstream":1,"dependency":2,"challenges_triggered":6,"total_elements":39,"emails":4,"p1_branching":1,"p2_loops":0,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"21215","name":"ELMAU24131-EM-AU-QBO-NA-MULTQB-RET-NEWS-NA-EQ-SMBFBInviteAlwayson","instance":"GBSG","Geo":"GBSG AU","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":772,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":9,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"22276","name":"ELMAU24163-OM-AU-QBO-NA-NAQB-WIN-PROMO-NA-EQ-WinbackTargetedOffer_CancelledSub","instance":"GBSG","Geo":"GBSG AU","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":0,"canvas":4,"upstream":1,"dependency":4,"challenges_triggered":6,"total_elements":39,"emails":4,"p1_branching":1,"p2_loops":0,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":1,"inst_co_migration_count":29,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"19612","name":"ELMC1504-EM-CA-QBO-NA-NA-RET-INSIGHT-NA-EQ-Milestones022023_1Year","instance":"GBSG","Geo":"GBSG CA","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":10627,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":5,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"19617","name":"ELMC1504-EM-CA-QBO-NA-NA-RET-INSIGHT-NA-EQ-Milestones022023_6Months","instance":"GBSG","Geo":"GBSG CA","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":8192,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":5,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"21173","name":"ELMC1904-EM-CA-QBO-NA-NAQB-WIN-PROMO-NA-EQ-CancelWinback_Evergreen_181day","instance":"GBSG","Geo":"GBSG CA","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":4323,"canvas":3,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":22,"emails":8,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":2,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"21171","name":"ELMC1904-EM-CA-QBO-NA-NAQB-WIN-PROMO-NA-EQ-CancelWinback_Evergreen_45day","instance":"GBSG","Geo":"GBSG CA","MOps_tracking":"Yes","current_status":"Active","total_email_sends_2m":3486,"canvas":3,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":24,"emails":6,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":2,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"25749","name":"ELMC3944-EM-LATAM-QBO-NA-NA-USLL-PROMO-NA-CM-switchToAnnual","instance":"GBSG","Geo":"GBSG CA","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":5047,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":1,"total_elements":4,"emails":1,"p1_branching":0,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":0,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"25798","name":"UK_1625477442_EMEA-Migration_SMB_SwitchtoAnnual","instance":"GBSG","Geo":"GBSG UK","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":7491,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":1,"total_elements":4,"emails":1,"p1_branching":0,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":0,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"26511","name":"UK_1663840031_QB-Winback_Monthly-and-Annual","instance":"GBSG","Geo":"GBSG UK","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":28349,"canvas":5,"upstream":1,"dependency":2,"challenges_triggered":7,"total_elements":123,"emails":36,"p1_branching":1,"p2_loops":0,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":1,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"26744","name":"UK_RoEMEA_1725705855_Fusion-Beta-auto-enrolled-SMB","instance":"GBSG","Geo":"GBSG UK","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":46099,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":16,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":1,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"14318","name":"ELM0223-EM-US-QBES-NA-NAES-FTU-PROD-NA-EQ-FTUTest_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBES FTU","current_status":"Active","total_email_sends_2m":6301,"canvas":4,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":72,"emails":18,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":3,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"14752","name":"ELM2067-EM-US-QBPAY-NA-MULTPY-FTU-PROD-NA-EQ-GoPaymentNodeLaunch_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBPay & BillPay FTU","current_status":"Active","total_email_sends_2m":0,"canvas":3,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":33,"emails":6,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"17012","name":"ELM3081-EM-US-QBOPR-NA-COGSPR-FTU-PROD-NA-EQ-ContractorPaymentsFTU_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Payroll FTU","current_status":"Active","total_email_sends_2m":1614,"canvas":2,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":16,"emails":1,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"20380","name":"ELM3567-OM-US-QBOAV-NA-MULTAV-RET-PROD-NA-EQ-QBOAVPostFTU_Automation_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBOAV Evergreen","current_status":"Active","total_email_sends_2m":24882,"canvas":4,"upstream":1,"dependency":5,"challenges_triggered":6,"total_elements":43,"emails":6,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"17137","name":"ELM3848-EM-US-QBES-NA-NAES-USLL-PROD-NA-EQ-ESStretcherAutomation_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBES Evergreen","current_status":"Active","total_email_sends_2m":103369,"canvas":5,"upstream":1,"dependency":1,"challenges_triggered":6,"total_elements":108,"emails":16,"p1_branching":1,"p2_loops":0,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":1,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"19080","name":"ELM4241-EM-US-QBL-QBLS-NAQL-TRIAL-PROD-NA-CM-QBLFreeSetupinQBOFTU_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBLive FTU","current_status":"Active","total_email_sends_2m":47975,"canvas":4,"upstream":1,"dependency":5,"challenges_triggered":7,"total_elements":45,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":1,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"22492","name":"ELM4568-OM-US-QBOPR-NA-MULTPR-FTU-PROD-NA-EQ-PayrollHabitFTU60day_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Payroll FTU","current_status":"Active","total_email_sends_2m":70570,"canvas":4,"upstream":1,"dependency":2,"challenges_triggered":5,"total_elements":90,"emails":17,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"22820","name":"ELM5856-EM-US-BILLP-ELITE-MULTBP-USLL-PROMO-NA-EQ-BPEliteUpsellQ1FY24_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBPay & BillPay Evergreen","current_status":"Active","total_email_sends_2m":17255,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":5,"total_elements":24,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"23498","name":"ELM6013-EM-US-MC_QBOPR-NA-NA-XSLL-PROMO-NA-CM-MCEvergreen_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Evergreen","current_status":"Active","total_email_sends_2m":31497,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":5,"total_elements":37,"emails":3,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"23298","name":"ELM6602-EM-US-QBPAY-NA-PAASPY-XSLL-PROMO-NA-EQ-PDPEvergreen_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBPay & BillPay Evergreen","current_status":"Active","total_email_sends_2m":14007,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":6,"total_elements":35,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":1,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"25147","name":"ELM7266-OM-US-QBL-QBLAST-DOMEQL-WIN-PROD-NA-CM-QBLiveDIWMWinback_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBLive Evergreen","current_status":"Active","total_email_sends_2m":54788,"canvas":5,"upstream":1,"dependency":5,"challenges_triggered":6,"total_elements":95,"emails":6,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"27381","name":"ELM8331-EM-US-CPTL-NA-CACECL-XSLL-PROMO-NA-EQ-Marketplace2","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":285502,"canvas":4,"upstream":1,"dependency":5,"challenges_triggered":7,"total_elements":77,"emails":8,"p1_branching":1,"p2_loops":0,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":1,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"27474","name":"ELM8922-EM-US-CPTL-PQ-LIITCL-XSLL-PROMO-NA-EQ-LOC_Promo_APR_v2","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":592268,"canvas":4,"upstream":1,"dependency":5,"challenges_triggered":7,"total_elements":71,"emails":16,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":1,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":1,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"26776","name":"ELM8756-OM-US-QBO-QBOAV-NA-NA-RET-PROMO-NA-EQ-AnnualPlan_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":49690,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":5,"total_elements":23,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"120","name":"Standard Education Series Revamp Q1 2024","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":0,"canvas":5,"upstream":3,"dependency":2,"challenges_triggered":5,"total_elements":116,"emails":12,"p1_branching":1,"p2_loops":1,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":43,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"230","name":"Q4 2023 Product Launch Campaign","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":18490,"canvas":3,"upstream":2,"dependency":3,"challenges_triggered":4,"total_elements":58,"emails":7,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":15,"scc_size":1,"total_upstream_count":2,"max_chain_depth":1},{"eloqua_id":"18663","name":"ELM4120-EM-US-QBOPR-NA-NAPR-FTU-TRANS-NA-EQ-migratorReminderEmailUnsubs_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Payroll FTU","current_status":"Active","total_email_sends_2m":820,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":2,"total_elements":4,"emails":1,"p1_branching":0,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":0,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"17223","name":"ELM4203-EM-US-QBOPR-NA-NAPR-XSLL-PROMO-NA-EQ-QRSv1_3Test_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Payroll Evergreen","current_status":"Active","total_email_sends_2m":102393,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":18,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"25453","name":"ELM7789-OM-US-QBO-QBOAV-NA-NA-RET-PROMO-NA-EQ-AnnualPlanQ2FY25_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Evergreen","current_status":"Active","total_email_sends_2m":3223,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":5,"total_elements":30,"emails":3,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"23349","name":"ELM6902-EM-US-QBO-NA-NA-FTU-PROD-NA-EQ-DIWMAccountantAttached_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO FTU","current_status":"Active","total_email_sends_2m":6674,"canvas":2,"upstream":1,"dependency":5,"challenges_triggered":5,"total_elements":15,"emails":1,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"24737","name":"ELM4944-OM-US-QBOPR-NA-NAPR-USLL-PROMO-NA-EQ-TargOffPayrollUpg_BAprice_003_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBO Payroll Evergreen","current_status":"Active","total_email_sends_2m":3841,"canvas":3,"upstream":1,"dependency":5,"challenges_triggered":6,"total_elements":22,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":109,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"21401","name":"ELM5146-OM-US-MON-NA-MULTMO-FTU-PROD-NA-EQ-MoneyFTURevamp_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"Money, Cash & Checks FTU","current_status":"Active","total_email_sends_2m":644,"canvas":3,"upstream":1,"dependency":1,"challenges_triggered":4,"total_elements":48,"emails":14,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"25562","name":"ELM7940-OM-US-QBL-QBLT-NA-FTU-PROD-NA-CM-QBLiveTaxFTU_Evergreen","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"Yes","MOps_categorization":"QBLive FTU","current_status":"Active","total_email_sends_2m":17316,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":5,"total_elements":9,"emails":2,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"26295","name":"ELM8004-EM-US-QBDT-CH-NA-MULTDT-WIN-PROMO-NA-EQ-DesktopPlusWinback_trigger_002","instance":"GBSG","Geo":"GBSG US","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":40263,"canvas":3,"upstream":1,"dependency":1,"challenges_triggered":5,"total_elements":17,"emails":4,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":1,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"350","name":"Holiday Season Loyalty Rewards 2023","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":52100,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":3,"total_elements":18,"emails":5,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":6,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"410","name":"SMB Upsell Workflow Q3-FY24","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":9302,"canvas":4,"upstream":3,"dependency":4,"challenges_triggered":6,"total_elements":87,"emails":10,"p1_branching":1,"p2_loops":1,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":22,"scc_size":3,"total_upstream_count":3,"max_chain_depth":2},{"eloqua_id":"510","name":"Enterprise Trial-to-Paid Nurture","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":3840,"canvas":5,"upstream":4,"dependency":5,"challenges_triggered":8,"total_elements":134,"emails":18,"p1_branching":1,"p2_loops":1,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":0,"p8_error_routing":1,"p9_shared_assets":0,"p10_behavioral":1,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":57,"scc_size":2,"total_upstream_count":4,"max_chain_depth":3},{"eloqua_id":"580","name":"Core Activation Welcome Series","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":84000,"canvas":1,"upstream":1,"dependency":1,"challenges_triggered":2,"total_elements":8,"emails":3,"p1_branching":0,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":0,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":1,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"640","name":"B2B Mid-Market Renewal Reminder","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":0,"canvas":3,"upstream":2,"dependency":2,"challenges_triggered":5,"total_elements":44,"emails":6,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":1,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":8,"scc_size":1,"total_upstream_count":2,"max_chain_depth":1},{"eloqua_id":"700","name":"New User Onboarding Path — Self-Serve","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Active","total_email_sends_2m":126400,"canvas":2,"upstream":1,"dependency":1,"challenges_triggered":3,"total_elements":20,"emails":4,"p1_branching":1,"p2_loops":0,"p3_splits":0,"p4_waits":1,"p5_exits":1,"p6_jumps":0,"p7_micro_waits":0,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":2,"scc_size":1,"total_upstream_count":0,"max_chain_depth":0},{"eloqua_id":"760","name":"Partner Revenue Share Upsell Wave 2","instance":"Mailchimp","Geo":"Mailchimp","MOps_tracking":"N","current_status":"Paused","total_email_sends_2m":0,"canvas":4,"upstream":3,"dependency":4,"challenges_triggered":7,"total_elements":92,"emails":12,"p1_branching":1,"p2_loops":1,"p3_splits":1,"p4_waits":1,"p5_exits":1,"p6_jumps":1,"p7_micro_waits":1,"p8_error_routing":0,"p9_shared_assets":0,"p10_behavioral":0,"p11_multi_audience":0,"p12_update_rules":0,"inst_co_migration_count":31,"scc_size":2,"total_upstream_count":3,"max_chain_depth":2}];
+
+let filtered = [], sortCol = 'canvas', sortDir = -1;
+
+function init() {
+  populateSelect('f-inst', [...new Set(ALL.map(c=>c.instance))].sort());
+  populateSelect('f-geo',  [...new Set(ALL.map(c=>c.Geo||'(none)'))].sort());
+  populateSelect('f-mops', [...new Set(ALL.map(c=>c.MOps_tracking||'N'))].sort());
+  document.querySelectorAll('#filters select, #filters input').forEach(el => el.addEventListener('input', apply));
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    document.querySelectorAll('#filters select').forEach(s=>s.selectedIndex=0);
+    document.getElementById('search-inp').value='';
+    apply();
+  });
+  apply();
+}
+
+function populateSelect(id, vals) {
+  const sel = document.getElementById(id);
+  vals.forEach(v => { const o=document.createElement('option'); o.value=o.textContent=v; sel.appendChild(o); });
+}
+
+function apply() {
+  const q    = document.getElementById('search-inp').value.trim().toUpperCase();
+  const inst = document.getElementById('f-inst').value;
+  const geo  = document.getElementById('f-geo').value;
+  const mops = document.getElementById('f-mops').value;
+  const sends= document.getElementById('f-sends').value;
+  const fc   = document.getElementById('f-canvas').value;
+  const fu   = document.getElementById('f-up').value;
+  const fd   = document.getElementById('f-dep').value;
+
+  filtered = ALL.filter(c => {
+    if (q && !c.name?.toUpperCase().includes(q) && !String(c.eloqua_id).includes(q)) return false;
+    if (inst && c.instance !== inst) return false;
+    if (geo  && (c.Geo||'(none)') !== geo) return false;
+    if (mops && (c.MOps_tracking||'N') !== mops) return false;
+    if (sends==='yes' && !(c.total_email_sends_2m>0)) return false;
+    if (sends==='no'  &&   c.total_email_sends_2m>0)  return false;
+    if (fc && c.canvas!=fc) return false;
+    if (fu && c.upstream!=fu) return false;
+    if (fd && c.dependency!=fd) return false;
+    return true;
+  });
+  renderSummary(); renderDist(); renderTable();
+}
+
+function renderSummary() {
+  const n = filtered.length;
+  document.getElementById('h-showing').textContent = n;
+  document.getElementById('h-total').textContent = ALL.length;
+  const avg = k => n ? (filtered.reduce((s,c)=>s+(c[k]||0),0)/n).toFixed(1) : '-';
+  const totalSends = filtered.reduce((s,c)=>s+(c.total_email_sends_2m||0),0);
+  const withSends  = filtered.filter(c=>c.total_email_sends_2m>0).length;
+  const inLoop     = filtered.filter(c=>(c.scc_size||1)>1).length;
+  const avgC = avg('canvas'), avgU = avg('upstream'), avgD = avg('dependency');
+  document.getElementById('summary').innerHTML = `
+    <div class="sc"><div class="lbl">Campaigns</div><div class="val v-blue">${n}</div><div class="sub">of ${ALL.length} total</div></div>
+    <div class="sc"><div class="lbl">Avg Canvas</div><div class="val" style="color:${COLORS[Math.round(avgC)]}">${avgC}</div><div class="sub">complexity (1–5)</div></div>
+    <div class="sc"><div class="lbl">Avg Upstream</div><div class="val" style="color:${COLORS[Math.round(avgU)]}">${avgU}</div><div class="sub">chain complexity</div></div>
+    <div class="sc"><div class="lbl">Avg Dependency</div><div class="val" style="color:${COLORS[Math.round(avgD)]}">${avgD}</div><div class="sub">coupling score</div></div>
+    <div class="sc"><div class="lbl">Total Sends</div><div class="val v-green">${totalSends>=1e6?(totalSends/1e6).toFixed(1)+'M':totalSends>=1000?(totalSends/1000).toFixed(0)+'K':totalSends}</div><div class="sub">${withSends} campaigns with sends</div></div>
+    <div class="sc"><div class="lbl">In Loops</div><div class="val v-orange">${inLoop}</div><div class="sub">SCC cycle membership</div></div>
+  `;
+}
+
+function renderDist() {
+  const n = filtered.length||1;
+  function distHtml(title, key) {
+    const cnts=[0,0,0,0,0,0]; filtered.forEach(c=>{const v=c[key]||0;if(v>=1&&v<=5)cnts[v]++;});
+    const max = Math.max(...cnts.slice(1))||1;
+    let h=`<h3>${title}</h3>`;
+    for(let i=1;i<=5;i++){
+      const w=(cnts[i]/max*100).toFixed(0);
+      h+=`<div class="bar-row">
+        <span class="bar-label"><span class="pill pill-${i}">${i}</span> ${LABELS[key][i]}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${w}%;background:${COLORS[i]}"></div></div>
+        <span class="bar-count">${cnts[i]} <span style="color:var(--text-light)">(${(cnts[i]/n*100).toFixed(0)}%)</span></span>
+      </div>`;
+    }
+    return h;
+  }
+  document.getElementById('distributions').innerHTML = `
+    <div class="dc">${distHtml('Canvas Complexity','canvas')}</div>
+    <div class="dc">${distHtml('Upstream Complexity','upstream')}</div>
+    <div class="dc">${distHtml('Dependency Complexity','dependency')}</div>
+  `;
+}
+
+function renderTable() {
+  filtered.sort((a,b)=>{
+    let va=a[sortCol],vb=b[sortCol];
+    if(va==null)va=sortDir>0?Infinity:-Infinity;
+    if(vb==null)vb=sortDir>0?Infinity:-Infinity;
+    if(typeof va==='string')return sortDir*va.localeCompare(vb);
+    return sortDir*(va-vb);
+  });
+  const cols=[
+    {key:'name',label:'Campaign',w:'300px'},
+    {key:'instance',label:'Inst',w:'65px'},
+    {key:'canvas',label:'Canvas',w:'58px'},
+    {key:'upstream',label:'Upstream',w:'58px'},
+    {key:'dependency',label:'Depend.',w:'58px'},
+    {key:'challenges_triggered',label:'Challenges',w:'52px'},
+    {key:'total_elements',label:'Elements',w:'60px'},
+    {key:'total_email_sends_2m',label:'Sends 12m',w:'80px'},
+    {key:'Geo',label:'Geo',w:'80px'},
+    {key:'MOps_tracking',label:'MOps',w:'48px'},
+  ];
+  document.querySelector('#tbl thead').innerHTML='<tr>'+cols.map(c=>{
+    const arr=sortCol===c.key?`<span class="sort-arrow">${sortDir>0?'▲':'▼'}</span>`:'';
+    return `<th data-col="${c.key}" style="width:${c.w}">${c.label}${arr}</th>`;
+  }).join('')+'</tr>';
+  document.querySelectorAll('#tbl th').forEach(th=>{
+    th.addEventListener('click',()=>{
+      const col=th.dataset.col;
+      if(sortCol===col)sortDir*=-1; else{sortCol=col;sortDir=col==='name'?1:-1;}
+      renderTable();
+    });
+  });
+  const tbody=document.querySelector('#tbl tbody');
+  tbody.innerHTML=filtered.map(c=>`
+    <tr data-id="${c.eloqua_id}" style="cursor:pointer">
+      <td class="name-cell" title="${(c.name||'').replace(/"/g,'&quot;')}">${c.name||c.eloqua_id}</td>
+      <td class="${c.instance==='GBSG'?'inst-gbsg':'inst-mc'}">${c.instance}</td>
+      <td class="score-cell"><span class="pill pill-${c.canvas}">${c.canvas}</span></td>
+      <td class="score-cell"><span class="pill pill-${c.upstream||1}">${c.upstream||'-'}</span></td>
+      <td class="score-cell"><span class="pill pill-${c.dependency||1}">${c.dependency||'-'}</span></td>
+      <td class="score-cell" style="color:var(--text-muted)">${c.challenges_triggered||0}</td>
+      <td class="sends-cell">${c.total_elements||0}</td>
+      <td class="sends-cell ${c.total_email_sends_2m>0?'sends-pos':''}">${c.total_email_sends_2m?c.total_email_sends_2m.toLocaleString():'-'}</td>
+      <td class="tag-cell">${c.Geo||'-'}</td>
+      <td class="tag-cell">${c.MOps_tracking==='Yes'?'<span style="color:var(--green);font-weight:600">Yes</span>':'<span style="color:var(--text-light)">N</span>'}</td>
+    </tr>`).join('');
+  tbody.querySelectorAll('tr').forEach(tr=>tr.addEventListener('click',()=>{
+    const c=filtered.find(x=>String(x.eloqua_id)===tr.dataset.id);
+    if(c) showDetail(c);
+  }));
+}
+
+function showDetail(c) {
+  const challenges = P_KEYS.map((k,i)=>`<span class="c-tag ${c[k]?'c-on':'c-off'}">${P_LABELS[i]}</span>`).join('');
+  document.getElementById('panel-content').innerHTML=`
+    <div class="p-meta" style="margin-bottom:4px">${c.instance} · ID: ${c.eloqua_id} · ${c.current_status||'Unknown'}</div>
+    <div class="p-name">${c.name}</div>
+    <div class="p-meta">${c.Geo||'No geo'} · MOps: ${c.MOps_tracking||'N'}${c.MOps_categorization?' · '+c.MOps_categorization:''}</div>
+    <div class="p-scores">
+      <div class="p-score"><div class="pv" style="color:${COLORS[c.canvas]}">${c.canvas}</div><div class="pl">Canvas</div></div>
+      <div class="p-score"><div class="pv" style="color:${COLORS[c.upstream||1]}">${c.upstream||'-'}</div><div class="pl">Upstream</div></div>
+      <div class="p-score"><div class="pv" style="color:${COLORS[c.dependency||1]}">${c.dependency||'-'}</div><div class="pl">Dependency</div></div>
+    </div>
+    <div class="p-section">
+      <h4>Challenges Triggered (${c.challenges_triggered||0}/12)</h4>
+      <div class="c-tags">${challenges}</div>
+    </div>
+    <div class="p-section">
+      <h4>Canvas Metrics</h4>
+      <div class="p-row"><span class="k">Total elements</span><span class="v">${c.total_elements??'-'}</span></div>
+      <div class="p-row"><span class="k">Emails</span><span class="v">${c.emails??'-'}</span></div>
+      <div class="p-row"><span class="k">SCC loop size</span><span class="v" style="color:${(c.scc_size||1)>1?'var(--red)':'var(--text-light)'}">${(c.scc_size||1)>1?c.scc_size:'-'}</span></div>
+    </div>
+    <div class="p-section">
+      <h4>Upstream Metrics</h4>
+      <div class="p-row"><span class="k">Total upstream nodes</span><span class="v">${c.total_upstream_count??'-'}</span></div>
+      <div class="p-row"><span class="k">Max chain depth</span><span class="v">${c.max_chain_depth??'-'}</span></div>
+    </div>
+    <div class="p-section">
+      <h4>Dependency Metrics</h4>
+      <div class="p-row"><span class="k">Co-migration campaigns</span><span class="v" style="color:${(c.inst_co_migration_count||0)>10?'var(--orange)':'inherit'}">${c.inst_co_migration_count??'-'}</span></div>
+    </div>
+    <div class="p-section">
+      <h4>Send Activity</h4>
+      <div class="p-row"><span class="k">Total sends (12m)</span><span class="v" style="color:${c.total_email_sends_2m>0?'var(--green)':'var(--text-light)'}">${c.total_email_sends_2m?c.total_email_sends_2m.toLocaleString():'None'}</span></div>
+    </div>
+  `;
+  document.getElementById('panel').classList.add('open');
+}
+
+document.getElementById('panel-close').addEventListener('click',()=>document.getElementById('panel').classList.remove('open'));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('panel').classList.remove('open');});
+init();
+</script>
+</body>
+</html>

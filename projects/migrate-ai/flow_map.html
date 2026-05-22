@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MigrateIQ — ELM5334 Dependency Flow Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F9FAFB; --bg-card: #FFFFFF; --bg-subtle: #F3F4F6;
+  --border: #E5E7EB; --text: #111827; --text-muted: #6B7280; --text-light: #9CA3AF;
+  --accent: #2563EB; --green: #059669; --red: #DC2626; --orange: #D97706; --purple: #7C3AED;
+  --amber: #B45309;
+}
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+#header { position: relative; z-index: 100; background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; }
+.logo { font-size: 16px; font-weight: 800; text-decoration: none; letter-spacing: -.02em; }
+.logo-m { color: var(--accent); } .logo-iq { color: var(--green); }
+.h-title { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+.h-sep { width: 1px; height: 18px; background: var(--border); }
+.back-link { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-muted); text-decoration: none; padding: 5px 10px; border: 1px solid var(--border); border-radius: 7px; transition: all .15s; margin-left: auto; white-space: nowrap; }
+.back-link:hover { background: var(--bg-subtle); color: var(--text); }
+.h-stat { font-size: 11px; color: var(--text-light); }
+.h-stat b { color: var(--text); font-weight: 600; }
+
+#controls { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 8px 20px; display: flex; gap: 10px; align-items: center; flex-shrink: 0; flex-wrap: wrap; }
+.ctrl-group { display: flex; align-items: center; gap: 6px; }
+.ctrl-label { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; white-space: nowrap; }
+select.ctrl-sel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 4px 8px; font-size: 12px; font-family: inherit; -webkit-appearance: none; }
+select.ctrl-sel:focus { outline: none; border-color: var(--accent); }
+.ctrl-sep { width: 1px; height: 20px; background: var(--border); }
+.btn { background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); padding: 4px 10px; font-size: 11px; font-weight: 500; cursor: pointer; font-family: inherit; transition: all .15s; white-space: nowrap; }
+.btn:hover { border-color: var(--accent); color: var(--accent); }
+.btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+#main { flex: 1; position: relative; overflow: hidden; }
+svg#graph { width: 100%; height: 100%; cursor: grab; }
+svg#graph:active { cursor: grabbing; }
+
+#legend { position: absolute; bottom: 16px; left: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 11px; box-shadow: 0 4px 16px rgba(0,0,0,.06); min-width: 170px; }
+#legend h4 { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; font-weight: 600; }
+.leg-row { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; color: var(--text-muted); }
+.leg-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+.leg-sq { width: 12px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+
+#panel { position: absolute; top: 0; right: -380px; width: 380px; height: 100%; background: var(--bg-card); border-left: 1px solid var(--border); z-index: 50; overflow-y: auto; transition: right .3s; padding: 20px; box-shadow: -4px 0 24px rgba(0,0,0,.07); }
+#panel.open { right: 0; }
+#panel-close { position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-light); padding: 4px; line-height: 1; }
+#panel-close:hover { color: var(--text); }
+.p-type-badge { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.p-name { font-size: 13.5px; font-weight: 700; word-break: break-word; margin-bottom: 3px; color: var(--text); }
+.p-meta { font-size: 11px; color: var(--text-light); margin-bottom: 14px; }
+.p-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.p-metric { background: var(--bg-subtle); border-radius: 7px; padding: 10px 12px; }
+.p-metric .mv { font-size: 22px; font-weight: 800; line-height: 1; }
+.p-metric .ml { font-size: 9px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; font-weight: 600; }
+.p-section { margin-bottom: 14px; }
+.p-section h4 { font-size: 10px; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; font-weight: 600; }
+.p-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 11.5px; border-bottom: 1px solid var(--bg-subtle); }
+.p-row .k { color: var(--text-muted); } .p-row .v { color: var(--text); font-weight: 600; }
+
+#zoom-controls { position: absolute; bottom: 16px; right: 16px; display: flex; flex-direction: column; gap: 4px; }
+.zoom-btn { width: 32px; height: 32px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 7px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: all .15s; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.node { cursor: pointer; }
+.node circle, .node rect { transition: filter .15s; }
+.node:hover circle, .node:hover rect { filter: brightness(0.88); }
+.node-label { font-family: 'Inter', sans-serif; pointer-events: none; user-select: none; }
+.edge { fill: none; marker-end: url(#arrow); }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <a class="logo" href="index.html"><span class="logo-m">Migrate</span><span class="logo-iq">IQ</span></a>
+  <div class="h-sep"></div>
+  <span class="h-title">ELM5334 · Campaign Dependency Graph</span>
+  <div class="h-stat"><b>125</b> nodes · <b>214</b> edges · <b>7</b> depth layers · <b>24</b> in loops</div>
+  <a href="../../index.html#projects" class="back-link">← Portfolio</a>
+</div>
+
+<div id="controls">
+  <div class="ctrl-group">
+    <span class="ctrl-label">Color by</span>
+    <select class="ctrl-sel" id="color-mode">
+      <option value="type">Node Type</option>
+      <option value="prod">Product</option>
+      <option value="depth">Depth Layer</option>
+      <option value="loop">Loop / SCC</option>
+      <option value="role">Role (root/seed/terminal)</option>
+    </select>
+  </div>
+  <div class="ctrl-sep"></div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Layout</span>
+    <select class="ctrl-sel" id="layout-mode">
+      <option value="depth">Depth Layers</option>
+      <option value="force">Force-Directed</option>
+    </select>
+  </div>
+  <div class="ctrl-sep"></div>
+  <div class="ctrl-group">
+    <span class="ctrl-label">Filter</span>
+    <select class="ctrl-sel" id="filter-mode">
+      <option value="all">All nodes</option>
+      <option value="seed">Seed cluster only</option>
+      <option value="loop">In loops (SCC&gt;1)</option>
+    </select>
+  </div>
+  <div class="ctrl-sep"></div>
+  <button class="btn" id="btn-labels">Labels: Short</button>
+  <button class="btn" id="btn-reset">Reset View</button>
+</div>
+
+<div id="main">
+  <svg id="graph">
+    <defs>
+      <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L6,3 z" fill="#CBD5E1"/>
+      </marker>
+      <marker id="arrow-loop" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+        <path d="M0,0 L0,6 L6,3 z" fill="#FCA5A5"/>
+      </marker>
+    </defs>
+  </svg>
+
+  <div id="legend">
+    <h4>Legend</h4>
+    <div id="legend-items"></div>
+  </div>
+
+  <div id="panel">
+    <button id="panel-close">&times;</button>
+    <div id="panel-content"></div>
+  </div>
+
+  <div id="zoom-controls">
+    <button class="zoom-btn" id="zoom-in">+</button>
+    <button class="zoom-btn" id="zoom-out">−</button>
+    <button class="zoom-btn" id="zoom-fit" title="Fit to screen" style="font-size:12px">⊞</button>
+  </div>
+</div>
+
+<script>
+const FLOW_DATA={"nodes":[{"id":"n0","nid":"1280","ntype":"campaign","depth":0,"name":"ELM2933-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-FTUDTMCampaign_Evergreen","short":"ELM2933 · NAQB FTUDTMCampaign Evergreen","prod":"qbo","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":53198},{"id":"n1","nid":"18243","ntype":"campaign","depth":0,"name":"ELM2933-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-FTU_Delayed","short":"ELM2933 · QBO NAQB Delayed","prod":"qbo","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":2,"scc_size":1,"pagerank":0.000256,"email_sends_2m":0},{"id":"n2","nid":"19080","ntype":"campaign","depth":0,"name":"ELM4241-EM-US-QBL-QBLS-NAQL-TRIAL-PROD-NA-CM-QBLFreeSetupinQBOFTU_Evergreen","short":"ELM4241 · NAQL QBLFreeSetupinQBOFTU","prod":"other","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":47975},{"id":"n3","nid":"19604","ntype":"campaign","depth":0,"name":"ELM5421-OM-US-QBM-NA-NAQM-FTU-PROD-NA-EQ-QBMFTUrebuild_Evergreen","short":"ELM5421 · NAQM QBMFTUrebuild","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.001283,"email_sends_2m":79663},{"id":"n4","nid":"20380","ntype":"campaign","depth":0,"name":"ELM3567-OM-US-QBOAV-NA-MULTAV-RET-PROD-NA-EQ-QBOAVPostFTU_Automation_Evergreen","short":"ELM3567 · QBOAVPostFTU Automation","prod":"qboav","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":24882},{"id":"n5","nid":"23349","ntype":"campaign","depth":0,"name":"ELM6902-EM-US-QBO-NA-NA-FTU-PROD-NA-EQ-DIWMAccountantAttached_Evergreen","short":"ELM6902 · DIWMAccountantAttached","prod":"qbo","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":6674},{"id":"n6","nid":"26351","ntype":"campaign","depth":0,"name":"ELM7770-EM-US-QBM_QBO-SS-MULTQM-TRIAL-PROD-NA-EQ-ConversionOptimizations_Evergreen","short":"ELM7770 · ConversionOptimizations","prod":"other","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000615,"email_sends_2m":107502},{"id":"n7","nid":"26405","ntype":"campaign","depth":0,"name":"ELM7078-OM-US-QBM-NA-NAQM-FTU-PROD-NA-EQ-FinishSignUp_Evergreen","short":"ELM7078 · NAQM FinishSignUp","prod":"other","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000893,"email_sends_2m":0},{"id":"n8","nid":"27121","ntype":"campaign","depth":0,"name":"ELM5779-OM-US-BILLP-NA-NA-RET-PROD-NA-EQ-BillPayBuildingHabitsPostFTU_HUB","short":"ELM5779 · BillPay PostFTU HUB","prod":"qbopr","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":0},{"id":"n9","nid":"27515","ntype":"campaign","depth":0,"name":"ELM9120-EM-US-QBO-QBFREE-NA-FTU-PROD-NA-EQ-QBOFreeFTU","short":"ELM9120 · QBO QBFREE QBOFreeFTU","prod":"qbo","central":false,"is_seed":false,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":89031},{"id":"n10","nid":"20097","ntype":"campaign","depth":1,"name":"ELM5334-EM-US-QBOP-NA-NA-FTU-PROD-NA-EQ-PayrollStandaloneFeederPart2","short":"ELM5334 · PayrollStandaloneFeederPart2","prod":"qbopr","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":1,"outbound":8,"scc_size":1,"pagerank":0.000608,"email_sends_2m":0},{"id":"n11","nid":"26023","ntype":"campaign","depth":1,"name":"ELM5334 FTU Controller_Part1_oBillCDOProgramAddOnFeeder","short":"ELM5334 · Controller Part1 oBillCDO Feeder","prod":"controller","central":false,"is_seed":true,"is_root":1,"is_terminal":0,"inbound":0,"outbound":1,"scc_size":1,"pagerank":0.000256,"email_sends_2m":0},{"id":"n12","nid":"1629","ntype":"program","depth":1,"name":"ELM5334 FTU Controller_Part1_oBillCDOProgram","short":"ELM5334 · Controller Part1 oBillCDO","prod":"controller","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":1,"outbound":3,"scc_size":4,"pagerank":0.000354,"email_sends_2m":0},{"id":"n13","nid":"1780","ntype":"program","depth":1,"name":"ELM5334 FTU Controller_Part2_ContactProgram","short":"ELM5334 · Controller Part2 ★CENTRAL★","prod":"controller","central":true,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":4,"outbound":11,"scc_size":4,"pagerank":0.00127,"email_sends_2m":0},{"id":"n14","nid":"1782","ntype":"program","depth":1,"name":"ELM5334 FTU Controller_Part3_GTKMCDOProgram","short":"ELM5334 · Controller Part3 GTKMCDO","prod":"controller","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":4,"pagerank":0.000354,"email_sends_2m":0},{"id":"n15","nid":"1785","ntype":"program","depth":1,"name":"ELM5334 FTU Controller_Part4_DailyEligibilityCheck","short":"ELM5334 · Controller Part4 DailyEligibility","prod":"controller","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":4,"pagerank":0.000406,"email_sends_2m":0},{"id":"n16","nid":"1833","ntype":"program","depth":1,"name":"ELM5334-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-AdvancedHub","short":"ELM5334 · QBOAV AdvancedHub","prod":"qboav","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":3,"outbound":4,"scc_size":1,"pagerank":0.000439,"email_sends_2m":0},{"id":"n17","nid":"1851","ntype":"program","depth":1,"name":"ELM5334-EM-US-QBOP-NA-NA-FTU-PROD-NA-EQ-PayrollStandaloneFeeder","short":"ELM5334 · PayrollStandaloneFeeder","prod":"qbopr","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":2,"outbound":1,"scc_size":1,"pagerank":0.000414,"email_sends_2m":0},{"id":"n18","nid":"1864","ntype":"program","depth":1,"name":"ELM5334-OM-US-QBO_QBOPR_QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirmsFeeder","short":"ELM5334 · EPOPTierAEmpFirmsFeeder","prod":"qbopr","central":false,"is_seed":true,"is_root":0,"is_terminal":0,"inbound":1,"outbound":5,"scc_size":1,"pagerank":0.000354,"email_sends_2m":0},{"id":"n19","nid":"15218","ntype":"campaign","depth":2,"name":"ELM2933-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-FTUHubv2_Evergreen","short":"ELM2933 · NAQB FTUHubv2","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":12,"scc_size":1,"pagerank":0.000354,"email_sends_2m":219970},{"id":"n20","nid":"15384","ntype":"campaign","depth":2,"name":"[unknown campaign 15384]","short":"[unknown 15384]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000354,"email_sends_2m":0},{"id":"n21","nid":"20115","ntype":"campaign","depth":2,"name":"ELM4374-OM-US-QBO_QBOPR_QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_Hubv2_Evergreen","short":"ELM4374 · EPOPTierAEmpFirms Hubv2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":7,"outbound":14,"scc_size":10,"pagerank":0.000977,"email_sends_2m":24207},{"id":"n22","nid":"20342","ntype":"campaign","depth":2,"name":"ELM3892-EM-US-QBOPR-NA-MULTPR-FTU-PROD-NA-EQ-Core_Evergreen","short":"ELM3892 · MULTPR Core","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":5,"outbound":5,"scc_size":10,"pagerank":0.000732,"email_sends_2m":35183},{"id":"n23","nid":"20344","ntype":"campaign","depth":2,"name":"ELM3892-EM-US-QBOPR-NA-MULTPR-FTU-PROD-NA-EQ-Premium_Evergreen","short":"ELM3892 · MULTPR Premium","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":5,"outbound":5,"scc_size":10,"pagerank":0.000732,"email_sends_2m":9598},{"id":"n24","nid":"20345","ntype":"campaign","depth":2,"name":"ELM3892-EM-US-QBOPR-NA-MULTPR-FTU-PROD-NA-EQ-Elite_Evergreen","short":"ELM3892 · MULTPR Elite","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":4,"outbound":4,"scc_size":10,"pagerank":0.000555,"email_sends_2m":12871},{"id":"n25","nid":"21597","ntype":"campaign","depth":2,"name":"ELM5770-EM-US-QBOAV-NA-NA-TRIAL-PROD-NA-EQ-CCRequiredFTU_Evergreen","short":"ELM5770 · QBOAV CCRequiredFTU","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000349,"email_sends_2m":16425},{"id":"n26","nid":"23129","ntype":"campaign","depth":2,"name":"[unknown campaign 23129]","short":"[unknown 23129]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":2,"outbound":0,"scc_size":1,"pagerank":0.000414,"email_sends_2m":0},{"id":"n27","nid":"8321","ntype":"campaign","depth":2,"name":"ELM44878-EM-US-QBOPR-CORE-NAPR-FTU-PROD-NA-EQ-Unsub_Evergreen","short":"ELM44878 · NAPR Unsub","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.00032,"email_sends_2m":1733},{"id":"n28","nid":"8694","ntype":"campaign","depth":2,"name":"ELM44879-EM-US-QBOPR-PREM-NAPR-FTU-PROD-NA-EQ-Unsub_Evergreen","short":"ELM44879 · NAPR Unsub Prem","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":2,"outbound":0,"scc_size":1,"pagerank":0.000445,"email_sends_2m":381},{"id":"n29","nid":"8695","ntype":"campaign","depth":2,"name":"ELM45183-EM-US-QBOPR-ELITE-NAPR-FTU-PROD-NA-EQ-Unsub_Evergreen","short":"ELM45183 · NAPR Unsub Elite","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":2,"outbound":0,"scc_size":1,"pagerank":0.000438,"email_sends_2m":584},{"id":"n30","nid":"1326","ntype":"cdo","depth":2,"name":"Global_ALL_RT_Billing _EVRGRN","short":"CDO: Billing EVRGRN","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":3,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n31","nid":"44","ntype":"cdo","depth":2,"name":"US QBO Contact CDO","short":"CDO: US QBO Contact","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":7,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n32","nid":"1364","ntype":"program","depth":2,"name":"ELM43109-EM-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Branchv3_IXP Part 1","short":"ELM43109 · Branchv3 IXP Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":1,"scc_size":1,"pagerank":0.000453,"email_sends_2m":0},{"id":"n33","nid":"1829","ntype":"program","depth":2,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-TRIAL-PROD-NA-EQ-TrialersFeederPt1","short":"ELM4175 · TrialersFeederPt1","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":3,"scc_size":1,"pagerank":0.000349,"email_sends_2m":0},{"id":"n34","nid":"1835","ntype":"program","depth":2,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-NTTFSubscribersFeederPt1","short":"ELM4175 · NTTFSubscribersFeederPt1","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":3,"scc_size":1,"pagerank":0.000349,"email_sends_2m":0},{"id":"n35","nid":"1837","ntype":"program","depth":2,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-DTMTrialersFeederPt1","short":"ELM4175 · DTMTrialersFeederPt1","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":2,"scc_size":1,"pagerank":0.000684,"email_sends_2m":0},{"id":"n36","nid":"2004","ntype":"program","depth":2,"name":"ELM4510_IXP_QBO_CONTACT-20231017","short":"ELM4510 · IXP QBO CONTACT","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.00032,"email_sends_2m":0},{"id":"n37","nid":"2403","ntype":"program","depth":2,"name":"ELM5790-EM-US-QBO-SOLO-MULTQB-FTU-PROD-NA-EQ-SPSKUFTU Hub","short":"ELM5790 · SPSKUFTU Hub","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":7,"scc_size":1,"pagerank":0.000354,"email_sends_2m":0},{"id":"n38","nid":"2598","ntype":"program","depth":2,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUController_Hub","short":"ELM3666 · FTUController Hub","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":2,"scc_size":1,"pagerank":0.000414,"email_sends_2m":0},{"id":"n39","nid":"3364","ntype":"program","depth":2,"name":"ELM9312-EM-US-QBO-QBLITE-MULTQB-FTU-PROD-NA-EQ-QBLiteFTU Hub","short":"ELM9312 · QBLiteFTU Hub","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":1,"pagerank":0.000354,"email_sends_2m":0},{"id":"n40","nid":"13689","ntype":"campaign","depth":3,"name":"[unknown campaign 13689]","short":"[unknown 13689]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000315,"email_sends_2m":0},{"id":"n41","nid":"14489","ntype":"campaign","depth":3,"name":"ELM2933-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-Sub_Evergreen","short":"ELM2933 · NAQB Sub","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":4,"outbound":3,"scc_size":2,"pagerank":0.000497,"email_sends_2m":91930},{"id":"n42","nid":"14576","ntype":"campaign","depth":3,"name":"ELM2933-EM-US-QBO-NA-NAQB-TRIAL-PROD-NA-EQ-Trial_Evergreen","short":"ELM2933 · NAQB Trial","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":3,"scc_size":1,"pagerank":0.000449,"email_sends_2m":57986},{"id":"n43","nid":"17202","ntype":"campaign","depth":3,"name":"ELM44821-EM-US-QBOPR-NA-NAPR-FTU-PROD-NA-EQ-NurtureBranchv2","short":"ELM44821 · NurtureBranchv2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":4,"scc_size":10,"pagerank":0.000622,"email_sends_2m":0},{"id":"n44","nid":"18537","ntype":"campaign","depth":3,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUStandaloneHub","short":"ELM3666 · FTUStandaloneHub","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":6,"scc_size":1,"pagerank":0.000432,"email_sends_2m":0},{"id":"n45","nid":"18936","ntype":"campaign","depth":3,"name":"[unknown campaign 18936]","short":"[unknown 18936]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000482,"email_sends_2m":0},{"id":"n46","nid":"19020","ntype":"campaign","depth":3,"name":"ELM4374-OM-US-QBO-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_Evergreen","short":"ELM4374 · QBO EPOPTierA","prod":"epop","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":3,"scc_size":4,"pagerank":0.000809,"email_sends_2m":151941},{"id":"n47","nid":"19023","ntype":"campaign","depth":3,"name":"ELM4374-OM-US-QBOPR-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_Evergreen","short":"ELM4374 · QBOPR EPOPTierA","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":4,"scc_size":4,"pagerank":0.000888,"email_sends_2m":161630},{"id":"n48","nid":"19090","ntype":"campaign","depth":3,"name":"ELM4374-OM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_Evergreen","short":"ELM4374 · QBTIME EPOPTierA","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":4,"outbound":3,"scc_size":4,"pagerank":0.001077,"email_sends_2m":4304},{"id":"n49","nid":"19091","ntype":"campaign","depth":3,"name":"[unknown campaign 19091]","short":"[unknown 19091]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.00038,"email_sends_2m":0},{"id":"n50","nid":"19154","ntype":"campaign","depth":3,"name":"[unknown campaign 19154]","short":"[unknown 19154]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000281,"email_sends_2m":0},{"id":"n51","nid":"20060","ntype":"campaign","depth":3,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-TRIAL-PROD-NA-EQ-Trialers_Evergreen","short":"ELM4175 · MULTAV Trialers","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":3,"scc_size":10,"pagerank":0.000487,"email_sends_2m":1032},{"id":"n52","nid":"20711","ntype":"campaign","depth":3,"name":"ELM4510-OM-US-QBOPR-NA-NAPR-RET-PROD-NA-CM-CorePremPayrollAssistedOnboardingHAJPhase2_Evergreen","short":"ELM4510 · CorePremPayroll HAJ Phase2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":3,"scc_size":10,"pagerank":0.000625,"email_sends_2m":0},{"id":"n53","nid":"21301","ntype":"campaign","depth":3,"name":"ELM4374-OM-US-QBOAV-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirmsADVv2_Evergreen","short":"ELM4374 · QBOAV EPOPTierADV v2","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":3,"outbound":2,"scc_size":4,"pagerank":0.000809,"email_sends_2m":3895},{"id":"n54","nid":"21411","ntype":"campaign","depth":3,"name":"ELM3922-OM-US-QBO_QBPAY-NA-NAQB-FTU-PROD-NA-EQ-Personalize_UBF_QBO_FTUv2_Evergreen","short":"ELM3922 · QBO FTUv2","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":1,"pagerank":0.000281,"email_sends_2m":186627},{"id":"n55","nid":"21974","ntype":"campaign","depth":3,"name":"[unknown campaign 21974]","short":"[unknown 21974]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000281,"email_sends_2m":0},{"id":"n56","nid":"22724","ntype":"campaign","depth":3,"name":"[unknown campaign 22724]","short":"[unknown 22724]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":3,"outbound":0,"scc_size":1,"pagerank":0.000622,"email_sends_2m":0},{"id":"n57","nid":"22791","ntype":"campaign","depth":3,"name":"ELM5790-EM-US-QBO-SOLO-MULTQB-FTU-PROD-NA-EQ-SPSKUFTU_Evergreen","short":"ELM5790 · MULTQB SPSKUFTU","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000299,"email_sends_2m":28770},{"id":"n58","nid":"24926","ntype":"campaign","depth":3,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_Evergreen","short":"ELM6506 · QBMFTUSPSku","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":4,"outbound":0,"scc_size":1,"pagerank":0.000957,"email_sends_2m":117467},{"id":"n59","nid":"24931","ntype":"campaign","depth":3,"name":"ELM6029-OM-US-QBO-NA-NA-RET-PROD-NA-EQ-IntuitAssistGA","short":"ELM6029 · IntuitAssistGA","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":5,"outbound":0,"scc_size":1,"pagerank":0.001113,"email_sends_2m":239368},{"id":"n60","nid":"25000","ntype":"campaign","depth":3,"name":"ELM4876-OM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-Invoicing_Personalize_FTU_QBOv2_Evergreen","short":"ELM4876 · Invoicing Personalize","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":1,"pagerank":0.000281,"email_sends_2m":25405},{"id":"n61","nid":"27464","ntype":"campaign","depth":3,"name":"ELM9312-EM-US-QBO-QBLITE-MULTQB-FTU-PROD-NA-EQ-QBLiteFTU","short":"ELM9312 · QBLiteFTU","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000406,"email_sends_2m":5302},{"id":"n62","nid":"1363","ntype":"program","depth":3,"name":"ELM43109-EM-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Branchv3_IXP Part 2","short":"ELM43109 · Branchv3 IXP Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000641,"email_sends_2m":0},{"id":"n63","nid":"1621","ntype":"program","depth":3,"name":"ELM4374-OM-US-QBO_QBOPR_QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_IXP Pt1","short":"ELM4374 · EPOPTierA IXP Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000315,"email_sends_2m":0},{"id":"n64","nid":"1627","ntype":"program","depth":3,"name":"ELM4374-OM-US-QBO-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_EnRouteFeeder","short":"ELM4374 · EnRouteFeeder","prod":"epop","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":5,"scc_size":1,"pagerank":0.000315,"email_sends_2m":0},{"id":"n65","nid":"1828","ntype":"program","depth":3,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-TRIAL-PROD-NA-EQ-TrialerFeederPt2","short":"ELM4175 · TrialerFeederPt2","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":1,"pagerank":0.000404,"email_sends_2m":0},{"id":"n66","nid":"1834","ntype":"program","depth":3,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-NTTFSubscribersFeederPt2","short":"ELM4175 · NTTFSubscribersFeederPt2","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":3,"scc_size":10,"pagerank":0.000463,"email_sends_2m":0},{"id":"n67","nid":"1836","ntype":"program","depth":3,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-DTMTrialersFeederPt2","short":"ELM4175 · DTMTrialersFeederPt2","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":2,"scc_size":1,"pagerank":0.000975,"email_sends_2m":0},{"id":"n68","nid":"2003","ntype":"program","depth":3,"name":"ELM4510_IXP_QBO_CDO-20231017","short":"ELM4510 · IXP QBO CDO","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000528,"email_sends_2m":0},{"id":"n69","nid":"2252","ntype":"program","depth":3,"name":"[unknown program 2252]","short":"[unknown prog 2252]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":4,"outbound":0,"scc_size":1,"pagerank":0.000668,"email_sends_2m":0},{"id":"n70","nid":"2683","ntype":"program","depth":3,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_Android_Part_1","short":"ELM6506 · Android Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":3,"scc_size":2,"pagerank":0.00068,"email_sends_2m":0},{"id":"n71","nid":"2684","ntype":"program","depth":3,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_iOS_Part_1","short":"ELM6506 · iOS Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":3,"scc_size":2,"pagerank":0.00068,"email_sends_2m":0},{"id":"n72","nid":"2691","ntype":"program","depth":3,"name":"[unknown program 2691]","short":"[unknown prog 2691]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000299,"email_sends_2m":0},{"id":"n73","nid":"2692","ntype":"program","depth":3,"name":"[unknown program 2692]","short":"[unknown prog 2692]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000299,"email_sends_2m":0},{"id":"n74","nid":"3366","ntype":"program","depth":3,"name":"ELM9312-EM-US-QBO-QBLITE-MULTQB-FTU-PROD-NA-EQ-QBLiteFTU IXP Pt1","short":"ELM9312 · QBLiteFTU IXP Pt1","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000406,"email_sends_2m":0},{"id":"n75","nid":"659","ntype":"program","depth":3,"name":"[unknown program 659]","short":"[unknown prog 659]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000404,"email_sends_2m":0},{"id":"n76","nid":"738","ntype":"program","depth":3,"name":"[unknown program 738]","short":"[unknown prog 738]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000404,"email_sends_2m":0},{"id":"n77","nid":"933","ntype":"program","depth":3,"name":"ELM3239_SYSTEM_IXP Integration Part2","short":"ELM3239 · IXP Integration Pt2","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":13,"outbound":1,"scc_size":1,"pagerank":0.016363,"email_sends_2m":0},{"id":"n78","nid":"15270","ntype":"campaign","depth":4,"name":"ELM2933-EM-US-QBO-NA-NAQB-TRIAL-PROD-NA-EQ-UnhappyTrialers_Evergreen","short":"ELM2933 · UnhappyTrialers","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":3,"outbound":0,"scc_size":1,"pagerank":0.000643,"email_sends_2m":90680},{"id":"n79","nid":"15828","ntype":"campaign","depth":4,"name":"[unknown campaign 15828]","short":"[unknown 15828]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000383,"email_sends_2m":0},{"id":"n80","nid":"17200","ntype":"campaign","depth":4,"name":"ELM44821-EM-US-QBOPR-NA-NAPR-FTU-PROD-NA-EQ-PayrollNurture_Evergreen","short":"ELM44821 · PayrollNurture","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":4,"scc_size":10,"pagerank":0.000565,"email_sends_2m":10059},{"id":"n81","nid":"17203","ntype":"campaign","depth":4,"name":"[unknown campaign 17203]","short":"[unknown 17203]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000388,"email_sends_2m":0},{"id":"n82","nid":"18553","ntype":"campaign","depth":4,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUBuyer_Evergreen","short":"ELM3666 · FTUBuyer","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000317,"email_sends_2m":4237},{"id":"n83","nid":"18564","ntype":"campaign","depth":4,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUTrialer_Evergreen","short":"ELM3666 · FTUTrialer","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000317,"email_sends_2m":1199},{"id":"n84","nid":"20063","ntype":"campaign","depth":4,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-NTTFSubscribers_Evergreen","short":"ELM4175 · NTTFSubscribers","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000387,"email_sends_2m":156077},{"id":"n85","nid":"20070","ntype":"campaign","depth":4,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-DTMTrialers_Evergreen","short":"ELM4175 · DTMTrialers","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.00067,"email_sends_2m":1043},{"id":"n86","nid":"8659","ntype":"campaign","depth":4,"name":"ELM44821-EM-US-QBOPR-NA-NAPR-FTU-PROD-NA-EQ-NurtureHoldout","short":"ELM44821 · NurtureHoldout","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":6,"scc_size":10,"pagerank":0.000388,"email_sends_2m":0},{"id":"n87","nid":"1057","ntype":"cdo","depth":4,"name":"Generic IXP CDO","short":"CDO: Generic IXP","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":11,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n88","nid":"1009","ntype":"program","depth":4,"name":"ELM0133-EM-NA-US-QBOAV-NA-NA-TRIAL-EDU_PROD-NA-EQ-DTMTrialers","short":"ELM0133 · EDU DTMTrialers","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000871,"email_sends_2m":0},{"id":"n89","nid":"1514","ntype":"program","depth":4,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUStandalone_Enroute Contact","short":"ELM3666 · FTUStandalone Enroute","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000317,"email_sends_2m":0},{"id":"n90","nid":"1526","ntype":"program","depth":4,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUBuyer_IXP Pt 1","short":"ELM3666 · FTUBuyer IXP Pt1","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000317,"email_sends_2m":0},{"id":"n91","nid":"1527","ntype":"program","depth":4,"name":"[unknown program 1527]","short":"[unknown prog 1527]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000317,"email_sends_2m":0},{"id":"n92","nid":"1615","ntype":"program","depth":4,"name":"ELM3922-OM-US-QBO_QBPAY-NA-NAQB-FTU-PROD-NA-EQ-Personalize_UBF_QBO_FTUEnroute","short":"ELM3922 · UBF QBO FTUEnroute","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000375,"email_sends_2m":0},{"id":"n93","nid":"1620","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBO_QBOPR_QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_IXP Pt2","short":"ELM4374 · EPOPTierA IXP Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000524,"email_sends_2m":0},{"id":"n94","nid":"1623","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBO-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_CustomerEnRoute","short":"ELM4374 · CustomerEnRoute","prod":"epop","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000309,"email_sends_2m":0},{"id":"n95","nid":"1624","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBO-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_ContactEnRoute","short":"ELM4374 · ContactEnRoute","prod":"epop","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000309,"email_sends_2m":0},{"id":"n96","nid":"1625","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBOPR-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_PayrollEnRoute","short":"ELM4374 · PayrollEnRoute","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000309,"email_sends_2m":0},{"id":"n97","nid":"1626","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_TimeEnRoute","short":"ELM4374 · TimeEnRoute","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000309,"email_sends_2m":0},{"id":"n98","nid":"1881","ntype":"program","depth":4,"name":"ELM4876-OM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-Invoicing_Personalize_FTU_QBO Enroute Feeder","short":"ELM4876 · Invoicing Enroute","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000375,"email_sends_2m":0},{"id":"n99","nid":"1901","ntype":"program","depth":4,"name":"ELM4904-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-UHPath Hub","short":"ELM4904 · NAQB UHPath Hub","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":4,"scc_size":2,"pagerank":0.000397,"email_sends_2m":0},{"id":"n100","nid":"2119","ntype":"program","depth":4,"name":"ELM4175-EM-US-QBOAV-NA-MULTAV-FTU-PROD-NA-EQ-DTMTrialersFeederContact","short":"ELM4175 · DTMTrialersFeederContact","prod":"qboav","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000394,"email_sends_2m":0},{"id":"n101","nid":"2681","ntype":"program","depth":4,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_Android_Part_2","short":"ELM6506 · Android Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":2,"pagerank":0.000448,"email_sends_2m":0},{"id":"n102","nid":"2682","ntype":"program","depth":4,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_iOS_IXP_Part 2","short":"ELM6506 · iOS IXP Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":2,"scc_size":2,"pagerank":0.000448,"email_sends_2m":0},{"id":"n103","nid":"2685","ntype":"program","depth":4,"name":"ELM6506-OM-US-QBM_QBOPR-NA-MULTQM-TRIAL-PROD-NA-EQ-QBMFTUSPSku_FeederAndPush","short":"ELM6506 · FeederAndPush","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":2,"outbound":1,"scc_size":1,"pagerank":0.000641,"email_sends_2m":0},{"id":"n104","nid":"3225","ntype":"program","depth":4,"name":"ELM4374-OM-US-QBO-NA-NA-FTU-PROD-NA-EQ-EPOPTierAEmpFirms_MDGW Enroute","short":"ELM4374 · MDGW Enroute","prod":"epop","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000309,"email_sends_2m":0},{"id":"n105","nid":"3365","ntype":"program","depth":4,"name":"ELM9312-EM-US-QBO-QBLITE-MULTQB-FTU-PROD-NA-EQ-QBLiteFTU IXP Pt2","short":"ELM9312 · QBLiteFTU IXP Pt2","prod":"other","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000601,"email_sends_2m":0},{"id":"n106","nid":"932","ntype":"program","depth":4,"name":"ELM3239_SYSTEM_IXP Integration Part3","short":"ELM3239 · IXP Integration Pt3","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.014164,"email_sends_2m":0},{"id":"n107","nid":"20019","ntype":"campaign","depth":5,"name":"[unknown campaign 20019]","short":"[unknown 20019]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.00034,"email_sends_2m":0},{"id":"n108","nid":"20202","ntype":"campaign","depth":5,"name":"[unknown campaign 20202]","short":"[unknown 20202]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.00034,"email_sends_2m":0},{"id":"n109","nid":"1709","ntype":"cdo","depth":5,"name":"Global ECO MDGW clean attributes Batch_EVRGRN","short":"CDO: MDGW clean attrs","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n110","nid":"581","ntype":"cdo","depth":5,"name":"US QBO Customer Data CDO","short":"CDO: QBO Customer Data","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n111","nid":"630","ntype":"cdo","depth":5,"name":"US Intuit Online Payroll CDO","short":"CDO: Intuit Online Payroll","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n112","nid":"851","ntype":"cdo","depth":5,"name":"TSheets Product CDO - Global","short":"CDO: TSheets Product","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":2,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n113","nid":"1513","ntype":"program","depth":5,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUStandalone_Enroute","short":"ELM3666 · FTUStandalone Enroute","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000525,"email_sends_2m":0},{"id":"n114","nid":"1549","ntype":"program","depth":5,"name":"ELM3666-EM-US-QBTIME-NA-NA-FTU-PROD-NA-EQ-FTUBuyer_IXP Pt2","short":"ELM3666 · FTUBuyer IXP Pt2","prod":"qbtime","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000525,"email_sends_2m":0},{"id":"n115","nid":"1614","ntype":"program","depth":5,"name":"ELM3922-OM-US-QBO_QBPAY-NA-NAQB-FTU-PROD-NA-EQ-Personalize_UBF_QBO_FTUEnroute","short":"ELM3922 · UBF QBO FTUEnroute (2)","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000575,"email_sends_2m":0},{"id":"n116","nid":"1878","ntype":"program","depth":5,"name":"ELM4876-OM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-Invoicing_Personalize_FTU_QBO Enroute","short":"ELM4876 · Personalize Enroute","prod":"qbo","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000575,"email_sends_2m":0},{"id":"n117","nid":"1900","ntype":"program","depth":5,"name":"ELM4904-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-UHPath IXP Pt1","short":"ELM4904 · UHPath IXP Pt1","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.00034,"email_sends_2m":0},{"id":"n118","nid":"973","ntype":"program","depth":5,"name":"ELM44504-EM-NA-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Core_IXP Part 1_20220802","short":"ELM44504 · IXP Core Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000311,"email_sends_2m":0},{"id":"n119","nid":"975","ntype":"program","depth":5,"name":"ELM44505-EM-NA-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Premium_IXP Part 1_20220802","short":"ELM44505 · IXP Premium Pt1","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000311,"email_sends_2m":0},{"id":"n120","nid":"977","ntype":"program","depth":5,"name":"[unknown program 977]","short":"[unknown prog 977]","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0.000311,"email_sends_2m":0},{"id":"n121","nid":"1224","ntype":"cdo","depth":6,"name":"DO_NOT_USE_Generic IXP QBTime CDO","short":"CDO: DO_NOT_USE IXP QBTime","prod":"cdo","central":false,"is_seed":false,"is_root":0,"is_terminal":1,"inbound":1,"outbound":0,"scc_size":1,"pagerank":0,"email_sends_2m":0},{"id":"n122","nid":"1899","ntype":"program","depth":6,"name":"ELM4904-EM-US-QBO-NA-NAQB-FTU-PROD-NA-EQ-UHPath IXP Pt2","short":"ELM4904 · UHPath IXP Pt2","prod":"ixp","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.000545,"email_sends_2m":0},{"id":"n123","nid":"972","ntype":"program","depth":6,"name":"ELM44504-EM-NA-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Core_IXP Part 2_20220802","short":"ELM44504 · IXP Core Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.00052,"email_sends_2m":0},{"id":"n124","nid":"974","ntype":"program","depth":6,"name":"ELM44505-EM-NA-US-QBOPR-NA-NA-FTU-EDU_PROD-NA-EQ-Premium_IXP Part 2_20220802","short":"ELM44505 · IXP Premium Pt2","prod":"qbopr","central":false,"is_seed":false,"is_root":0,"is_terminal":0,"inbound":1,"outbound":1,"scc_size":1,"pagerank":0.00052,"email_sends_2m":0}],"edges":[{"s":"n12","t":"n13"},{"s":"n12","t":"n15"},{"s":"n12","t":"n30"},{"s":"n14","t":"n31"},{"s":"n14","t":"n13"},{"s":"n10","t":"n32"},{"s":"n10","t":"n29"},{"s":"n10","t":"n27"},{"s":"n10","t":"n23"},{"s":"n10","t":"n22"},{"s":"n10","t":"n36"},{"s":"n10","t":"n28"},{"s":"n10","t":"n24"},{"s":"n13","t":"n37"},{"s":"n13","t":"n20"},{"s":"n13","t":"n19"},{"s":"n13","t":"n38"},{"s":"n13","t":"n12"},{"s":"n13","t":"n14"},{"s":"n13","t":"n16"},{"s":"n13","t":"n17"},{"s":"n13","t":"n26"},{"s":"n13","t":"n18"},{"s":"n13","t":"n39"},{"s":"n11","t":"n13"},{"s":"n16","t":"n34"},{"s":"n16","t":"n35"},{"s":"n16","t":"n33"},{"s":"n16","t":"n25"},{"s":"n17","t":"n10"},{"s":"n18","t":"n38"},{"s":"n18","t":"n21"},{"s":"n18","t":"n16"},{"s":"n18","t":"n17"},{"s":"n18","t":"n26"},{"s":"n15","t":"n13"},{"s":"n15","t":"n30"},{"s":"n32","t":"n62"},{"s":"n23","t":"n52"},{"s":"n23","t":"n43"},{"s":"n23","t":"n21"},{"s":"n23","t":"n56"},{"s":"n23","t":"n28"},{"s":"n22","t":"n52"},{"s":"n22","t":"n43"},{"s":"n22","t":"n21"},{"s":"n22","t":"n56"},{"s":"n22","t":"n49"},{"s":"n36","t":"n68"},{"s":"n24","t":"n29"},{"s":"n24","t":"n43"},{"s":"n24","t":"n21"},{"s":"n24","t":"n56"},{"s":"n37","t":"n77"},{"s":"n37","t":"n71"},{"s":"n37","t":"n72"},{"s":"n37","t":"n57"},{"s":"n37","t":"n58"},{"s":"n37","t":"n70"},{"s":"n37","t":"n73"},{"s":"n19","t":"n41"},{"s":"n19","t":"n77"},{"s":"n19","t":"n50"},{"s":"n19","t":"n69"},{"s":"n19","t":"n59"},{"s":"n19","t":"n21"},{"s":"n19","t":"n60"},{"s":"n19","t":"n45"},{"s":"n19","t":"n16"},{"s":"n19","t":"n42"},{"s":"n19","t":"n54"},{"s":"n19","t":"n55"},{"s":"n38","t":"n44"},{"s":"n38","t":"n77"},{"s":"n39","t":"n61"},{"s":"n39","t":"n74"},{"s":"n34","t":"n31"},{"s":"n34","t":"n66"},{"s":"n34","t":"n76"},{"s":"n35","t":"n31"},{"s":"n35","t":"n67"},{"s":"n33","t":"n31"},{"s":"n33","t":"n65"},{"s":"n33","t":"n75"},{"s":"n25","t":"n77"},{"s":"n21","t":"n41"},{"s":"n21","t":"n24"},{"s":"n21","t":"n51"},{"s":"n21","t":"n66"},{"s":"n21","t":"n46"},{"s":"n21","t":"n63"},{"s":"n21","t":"n23"},{"s":"n21","t":"n53"},{"s":"n21","t":"n47"},{"s":"n21","t":"n22"},{"s":"n21","t":"n40"},{"s":"n21","t":"n42"},{"s":"n21","t":"n48"},{"s":"n21","t":"n64"},{"s":"n62","t":"n87"},{"s":"n52","t":"n23"},{"s":"n52","t":"n80"},{"s":"n52","t":"n22"},{"s":"n43","t":"n86"},{"s":"n43","t":"n81"},{"s":"n43","t":"n80"},{"s":"n43","t":"n32"},{"s":"n68","t":"n87"},{"s":"n77","t":"n106"},{"s":"n71","t":"n103"},{"s":"n71","t":"n58"},{"s":"n71","t":"n102"},{"s":"n70","t":"n103"},{"s":"n70","t":"n58"},{"s":"n70","t":"n101"},{"s":"n41","t":"n78"},{"s":"n41","t":"n99"},{"s":"n41","t":"n69"},{"s":"n60","t":"n78"},{"s":"n60","t":"n98"},{"s":"n42","t":"n78"},{"s":"n42","t":"n79"},{"s":"n42","t":"n69"},{"s":"n54","t":"n92"},{"s":"n54","t":"n69"},{"s":"n44","t":"n77"},{"s":"n44","t":"n82"},{"s":"n44","t":"n90"},{"s":"n44","t":"n83"},{"s":"n44","t":"n89"},{"s":"n44","t":"n91"},{"s":"n74","t":"n105"},{"s":"n66","t":"n77"},{"s":"n66","t":"n21"},{"s":"n66","t":"n84"},{"s":"n67","t":"n88"},{"s":"n67","t":"n85"},{"s":"n65","t":"n77"},{"s":"n65","t":"n51"},{"s":"n51","t":"n21"},{"s":"n51","t":"n67"},{"s":"n51","t":"n100"},{"s":"n46","t":"n59"},{"s":"n46","t":"n48"},{"s":"n46","t":"n47"},{"s":"n63","t":"n93"},{"s":"n53","t":"n48"},{"s":"n53","t":"n47"},{"s":"n47","t":"n59"},{"s":"n47","t":"n48"},{"s":"n47","t":"n46"},{"s":"n47","t":"n53"},{"s":"n48","t":"n59"},{"s":"n48","t":"n53"},{"s":"n48","t":"n46"},{"s":"n64","t":"n104"},{"s":"n64","t":"n96"},{"s":"n64","t":"n97"},{"s":"n64","t":"n94"},{"s":"n64","t":"n95"},{"s":"n80","t":"n52"},{"s":"n80","t":"n24"},{"s":"n80","t":"n23"},{"s":"n80","t":"n22"},{"s":"n86","t":"n23"},{"s":"n86","t":"n22"},{"s":"n86","t":"n118"},{"s":"n86","t":"n120"},{"s":"n86","t":"n24"},{"s":"n86","t":"n119"},{"s":"n106","t":"n87"},{"s":"n103","t":"n30"},{"s":"n102","t":"n87"},{"s":"n102","t":"n71"},{"s":"n101","t":"n87"},{"s":"n101","t":"n70"},{"s":"n99","t":"n41"},{"s":"n99","t":"n108"},{"s":"n99","t":"n117"},{"s":"n99","t":"n107"},{"s":"n98","t":"n116"},{"s":"n92","t":"n115"},{"s":"n90","t":"n114"},{"s":"n89","t":"n113"},{"s":"n105","t":"n87"},{"s":"n88","t":"n87"},{"s":"n100","t":"n35"},{"s":"n93","t":"n87"},{"s":"n104","t":"n109"},{"s":"n96","t":"n111"},{"s":"n97","t":"n112"},{"s":"n94","t":"n110"},{"s":"n95","t":"n31"},{"s":"n118","t":"n123"},{"s":"n119","t":"n124"},{"s":"n117","t":"n122"},{"s":"n116","t":"n31"},{"s":"n115","t":"n31"},{"s":"n114","t":"n121"},{"s":"n113","t":"n112"},{"s":"n123","t":"n87"},{"s":"n124","t":"n87"},{"s":"n122","t":"n87"},{"s":"n2","t":"n41"},{"s":"n9","t":"n77"},{"s":"n3","t":"n58"},{"s":"n4","t":"n77"},{"s":"n7","t":"n77"},{"s":"n8","t":"n77"},{"s":"n1","t":"n59"},{"s":"n1","t":"n42"},{"s":"n6","t":"n3"},{"s":"n0","t":"n77"},{"s":"n5","t":"n77"}]};
+
+const PROD_COLORS = {
+  qbo: '#2563EB', qboav: '#7C3AED', qbopr: '#059669', qbtime: '#D97706',
+  controller: '#DC2626', cdo: '#9CA3AF', epop: '#0891B2', ixp: '#E5E7EB',
+  other: '#6B7280'
+};
+const DEPTH_COLORS = ['#2563EB','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#6B7280'];
+
+let nodeMap = {};
+FLOW_DATA.nodes.forEach(n => nodeMap[n.id] = n);
+
+let svg, g, zoom, nodes, edges;
+let w, h;
+let showLabels = true;
+let colorMode = 'type', layoutMode = 'depth', filterMode = 'all';
+let tx = 0, ty = 0, scale = 1;
+let selectedId = null;
+
+function getColor(n) {
+  if (colorMode === 'type') {
+    if (n.central) return '#DC2626';
+    if (n.is_seed) return '#7C3AED';
+    if (n.ntype === 'cdo') return '#9CA3AF';
+    if (n.ntype === 'program') return '#2563EB';
+    return '#059669';
+  }
+  if (colorMode === 'prod') return PROD_COLORS[n.prod] || '#9CA3AF';
+  if (colorMode === 'depth') return DEPTH_COLORS[Math.min(n.depth, 6)];
+  if (colorMode === 'loop') return (n.scc_size > 1) ? '#DC2626' : '#E5E7EB';
+  if (colorMode === 'role') {
+    if (n.is_root) return '#059669';
+    if (n.is_terminal) return '#DC2626';
+    if (n.is_seed) return '#7C3AED';
+    return '#6B7280';
+  }
+  return '#9CA3AF';
+}
+
+function getRadius(n) {
+  if (n.central) return 18;
+  if (n.is_seed) return 11;
+  const pr = n.pagerank || 0;
+  return Math.max(5, Math.min(14, 5 + pr * 500));
+}
+
+function getFilteredNodes() {
+  if (filterMode === 'seed') return FLOW_DATA.nodes.filter(n => n.is_seed || n.central);
+  if (filterMode === 'loop') return FLOW_DATA.nodes.filter(n => n.scc_size > 1);
+  return FLOW_DATA.nodes;
+}
+
+function getFilteredEdges(visNodeIds) {
+  const idSet = new Set(visNodeIds);
+  return FLOW_DATA.edges.filter(e => idSet.has(e.s) && idSet.has(e.t));
+}
+
+function computePositions(nodeSubset) {
+  if (layoutMode === 'depth') {
+    const byDepth = {};
+    nodeSubset.forEach(n => {
+      (byDepth[n.depth] = byDepth[n.depth] || []).push(n);
+    });
+    const depths = Object.keys(byDepth).map(Number).sort((a,b) => a-b);
+    const depthSpacing = Math.min(180, (h - 80) / Math.max(depths.length - 1, 1));
+    const pos = {};
+    depths.forEach((d, di) => {
+      const group = byDepth[d];
+      const spread = Math.min(w - 80, group.length * 90);
+      const startX = w/2 - spread/2 + 45;
+      const y = 40 + di * depthSpacing;
+      group.forEach((n, i) => {
+        pos[n.id] = { x: startX + i * (spread / Math.max(group.length - 1, 1)), y };
+      });
+    });
+    return pos;
+  } else {
+    // Simple force-lite using pagerank for rough sizing, jitter for spread
+    const pos = {};
+    nodeSubset.forEach((n, i) => {
+      const angle = (i / nodeSubset.length) * Math.PI * 2;
+      const r = 120 + n.depth * 80;
+      pos[n.id] = { x: w/2 + r * Math.cos(angle), y: h/2 + r * Math.sin(angle) };
+    });
+    return pos;
+  }
+}
+
+function init() {
+  const svgEl = document.getElementById('graph');
+  w = svgEl.clientWidth || 1200;
+  h = svgEl.clientHeight || 700;
+
+  svg = d3sel(svgEl);
+  g = createG(svgEl);
+
+  // Zoom behavior
+  let isDragging = false, startX, startY, startTX, startTY;
+  svgEl.addEventListener('mousedown', e => {
+    if (e.target !== svgEl && e.target !== g) return;
+    isDragging = true; startX = e.clientX; startY = e.clientY; startTX = tx; startTY = ty;
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    tx = startTX + (e.clientX - startX); ty = startTY + (e.clientY - startY);
+    applyTransform();
+  });
+  window.addEventListener('mouseup', () => isDragging = false);
+  svgEl.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 1.1 : 0.91;
+    const rect = svgEl.getBoundingClientRect();
+    const cx = e.clientX - rect.left, cy = e.clientY - rect.top;
+    tx = cx - (cx - tx) * factor; ty = cy - (cy - ty) * factor; scale *= factor;
+    applyTransform();
+  }, { passive: false });
+
+  document.getElementById('zoom-in').onclick = () => { scale *= 1.2; applyTransform(); };
+  document.getElementById('zoom-out').onclick = () => { scale /= 1.2; applyTransform(); };
+  document.getElementById('zoom-fit').onclick = fitView;
+  document.getElementById('btn-reset').onclick = () => { tx=0; ty=0; scale=1; applyTransform(); render(); };
+  document.getElementById('btn-labels').onclick = () => {
+    showLabels = !showLabels;
+    document.getElementById('btn-labels').textContent = `Labels: ${showLabels ? 'Short' : 'Off'}`;
+    document.querySelectorAll('.node-label').forEach(l => l.style.display = showLabels ? '' : 'none');
+  };
+  document.getElementById('color-mode').onchange = e => { colorMode = e.target.value; render(); };
+  document.getElementById('layout-mode').onchange = e => { layoutMode = e.target.value; render(); };
+  document.getElementById('filter-mode').onchange = e => { filterMode = e.target.value; render(); };
+  document.getElementById('panel-close').onclick = () => {
+    document.getElementById('panel').classList.remove('open');
+    selectedId = null;
+    updateSelection();
+  };
+
+  render();
+  updateLegend();
+}
+
+function d3sel(el) { return { el, _g: null }; }
+function createG(svgEl) {
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('id','graph-g');
+  svgEl.appendChild(g);
+  return g;
+}
+
+function applyTransform() {
+  g.setAttribute('transform', `translate(${tx},${ty}) scale(${scale})`);
+}
+
+function render() {
+  // Clear
+  while (g.firstChild) g.removeChild(g.firstChild);
+  
+  const visNodes = getFilteredNodes();
+  const visNodeIds = visNodes.map(n => n.id);
+  const visEdges = getFilteredEdges(visNodeIds);
+  const pos = computePositions(visNodes);
+
+  // Detect loops for edge coloring
+  const loopSets = new Set();
+  visNodes.filter(n => n.scc_size > 1).forEach(n => loopSets.add(n.id));
+
+  // Draw edges first
+  const edgeG = document.createElementNS('http://www.w3.org/2000/svg','g');
+  edgeG.setAttribute('class','edges-layer');
+  g.appendChild(edgeG);
+
+  visEdges.forEach(e => {
+    const sp = pos[e.s], tp = pos[e.t];
+    if (!sp || !tp) return;
+    const isLoop = loopSets.has(e.s) && loopSets.has(e.t);
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    
+    // Curved path
+    const dx = tp.x - sp.x, dy = tp.y - sp.y;
+    const mx = (sp.x + tp.x) / 2 + dy * 0.15;
+    const my = (sp.y + tp.y) / 2 - dx * 0.15;
+    path.setAttribute('d', `M${sp.x},${sp.y} Q${mx},${my} ${tp.x},${tp.y}`);
+    path.setAttribute('class', 'edge');
+    path.setAttribute('stroke', isLoop ? '#FCA5A5' : '#D1D5DB');
+    path.setAttribute('stroke-width', isLoop ? '1.5' : '0.8');
+    path.setAttribute('stroke-opacity', '0.7');
+    path.setAttribute('marker-end', isLoop ? 'url(#arrow-loop)' : 'url(#arrow)');
+    edgeG.appendChild(path);
+  });
+
+  // Draw nodes
+  const nodeG = document.createElementNS('http://www.w3.org/2000/svg','g');
+  nodeG.setAttribute('class','nodes-layer');
+  g.appendChild(nodeG);
+
+  visNodes.forEach(n => {
+    const p = pos[n.id];
+    if (!p) return;
+    const r = getRadius(n);
+    const color = getColor(n);
+    const grp = document.createElementNS('http://www.w3.org/2000/svg','g');
+    grp.setAttribute('class','node');
+    grp.setAttribute('data-id', n.id);
+    grp.setAttribute('transform', `translate(${p.x},${p.y})`);
+    grp.addEventListener('click', () => { selectedId = n.id; showPanel(n); updateSelection(); });
+
+    if (n.ntype === 'program') {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      const s = r * 1.6;
+      rect.setAttribute('x', -s/2); rect.setAttribute('y', -s/2);
+      rect.setAttribute('width', s); rect.setAttribute('height', s);
+      rect.setAttribute('rx', 3);
+      rect.setAttribute('fill', color);
+      rect.setAttribute('stroke', n.central ? '#111827' : 'white');
+      rect.setAttribute('stroke-width', n.central ? 2.5 : 1);
+      grp.appendChild(rect);
+    } else if (n.ntype === 'cdo') {
+      const diamond = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      const s = r * 1.5;
+      diamond.setAttribute('points', `0,${-s} ${s},0 0,${s} ${-s},0`);
+      diamond.setAttribute('fill', color);
+      diamond.setAttribute('stroke','white');
+      diamond.setAttribute('stroke-width','1');
+      grp.appendChild(diamond);
+    } else {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      circle.setAttribute('r', r);
+      circle.setAttribute('fill', color);
+      circle.setAttribute('stroke', n.central ? '#111827' : (n.is_seed ? '#6D28D9' : 'white'));
+      circle.setAttribute('stroke-width', n.central ? 3 : (n.is_seed ? 2 : 1));
+      grp.appendChild(circle);
+    }
+
+    // Label
+    if (showLabels) {
+      const labelLines = n.short.split(' · ');
+      const line1 = labelLines[0] || '';
+      const line2 = labelLines.slice(1).join(' · ');
+      
+      const text1 = document.createElementNS('http://www.w3.org/2000/svg','text');
+      text1.setAttribute('class','node-label');
+      text1.setAttribute('text-anchor','middle');
+      text1.setAttribute('font-size', n.central ? '9' : '7.5');
+      text1.setAttribute('font-weight', n.central || n.is_seed ? '700' : '400');
+      text1.setAttribute('fill', '#111827');
+      text1.setAttribute('dy', r + 10);
+      text1.textContent = line1.length > 14 ? line1.slice(0,13)+'…' : line1;
+      grp.appendChild(text1);
+
+      if (line2) {
+        const text2 = document.createElementNS('http://www.w3.org/2000/svg','text');
+        text2.setAttribute('class','node-label');
+        text2.setAttribute('text-anchor','middle');
+        text2.setAttribute('font-size','6.5');
+        text2.setAttribute('fill','#6B7280');
+        text2.setAttribute('dy', r + 20);
+        const shortLine2 = line2.length > 18 ? line2.slice(0,17)+'…' : line2;
+        text2.textContent = shortLine2;
+        grp.appendChild(text2);
+      }
+    }
+
+    nodeG.appendChild(grp);
+  });
+
+  updateSelection();
+  fitView();
+}
+
+function fitView() {
+  const svgEl = document.getElementById('graph');
+  w = svgEl.clientWidth; h = svgEl.clientHeight;
+  
+  // Get bounding box of g
+  const allTexts = g.querySelectorAll('.node');
+  if (!allTexts.length) return;
+  
+  let minX=Infinity,minY=Infinity,maxX=-Infinity,maxY=-Infinity;
+  allTexts.forEach(el => {
+    const t = el.getAttribute('transform') || '';
+    const m = t.match(/translate\(([^,]+),([^)]+)\)/);
+    if (m) {
+      const x=parseFloat(m[1]), y=parseFloat(m[2]);
+      minX=Math.min(minX,x); minY=Math.min(minY,y);
+      maxX=Math.max(maxX,x); maxY=Math.max(maxY,y);
+    }
+  });
+  
+  const pad = 60;
+  const bw = maxX - minX + pad*2, bh = maxY - minY + pad*2;
+  scale = Math.min(w/bw, h/bh, 1.5);
+  tx = w/2 - (minX + maxX)/2 * scale;
+  ty = h/2 - (minY + maxY)/2 * scale;
+  applyTransform();
+}
+
+function updateSelection() {
+  document.querySelectorAll('.node').forEach(el => {
+    const id = el.getAttribute('data-id');
+    const shape = el.querySelector('circle, rect, polygon');
+    if (shape) {
+      shape.setAttribute('filter', id === selectedId ? 'url(#sel-glow)' : '');
+    }
+  });
+}
+
+function showPanel(n) {
+  const sends = n.email_sends_2m;
+  const TYPE_MAP = { campaign: 'Campaign', program: 'Program', cdo: 'CDO' };
+  const PROD_LABELS = { qbo:'QBO',qboav:'QBOAV',qbopr:'QBO Payroll',qbtime:'QBTime',
+    controller:'Controller',cdo:'CDO',epop:'EPOP',ixp:'IXP',other:'Other' };
+  
+  let badge='', badgeStyle='';
+  if (n.central) { badge='★ CENTRAL'; badgeStyle='background:#FEE2E2;color:#DC2626;'; }
+  else if (n.is_seed) { badge='Seed'; badgeStyle='background:#F5F3FF;color:#7C3AED;'; }
+  else if (n.is_root) { badge='Root'; badgeStyle='background:#ECFDF5;color:#059669;'; }
+  else if (n.is_terminal) { badge='Terminal'; badgeStyle='background:#FEF2F2;color:#DC2626;'; }
+  else { badge=TYPE_MAP[n.ntype]||n.ntype; badgeStyle='background:#F3F4F6;color:#374151;'; }
+  
+  const loopHtml = n.scc_size > 1 ? `<span style="background:#FEE2E2;color:#DC2626;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-left:6px;">↺ Loop (SCC ${n.scc_size})</span>` : '';
+
+  document.getElementById('panel-content').innerHTML = `
+    <div style="margin-bottom:4px">
+      <span class="p-type-badge" style="${badgeStyle}">${badge}</span>${loopHtml}
+    </div>
+    <div class="p-name">${n.name}</div>
+    <div class="p-meta">ID: ${n.nid} · ${PROD_LABELS[n.prod]||n.prod} · Depth ${n.depth}</div>
+    <div class="p-metrics">
+      <div class="p-metric"><div class="mv" style="color:#2563EB">${n.inbound}</div><div class="ml">Inbound edges</div></div>
+      <div class="p-metric"><div class="mv" style="color:#059669">${n.outbound}</div><div class="ml">Outbound edges</div></div>
+      <div class="p-metric"><div class="mv" style="color:${n.scc_size>1?'#DC2626':'#9CA3AF'}">${n.scc_size}</div><div class="ml">SCC Size</div></div>
+      <div class="p-metric"><div class="mv" style="color:#D97706">${(n.pagerank*1000).toFixed(2)}</div><div class="ml">PageRank ×10³</div></div>
+    </div>
+    <div class="p-section">
+      <h4>Node Properties</h4>
+      <div class="p-row"><span class="k">Type</span><span class="v">${TYPE_MAP[n.ntype]||n.ntype}</span></div>
+      <div class="p-row"><span class="k">Product</span><span class="v">${PROD_LABELS[n.prod]||n.prod}</span></div>
+      <div class="p-row"><span class="k">Depth Layer</span><span class="v">${n.depth}</span></div>
+      <div class="p-row"><span class="k">Is Root</span><span class="v" style="color:${n.is_root?'#059669':'#9CA3AF'}">${n.is_root?'Yes':'No'}</span></div>
+      <div class="p-row"><span class="k">Is Terminal</span><span class="v" style="color:${n.is_terminal?'#DC2626':'#9CA3AF'}">${n.is_terminal?'Yes':'No'}</span></div>
+      <div class="p-row"><span class="k">Is Seed</span><span class="v" style="color:${n.is_seed?'#7C3AED':'#9CA3AF'}">${n.is_seed?'Yes (ELM5334 cluster)':'No'}</span></div>
+      <div class="p-row"><span class="k">Is Central</span><span class="v" style="color:${n.central?'#DC2626':'#9CA3AF'}">${n.central?'Yes ★':'No'}</span></div>
+    </div>
+    <div class="p-section">
+      <h4>Send Activity</h4>
+      <div class="p-row"><span class="k">Email sends (12m)</span><span class="v" style="color:${sends>0?'#059669':'#9CA3AF'}">${sends?sends.toLocaleString():'None / N/A'}</span></div>
+    </div>
+  `;
+  document.getElementById('panel').classList.add('open');
+}
+
+function updateLegend() {
+  const items = document.getElementById('legend-items');
+  items.innerHTML = '';
+  
+  const rows = [
+    { color: '#DC2626', shape: 'circle', label: 'Central node (★)' },
+    { color: '#7C3AED', shape: 'circle', label: 'ELM5334 seed cluster' },
+    { color: '#2563EB', shape: 'square', label: 'Program (Eloqua)' },
+    { color: '#059669', shape: 'circle', label: 'Campaign' },
+    { color: '#9CA3AF', shape: 'diamond', label: 'CDO data object' },
+    { color: '#FCA5A5', shape: 'line', label: 'Loop edge (SCC)' },
+  ];
+  
+  rows.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'leg-row';
+    if (r.shape === 'line') {
+      const line = document.createElement('div');
+      line.style.cssText = `width:22px;height:2px;background:${r.color};flex-shrink:0;`;
+      div.appendChild(line);
+    } else if (r.shape === 'square') {
+      const sq = document.createElement('div');
+      sq.className = 'leg-sq';
+      sq.style.background = r.color;
+      div.appendChild(sq);
+    } else if (r.shape === 'diamond') {
+      const sq = document.createElement('div');
+      sq.className = 'leg-sq';
+      sq.style.cssText = `background:${r.color};transform:rotate(45deg);border-radius:0;width:10px;height:10px;`;
+      div.appendChild(sq);
+    } else {
+      const dot = document.createElement('div');
+      dot.className = 'leg-dot';
+      dot.style.background = r.color;
+      div.appendChild(dot);
+    }
+    const span = document.createElement('span');
+    span.textContent = r.label;
+    div.appendChild(span);
+    items.appendChild(div);
+  });
+}
+
+window.addEventListener('load', init);
+window.addEventListener('resize', () => { 
+  const svgEl = document.getElementById('graph');
+  w = svgEl.clientWidth; h = svgEl.clientHeight;
+});
+</script>
+</body>
+</html>

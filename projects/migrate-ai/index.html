@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MigrateIQ — Eloqua to Marketo Migration Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #F9FAFB; --bg-card: #FFFFFF; --bg-subtle: #F3F4F6;
+  --border: #E5E7EB; --border-dark: #D1D5DB;
+  --text: #111827; --text-muted: #6B7280; --text-light: #9CA3AF;
+  --accent: #2563EB; --accent-dark: #1D4ED8; --accent-bg: #EFF6FF;
+  --green: #059669; --green-bg: #ECFDF5;
+  --orange: #D97706; --orange-bg: #FFF7ED;
+  --purple: #7C3AED; --purple-bg: #F5F3FF;
+}
+html { font-size: 16px; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; -webkit-font-smoothing: antialiased;
+}
+
+/* ── Header ──────────────────────────────── */
+#header {
+  background: var(--bg-card); border-bottom: 1px solid var(--border);
+  padding: 0 24px; height: 56px;
+  display: flex; align-items: center; gap: 12px;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 18px; font-weight: 800; letter-spacing: -.03em; text-decoration: none; }
+.logo-m { color: var(--accent); }
+.logo-iq { color: var(--green); }
+.header-divider { width: 1px; height: 20px; background: var(--border); }
+.header-sub { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+.back-link {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+  font-size: 13px; font-weight: 500; color: var(--text-muted); text-decoration: none;
+  padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px;
+  transition: all .15s;
+}
+.back-link:hover { color: var(--text); background: var(--bg-subtle); }
+.back-link svg { opacity: .6; }
+
+/* ── Hero ──────────────────────────────────── */
+.hero {
+  max-width: 760px; margin: 0 auto;
+  padding: 64px 24px 48px; text-align: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-bg); color: var(--accent);
+  border: 1px solid #BFDBFE; border-radius: 100px;
+  font-size: 12px; font-weight: 600; padding: 4px 12px;
+  letter-spacing: .03em; text-transform: uppercase; margin-bottom: 20px;
+}
+.hero-title {
+  font-size: clamp(32px, 5vw, 48px); font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.1; margin-bottom: 14px;
+}
+.hero-desc { font-size: 16px; color: var(--text-muted); line-height: 1.7; max-width: 560px; margin: 0 auto 40px; }
+
+/* ── Stats strip ──────────────────────────── */
+.stats {
+  display: flex; gap: 0; justify-content: center;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  max-width: 680px; margin: 0 auto 56px; overflow: hidden;
+}
+.stat { flex: 1; padding: 20px 16px; text-align: center; border-right: 1px solid var(--border); }
+.stat:last-child { border-right: none; }
+.stat-n { font-size: 26px; font-weight: 800; letter-spacing: -.03em; color: var(--accent); }
+.stat-l { font-size: 11px; font-weight: 500; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; margin-top: 3px; }
+
+/* ── Cards grid ───────────────────────────── */
+.cards {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 20px; max-width: 900px; margin: 0 auto; padding: 0 24px 80px;
+}
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+  padding: 28px; text-decoration: none; color: inherit; display: block;
+  transition: transform .18s, box-shadow .18s, border-color .18s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.08); border-color: var(--border-dark); }
+.card-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
+}
+.ic-blue { background: var(--accent-bg); color: var(--accent); }
+.ic-orange { background: var(--orange-bg); color: var(--orange); }
+.ic-green { background: var(--green-bg); color: var(--green); }
+.ic-purple { background: var(--purple-bg); color: var(--purple); }
+.card h2 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; margin-bottom: 8px; }
+.card p { font-size: 13.5px; color: var(--text-muted); line-height: 1.65; }
+.card-tag {
+  display: inline-block; margin-top: 14px; padding: 3px 10px;
+  border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: .03em;
+}
+.t-blue { background: var(--accent-bg); color: var(--accent); }
+.t-orange { background: var(--orange-bg); color: var(--orange); }
+.t-green { background: var(--green-bg); color: var(--green); }
+.t-purple { background: var(--purple-bg); color: var(--purple); }
+.card-arrow {
+  float: right; margin-top: 14px; color: var(--text-light); font-size: 16px;
+  transition: color .15s, transform .15s;
+}
+.card:hover .card-arrow { color: var(--accent); transform: translate(2px, -2px); }
+
+/* ── Footer ─────────────────────────────── */
+.footer {
+  text-align: center; padding: 20px 24px;
+  font-size: 12px; color: var(--text-light);
+  border-top: 1px solid var(--border);
+}
+.footer a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 600px) {
+  .cards { grid-template-columns: 1fr; }
+  .stats { flex-wrap: wrap; }
+  .stat { border-right: none; border-bottom: 1px solid var(--border); }
+  .stat:last-child { border-bottom: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <a href="index.html" class="logo"><span class="logo-m">Migrate</span><span class="logo-iq">IQ</span></a>
+  <div class="header-divider"></div>
+  <span class="header-sub">Eloqua → Marketo Migration Intelligence</span>
+  <a href="../../index.html#projects" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+    Portfolio
+  </a>
+</div>
+
+<div class="hero">
+  <div class="hero-badge">V1 — Vibe-Coded App</div>
+  <h1 class="hero-title">Migration complexity,<br>made visible</h1>
+  <p class="hero-desc">
+    MigrateIQ analyzes 297 Eloqua campaigns across 3 complexity dimensions —
+    canvas, upstream dependencies, and co-migration coupling — so you know
+    exactly what you're migrating to Marketo and in what order.
+  </p>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n">297</div><div class="stat-l">Campaigns Analyzed</div></div>
+    <div class="stat"><div class="stat-n">1,100</div><div class="stat-l">Emails Mapped</div></div>
+    <div class="stat"><div class="stat-n">716</div><div class="stat-l">Emails Migrated</div></div>
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Complexity Dimensions</div></div>
+  </div>
+</div>
+
+<div class="cards">
+  <a class="card" href="dashboard.html">
+    <div class="card-icon ic-blue">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </div>
+    <h2>Campaign Complexity Dashboard</h2>
+    <p>All campaigns scored across canvas, upstream, and migration dependency complexity — with distribution charts, filters by geo, instance, and MOps tracking.</p>
+    <span class="card-tag t-blue">Sample: 49 campaigns · 3 dimensions · 12 challenge flags</span>
+    <span class="card-arrow">↗</span>
+  </a>
+  <a class="card" href="program_routed.html">
+    <div class="card-icon ic-orange">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    </div>
+    <h2>Program-Routed Campaigns</h2>
+    <p>GBSG campaigns fed by upstream program routing — CampaignInput entry points, upstream chain depth, co-migration count, and SCC loop detection.</p>
+    <span class="card-tag t-orange">Sample: 20 campaigns · GBSG · Program-routed input</span>
+    <span class="card-arrow">↗</span>
+  </a>
+  <a class="card" href="segment_campaigns.html">
+    <div class="card-icon ic-green">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+    </div>
+    <h2>Segment-Sourced Campaigns</h2>
+    <p>52 GBSG campaigns whose only audience entry is an Eloqua Segment — no program routing, no CDO listeners. Best candidates for direct Smart List migration.</p>
+    <span class="card-tag t-green">52 campaigns · GBSG · Segment-only input</span>
+    <span class="card-arrow">↗</span>
+  </a>
+  <a class="card" href="flow_map.html">
+    <div class="card-icon ic-purple">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+    </div>
+    <h2>ELM5334 US FTU Flow Map</h2>
+    <p>Interactive graph of the ELM5334 First-Time-Use journey — 125 nodes, 214 edges, upstream feeders, CDO terminals, SCC cycles, and cross-canvas routing.</p>
+    <span class="card-tag t-purple">125 nodes · 214 edges · 56 campaigns</span>
+    <span class="card-arrow">↗</span>
+  </a>
+</div>
+
+<div class="footer">
+  MigrateIQ v1 — Vibe-coded app built by <a href="../../index.html">Gaurav Mehta</a> ·
+  Data sourced from Intuit Eloqua REST API + local SQLite analysis
+</div>
+
+</body>
+</html>
