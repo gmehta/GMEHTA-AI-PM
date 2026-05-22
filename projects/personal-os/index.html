@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal OS — Gaurav Mehta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0d0e1a;
+      --surface:     #13152b;
+      --surface2:    #1a1d38;
+      --border:      #252847;
+      --border-hi:   #3a3f70;
+      --purple:      #7c5cfc;
+      --purple-dim:  #4a3896;
+      --purple-glow: rgba(124,92,252,.18);
+      --green:       #22d3a0;
+      --amber:       #f5a623;
+      --red:         #f45d5d;
+      --red-glow:    rgba(244,93,93,.12);
+      --blue:        #5cadfc;
+      --txt:         #e8eaf6;
+      --txt-muted:   #7880a8;
+      --txt-dim:     #4a4f7a;
+      --radius:      14px;
+      --radius-sm:   8px;
+
+      --high-color:   #f45d5d;
+      --high-bg:      rgba(244,93,93,.08);
+      --high-border:  rgba(244,93,93,.25);
+      --medium-color: #f5a623;
+      --medium-bg:    rgba(245,166,35,.08);
+      --medium-border:rgba(245,166,35,.25);
+      --low-color:    #7880a8;
+      --low-bg:       rgba(120,128,168,.08);
+      --low-border:   rgba(120,128,168,.2);
+    }
+
+    html { scroll-behavior: smooth; height: 100%; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      height: 100%;
+      overflow: hidden;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* grain overlay */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Top bar ───────────────────────────────────────────────── */
+    .topbar {
+      position: relative; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 20px; gap: 16px; flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .topbar-left  { display: flex; align-items: center; gap: 12px; }
+    .topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .slack-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, #7c5cfc, #5cadfc);
+      border-radius: 9px; display: grid; place-items: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .title-block h1 { font-size: 1.05rem; font-weight: 600; letter-spacing: -.01em; line-height: 1.2; }
+    .title-block p  { font-size: .72rem; color: var(--txt-muted); margin-top: 1px; }
+
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 100px; padding: 4px 10px;
+      font-size: .72rem; color: var(--txt-muted);
+    }
+    .ai-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 100px; padding: 4px 10px;
+      font-size: .72rem; color: var(--txt-muted);
+    }
+    .ai-badge.active      { border-color: rgba(124,92,252,.4); color: var(--purple); }
+    .ai-badge.classifying { border-color: rgba(245,166,35,.4); color: var(--amber); }
+    .ai-badge.error       { border-color: rgba(244,93,93,.4);  color: var(--red); }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+    .dot.amber  { background: var(--amber); }
+    .dot.purple { background: var(--purple); }
+    .dot.pulse  { animation: pulse 2s ease infinite; }
+
+    @keyframes pulse  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+
+    /* ── Classify strip ────────────────────────────────────────── */
+    #classify-strip {
+      position: relative; z-index: 9;
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: .76rem;
+      transition: all .3s;
+    }
+    #classify-strip.classifying { background: rgba(245,166,35,.06); border-bottom: 1px solid rgba(245,166,35,.2); color: var(--amber); }
+    #classify-strip.done        { background: rgba(124,92,252,.05); border-bottom: 1px solid rgba(124,92,252,.15); color: var(--purple); }
+    #classify-strip.error       { background: var(--red-glow);       border-bottom: 1px solid rgba(244,93,93,.2);  color: var(--red); }
+    .spin { animation: spin .8s linear infinite; display: inline-block; }
+
+    /* ── Buttons ───────────────────────────────────────────────── */
+    .btn {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 12px; border-radius: 100px;
+      font-family: inherit; font-size: .76rem; font-weight: 500;
+      cursor: pointer; transition: all .15s; border: none; outline: none;
+    }
+    .btn-primary  { background: var(--purple); color: #fff; }
+    .btn-primary:hover   { background: #8f6efd; }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-ghost { background: var(--surface2); color: var(--txt-muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--border-hi); color: var(--txt); }
+    .btn-ai    { background: rgba(124,92,252,.12); color: var(--purple); border: 1px solid rgba(124,92,252,.3); }
+    .btn-ai:hover { background: rgba(124,92,252,.22); border-color: var(--purple); }
+    .btn-ai:disabled { opacity: .4; cursor: not-allowed; }
+    .btn-gear  { background: var(--surface2); color: var(--txt-muted); border: 1px solid var(--border); }
+    .btn-gear:hover { border-color: var(--border-hi); color: var(--txt); }
+
+    /* ── 3-column workspace ─────────────────────────────────────── */
+    .workspace {
+      position: relative; z-index: 1;
+      display: grid;
+      grid-template-columns: var(--left-w, 268px) 4px 1fr 4px var(--right-w, 340px);
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .nav-left {
+      overflow-y: auto;
+      padding: 16px 14px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .nav-center {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+      min-width: 0;
+    }
+
+    .nav-right {
+      overflow-y: hidden;
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* ── Drag handles ───────────────────────────────────────────── */
+    .drag-handle {
+      position: relative;
+      cursor: col-resize;
+      z-index: 10;
+      background: transparent;
+      transition: background .15s;
+      user-select: none;
+    }
+    .drag-handle::after {
+      content: '';
+      position: absolute;
+      inset: 0 -3px;  /* expand hit area without affecting layout */
+    }
+    .drag-handle:hover,
+    .drag-handle.dragging {
+      background: var(--purple);
+      opacity: .35;
+    }
+
+    /* ── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-hi); }
+
+    /* ── Nav section label ──────────────────────────────────────── */
+    .nav-label {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .1em; color: var(--txt-dim);
+      padding: 0 2px 8px;
+    }
+
+    /* ── Chat UI ────────────────────────────────────────────────── */
+    .chat-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chat-header-title {
+      font-size: .84rem; font-weight: 600; color: var(--txt);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .chat-header-sub { font-size: .72rem; color: var(--txt-muted); margin-left: auto; }
+
+    .chat-genos-badge {
+      font-size: .67rem; font-weight: 700; letter-spacing: .04em;
+      padding: 2px 7px; border-radius: 100px;
+      background: rgba(124,92,252,.1); color: var(--purple);
+      border: 1px solid rgba(124,92,252,.25);
+    }
+    .chat-genos-badge.off {
+      background: rgba(120,128,168,.08); color: var(--txt-dim);
+      border-color: rgba(120,128,168,.2);
+    }
+    .chat-genos-badge.warn {
+      background: rgba(245,166,35,.1); color: var(--amber);
+      border-color: rgba(245,166,35,.3);
+    }
+
+    /* Model selector */
+    .model-select-wrap {
+      display: flex; align-items: center; gap: 6px; margin-left: auto;
+    }
+    .model-select-wrap label {
+      font-size: .68rem; color: var(--txt-dim); white-space: nowrap;
+    }
+    #model-select {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px 28px 4px 9px;
+      font-family: inherit; font-size: .75rem; color: var(--txt);
+      cursor: pointer; outline: none; transition: border-color .15s;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237880a8' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 8px center;
+    }
+    #model-select:hover  { border-color: var(--border-hi); }
+    #model-select:focus  { border-color: var(--purple); }
+    #model-select option { background: #1a1d38; }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .chat-msg {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      max-width: 88%;
+      animation: msgIn .25s cubic-bezier(.22,1,.36,1) both;
+    }
+    @keyframes msgIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+    .chat-msg.user  { align-self: flex-end; flex-direction: row-reverse; }
+    .chat-msg.assistant { align-self: flex-start; }
+    .chat-msg.system { align-self: center; max-width: 100%; }
+
+    .chat-avatar {
+      width: 26px; height: 26px; border-radius: 8px;
+      background: linear-gradient(135deg, #7c5cfc, #5cadfc);
+      display: grid; place-items: center;
+      font-size: .6rem; font-weight: 700; color: #fff;
+      flex-shrink: 0;
+    }
+
+    .chat-bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: .84rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .chat-msg.user .chat-bubble {
+      background: var(--purple);
+      color: #fff;
+      border-radius: 14px 14px 4px 14px;
+    }
+    .chat-msg.assistant .chat-bubble {
+      background: var(--surface2);
+      color: var(--txt);
+      border: 1px solid var(--border);
+      border-radius: 14px 14px 14px 4px;
+    }
+    .chat-msg.system .chat-bubble {
+      background: rgba(244,93,93,.06);
+      color: var(--txt-muted);
+      border: 1px solid rgba(244,93,93,.2);
+      font-size: .78rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    /* Action badges for tool use */
+    .chat-bubble-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .chat-actions { display: flex; flex-wrap: wrap; gap: 4px; }
+    .chat-action-badge {
+      display: inline-flex; align-items: center;
+      font-size: .7rem; font-weight: 600; letter-spacing: .02em;
+      padding: 2px 8px; border-radius: 10px;
+    }
+    .chat-action-badge.sent { background: rgba(76,175,80,.12); color: #4caf50; }
+    .chat-action-badge.sent a { color: inherit; text-decoration: none; }
+    .chat-action-badge.sent a:hover { text-decoration: underline; }
+    .chat-action-badge.search { background: rgba(33,150,243,.12); color: #2196f3; }
+    .chat-action-badge.read { background: rgba(156,39,176,.12); color: #9c27b0; }
+    .chat-action-badge.error { background: rgba(244,93,93,.12); color: #f45d5d; }
+
+    /* Thinking dots */
+    .thinking-dots {
+      display: flex; align-items: center; gap: 4px; padding: 12px 14px;
+    }
+    .thinking-dots span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--txt-dim);
+      animation: blink 1.2s ease infinite;
+    }
+    .thinking-dots span:nth-child(2) { animation-delay: .2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: .4s; }
+    @keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
+
+    /* Welcome card */
+    .chat-welcome {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--txt-muted);
+    }
+    .chat-welcome .welcome-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: linear-gradient(135deg, #7c5cfc, #5cadfc);
+      display: grid; place-items: center;
+      font-size: 22px; margin: 0 auto 16px;
+    }
+    .chat-welcome h2 { font-size: 1rem; font-weight: 600; color: var(--txt); margin-bottom: 8px; }
+    .chat-welcome p  { font-size: .82rem; line-height: 1.6; max-width: 320px; margin: 0 auto; }
+    .chat-suggestions {
+      display: flex; flex-direction: column; gap: 6px;
+      margin-top: 20px;
+    }
+    .chat-suggestion {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 8px 14px;
+      font-size: .78rem; color: var(--txt-muted);
+      cursor: pointer; text-align: left; transition: all .15s;
+      font-family: inherit;
+    }
+    .chat-suggestion:hover { border-color: var(--purple); color: var(--txt); background: var(--purple-glow); }
+
+    /* Input bar */
+    .chat-input-bar {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+      background: var(--bg);
+    }
+    .chat-no-genos {
+      width: 100%;
+      font-size: .76rem; color: var(--amber);
+      background: rgba(245,166,35,.07); border: 1px solid rgba(245,166,35,.2);
+      border-radius: var(--radius-sm); padding: 10px 14px; line-height: 1.5;
+    }
+    #chat-input {
+      flex: 1; min-width: 0;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 9px 14px;
+      font-family: inherit; font-size: .84rem; color: var(--txt);
+      outline: none; resize: none;
+      line-height: 1.5; max-height: 120px; overflow-y: auto;
+      transition: border-color .15s;
+    }
+    #chat-input:focus { border-color: var(--purple); }
+    #chat-input::placeholder { color: var(--txt-dim); }
+    #chat-send-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      border: none; background: var(--purple); color: #fff;
+      font-size: 1rem; cursor: pointer; display: grid; place-items: center;
+      flex-shrink: 0; transition: all .15s;
+    }
+    #chat-send-btn:hover   { background: #8f6efd; }
+    #chat-send-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    #chat-mic-btn {
+      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--txt-muted);
+      font-size: .95rem; cursor: pointer; display: grid; place-items: center;
+      transition: all .15s;
+    }
+    #chat-mic-btn:hover { border-color: var(--purple); color: var(--purple); }
+    #chat-mic-btn.listening {
+      background: rgba(244,93,93,.12); border-color: var(--red); color: var(--red);
+      animation: mic-pulse 1.2s ease infinite;
+    }
+    #chat-mic-btn:disabled { opacity: .35; cursor: not-allowed; }
+    @keyframes mic-pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(244,93,93,.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(244,93,93,0); }
+    }
+
+    /* ── Right nav structure ────────────────────────────────────── */
+    .right-section {
+      padding: 14px 14px 0;
+    }
+    .right-section + .right-section {
+      border-top: 1px solid var(--border);
+      margin-top: 4px;
+    }
+    .right-section-last { padding-bottom: 20px; }
+
+    /* ── Top 5 card ────────────────────────────────────────────── */
+    .top5-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .top5-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .top5-header h2 {
+      font-size: .82rem; font-weight: 600; display: flex; align-items: center; gap: 7px;
+    }
+    .top5-header .count-badge {
+      font-family: 'DM Mono', monospace; font-size: .65rem; font-weight: 600;
+      background: rgba(124,92,252,.12); color: var(--purple);
+      border-radius: 100px; padding: 1px 7px;
+    }
+    .notion-sync {
+      display: flex; align-items: center; gap: 4px;
+      font-size: .65rem; color: var(--txt-dim); transition: color .2s;
+    }
+    .notion-sync.synced  { color: var(--green); }
+    .notion-sync.pending { color: var(--amber); }
+    .notion-sync .notion-icon { font-size: .75rem; }
+    .top5-list { list-style: none; }
+    .top5-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 0; border-bottom: 1px solid var(--border);
+      transition: opacity .2s;
+    }
+    .top5-item:last-child { border-bottom: none; }
+    .top5-item.done { opacity: .45; }
+
+    .top5-check {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid var(--border-hi); background: transparent;
+      cursor: pointer; flex-shrink: 0; transition: all .15s;
+      display: grid; place-items: center; font-size: .58rem; color: transparent;
+    }
+    .top5-check:hover { border-color: var(--purple); }
+    .top5-item.done .top5-check {
+      border-color: var(--green); background: var(--green); color: #000;
+    }
+    .top5-text {
+      flex: 1; background: transparent; border: none; outline: none;
+      font-family: inherit; font-size: .8rem; color: var(--txt);
+      padding: 1px 0; line-height: 1.4;
+      border-bottom: 1px solid transparent; transition: border-color .15s;
+    }
+    .top5-text:focus { border-bottom-color: var(--purple); }
+    .top5-text::placeholder { color: var(--txt-dim); }
+    .top5-item.done .top5-text { text-decoration: line-through; color: var(--txt-muted); }
+    .top5-num {
+      font-family: 'DM Mono', monospace; font-size: .66rem; font-weight: 600;
+      color: var(--txt-dim); width: 14px; text-align: center; flex-shrink: 0;
+    }
+
+    /* ── Systems Check card ──────────────────────────────────────── */
+    .systems-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 14px 16px;
+    }
+    .systems-header {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 10px;
+    }
+    .systems-icon { font-size: .9rem; }
+    .systems-header h2 {
+      font-size: .78rem; font-weight: 600; color: var(--txt);
+      flex: 1; margin: 0; display: flex; align-items: center; gap: 5px;
+    }
+    .systems-overall {
+      font-size: .63rem; font-weight: 700; padding: 2px 6px;
+      border-radius: 20px; letter-spacing: .04em;
+    }
+    .systems-overall.ok    { background: rgba(0,210,110,.15); color: #00d26e; }
+    .systems-overall.warn  { background: rgba(245,166,35,.15); color: var(--amber); }
+    .systems-overall.error { background: rgba(255,69,58,.15);  color: var(--red); }
+    .systems-overall.down  { background: rgba(255,69,58,.15);  color: var(--red); }
+    .systems-checked { font-size: .64rem; color: var(--txt-dim); margin-left: auto; }
+    .systems-refresh-btn {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; width: 24px; height: 24px; cursor: pointer;
+      color: var(--txt-muted); font-size: .8rem; display: grid; place-items: center;
+      transition: all .15s; flex-shrink: 0;
+    }
+    .systems-refresh-btn:hover { color: var(--txt); border-color: var(--border-hi); }
+    .systems-refresh-btn.spinning { animation: spin .7s linear infinite; }
+    .systems-loading { font-size: .76rem; color: var(--txt-dim); padding: 4px 0; }
+    .systems-grid { display: flex; flex-direction: column; gap: 6px; }
+    .system-row {
+      display: grid; grid-template-columns: 9px 1fr auto;
+      align-items: start; gap: 9px; padding: 8px 9px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); cursor: pointer; transition: border-color .15s;
+    }
+    .system-row:hover { border-color: var(--border-hi); }
+    .system-row.expanded .system-log { display: block; }
+    .system-dot {
+      width: 7px; height: 7px; border-radius: 50%; margin-top: 4px; flex-shrink: 0;
+    }
+    .system-dot.ok    { background: #00d26e; }
+    .system-dot.warn  { background: var(--amber); }
+    .system-dot.error { background: var(--red); }
+    .system-dot.down  { background: var(--red); animation: pulse 1.5s infinite; }
+    .system-dot.unknown { background: var(--txt-dim); }
+    .system-info { min-width: 0; }
+    .system-label { font-size: .75rem; font-weight: 500; color: var(--txt); }
+    .system-msg   { font-size: .68rem; color: var(--txt-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .system-log {
+      display: none; margin-top: 7px; padding: 7px;
+      background: var(--bg); border-radius: 5px; border: 1px solid var(--border);
+    }
+    .system-log pre {
+      margin: 0; font-size: .63rem; color: var(--txt-dim);
+      white-space: pre-wrap; word-break: break-all; line-height: 1.5;
+      font-family: 'DM Mono', monospace;
+    }
+    .system-meta { text-align: right; flex-shrink: 0; }
+    .system-sync { font-size: .64rem; color: var(--txt-dim); white-space: nowrap; }
+    .system-launchctl { font-size: .6rem; color: var(--txt-dim); margin-top: 2px; }
+
+    /* ── Agent Inbox ─────────────────────────────────────────────── */
+    .agent-inbox { }
+    #agent-inbox { flex-shrink: 1; min-height: 0; overflow-y: auto; max-height: 38vh; }
+    .agent-inbox-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    }
+    .agent-inbox-header h2 {
+      font-size: .82rem; font-weight: 600; display: flex; align-items: center; gap: 7px;
+    }
+    #inbox-refresh-btn {
+      margin-left: auto; padding: 3px 9px; font-size: .7rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface2); color: var(--txt-muted);
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+      transition: all .15s; font-family: inherit;
+    }
+    #inbox-refresh-btn:disabled { opacity: .5; cursor: not-allowed; }
+    #inbox-refresh-btn:not(:disabled):hover { border-color: var(--border-hi); color: var(--txt); }
+    .inbox-count {
+      font-family: 'DM Mono', monospace; font-size: .64rem; font-weight: 600;
+      background: rgba(124,92,252,.15); color: var(--purple);
+      border-radius: 100px; padding: 1px 7px;
+    }
+
+    .inbox-group-label {
+      font-size: .62rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--txt-dim); padding: 4px 0 6px; margin-top: 4px;
+      border-top: 1px solid var(--border);
+    }
+    .inbox-group-label:first-child { border-top: none; margin-top: 0; }
+    .draft-ts {
+      margin-left: auto; font-size: .62rem; color: var(--txt-dim);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    .draft-card {
+      position: relative; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 13px 16px; margin-bottom: 8px;
+      transition: border-color .15s, opacity .3s, transform .3s;
+      overflow: hidden;
+    }
+    .draft-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .draft-card.decision-hybrid::before          { background: var(--amber); }
+    .draft-card.decision-agent-stateful::before  { background: var(--blue); }
+    .draft-card.decision-agent-stateless::before { background: var(--green); }
+    .draft-card.decision-human-only::before      { background: var(--red); }
+    .draft-card.resolving { opacity: 0; transform: translateX(40px) scale(.96); }
+
+    .draft-card-head {
+      display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+    }
+    .routing-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .63rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+      padding: 2px 8px; border-radius: 100px; white-space: nowrap;
+    }
+    .routing-badge.hybrid          { color: var(--amber);  background: rgba(245,166,35,.1);  border: 1px solid rgba(245,166,35,.3); }
+    .routing-badge.agent-stateful  { color: var(--blue);   background: rgba(92,173,252,.1);  border: 1px solid rgba(92,173,252,.3); }
+    .routing-badge.agent-stateless { color: var(--green);  background: rgba(34,211,160,.1);  border: 1px solid rgba(34,211,160,.3); }
+    .routing-badge.human-only      { color: var(--red);    background: rgba(244,93,93,.1);   border: 1px solid rgba(244,93,93,.3); }
+    .routing-pattern   { font-size: .7rem; font-style: italic; color: var(--txt-muted); }
+    .routing-rationale { font-size: .72rem; color: var(--txt-muted); line-height: 1.5; margin: 6px 0 0; }
+    .draft-original {
+      font-size: .74rem; color: var(--txt-dim); line-height: 1.55;
+      background: var(--surface2); border-left: 2px solid var(--border-hi);
+      padding: 6px 10px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin: 8px 0 0;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .draft-textarea {
+      width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--txt); font-size: .8rem; font-family: inherit;
+      line-height: 1.5; outline: none; resize: vertical; min-height: 66px;
+      transition: border-color .15s; margin-top: 8px;
+    }
+    .draft-textarea:focus { border-color: var(--purple); }
+    .draft-actions {
+      display: flex; align-items: center; gap: 7px; margin-top: 8px; flex-wrap: wrap;
+    }
+    .approve-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .7rem; font-weight: 600; color: #0d2820;
+      padding: 5px 12px; border-radius: 100px;
+      border: none; background: var(--green); cursor: pointer;
+      font-family: inherit; transition: opacity .15s;
+    }
+    .approve-btn:hover    { opacity: .85; }
+    .approve-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .reject-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .7rem; font-weight: 500; color: var(--txt-muted);
+      padding: 5px 12px; border-radius: 100px;
+      border: 1px solid var(--border); background: transparent; cursor: pointer;
+      font-family: inherit; transition: all .15s;
+    }
+    .reject-btn:hover    { border-color: var(--red); color: var(--red); }
+    .reject-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    .approve-note {
+      display: block; width: 100%; box-sizing: border-box;
+      margin-top: 5px; padding: 5px 9px;
+      font: 11px/1.4 inherit; color: var(--txt);
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 6px; resize: none; opacity: .7; transition: opacity .15s;
+    }
+    .approve-note:focus { opacity: 1; outline: none; border-color: var(--purple); }
+    .reject-panel {
+      display: none; flex-direction: column; gap: 7px;
+      background: rgba(244,93,93,.05); border: 1px solid rgba(244,93,93,.25);
+      border-radius: 8px; padding: 9px 11px; margin-top: 7px;
+    }
+    .reject-panel.open { display: flex; }
+    .reject-panel select {
+      padding: 4px 7px; border-radius: 6px; font: 11px inherit;
+      background: var(--surface2); color: var(--txt); border: 1px solid var(--border); cursor: pointer;
+    }
+    .reject-panel textarea {
+      resize: none; padding: 5px 9px; border-radius: 6px; font: 11px/1.4 inherit;
+      background: var(--surface2); color: var(--txt); border: 1px solid var(--border);
+    }
+    .reject-panel textarea:focus { outline: none; border-color: var(--red); }
+    .reject-panel-actions { display: flex; gap: 7px; }
+    .confirm-reject-btn {
+      padding: 4px 12px; border-radius: 6px; font: 600 11px inherit;
+      background: rgba(244,93,93,.12); color: var(--red);
+      border: 1px solid rgba(244,93,93,.3); cursor: pointer; transition: background .15s;
+    }
+    .confirm-reject-btn:hover { background: rgba(244,93,93,.22); }
+    .cancel-reject-btn {
+      padding: 4px 10px; border-radius: 6px; font: 11px inherit;
+      background: transparent; color: var(--txt-muted); border: 1px solid var(--border);
+      cursor: pointer; transition: background .15s;
+    }
+    .cancel-reject-btn:hover { background: var(--surface2); }
+
+    /* ── Priority tabs (workstream) ──────────────────────────────── */
+    .workstream-section { padding: 14px 14px 20px; flex: 1 1 0; min-height: 0; overflow-y: auto; }
+    .workstream-header {
+      display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    }
+    .workstream-header h2 { font-size: .82rem; font-weight: 600; }
+    .workstream-refresh {
+      margin-left: auto; padding: 3px 9px; font-size: .7rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: var(--surface2); color: var(--txt-muted);
+      cursor: pointer; display: flex; align-items: center; gap: 4px;
+      transition: all .15s; font-family: inherit;
+    }
+    .workstream-refresh:hover { border-color: var(--border-hi); color: var(--txt); }
+
+    .tabs {
+      display: flex; gap: 3px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    .tab {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
+      padding: 6px 8px; border-radius: 7px;
+      font-size: .72rem; font-weight: 500;
+      cursor: pointer; border: none; background: transparent;
+      color: var(--txt-muted); transition: all .15s; outline: none;
+      font-family: inherit;
+    }
+    .tab:hover { background: var(--surface2); color: var(--txt); }
+    .tab.active { color: var(--txt); }
+    .tab[data-tab="high"].active   { background: var(--high-bg);   border: 1px solid var(--high-border);   color: var(--high-color); }
+    .tab[data-tab="medium"].active { background: var(--medium-bg); border: 1px solid var(--medium-border); color: var(--medium-color); }
+    .tab[data-tab="low"].active    { background: var(--low-bg);    border: 1px solid var(--low-border);    color: var(--low-color); }
+    .tab[data-tab="all"].active    { background: var(--surface2);  border: 1px solid var(--border-hi);     color: var(--txt); }
+    .tab-count {
+      font-family: 'DM Mono', monospace; font-size: .64rem; font-weight: 600;
+      min-width: 16px; text-align: center;
+      background: rgba(255,255,255,.07);
+      border-radius: 100px; padding: 1px 5px;
+    }
+    .tab[data-tab="high"]   .tab-count { background: rgba(244,93,93,.15); }
+    .tab[data-tab="medium"] .tab-count { background: rgba(245,166,35,.15); }
+    .tab[data-tab="low"]    .tab-count { background: rgba(120,128,168,.1); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Calendar Today ──────────────────────────────────────────── */
+    .calendar-section { padding: 14px 14px 18px; flex-shrink: 0; overflow-y: auto; max-height: 38vh; }
+    .calendar-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    }
+    .calendar-header h2 { font-size: .82rem; font-weight: 600; margin: 0; }
+    .calendar-icon { font-size: 1rem; }
+    .calendar-date { font-size: .7rem; color: var(--txt-muted); }
+    .calendar-refresh-btn {
+      padding: 3px 9px; font-size: .7rem; font-weight: 600;
+      border: 1px solid var(--border); border-radius: 6px;
+      background: transparent; color: var(--txt-muted); cursor: pointer; transition: border-color .15s, color .15s;
+    }
+    .calendar-refresh-btn:hover { border-color: var(--border-hi); color: var(--txt); }
+    .cal-loading { font-size: .75rem; color: var(--txt-muted); padding: 8px 0; }
+    .cal-empty   { font-size: .75rem; color: var(--txt-muted); padding: 8px 0; }
+    .cal-error   { font-size: .75rem; color: #e5534b; padding: 8px 0; }
+    .cal-event {
+      display: flex; gap: 10px; padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cal-event:last-child { border-bottom: none; }
+    .cal-time {
+      flex-shrink: 0; min-width: 68px;
+      font-size: .7rem; color: var(--accent);
+      font-variant-numeric: tabular-nums; line-height: 1.4; padding-top: 1px;
+    }
+    .cal-allday {
+      font-size: .63rem; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; color: var(--txt-muted); white-space: nowrap;
+    }
+    .cal-body { flex: 1; min-width: 0; }
+    .cal-title {
+      font-size: .8rem; font-weight: 500; color: var(--txt);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-loc {
+      font-size: .68rem; color: var(--txt-muted); margin-top: 1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .cal-now { border-left: 2px solid var(--accent); padding-left: 8px; }
+
+    /* ── Section header ──────────────────────────────────────────── */
+    .section-header {
+      display: flex; align-items: center; gap: 8px; margin: 18px 0 10px;
+    }
+    .section-header h2 { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--txt-muted); }
+    .section-header .badge {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 100px; padding: 1px 8px; font-size: .66rem; color: var(--txt-muted); font-weight: 500;
+    }
+    .section-divider { flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Mention card ────────────────────────────────────────────── */
+    .card {
+      position: relative; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 14px 16px; margin-bottom: 8px;
+      transition: border-color .15s, transform .15s;
+      overflow: hidden;
+    }
+    .card:hover { border-color: var(--border-hi); transform: translateY(-1px); }
+    .card[data-priority="high"]   { border-color: rgba(244,93,93,.3); }
+    .card[data-priority="high"]:hover   { border-color: rgba(244,93,93,.55); }
+    .card[data-priority="medium"] { border-color: rgba(245,166,35,.2); }
+    .card[data-priority="medium"]:hover { border-color: rgba(245,166,35,.45); }
+    .card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .card[data-priority="high"]::before   { background: var(--high-color) !important; }
+    .card[data-priority="medium"]::before { background: var(--medium-color) !important; }
+    .card[data-priority="low"]::before    { background: var(--low-color); opacity: .5; }
+    .card[data-type="dm"]::before         { background: var(--green); }
+    .card[data-type="groupdm"]::before    { background: var(--purple); }
+    .card[data-type="channel"]::before    { background: var(--blue); }
+    .card.new-card { animation: cardIn .4s cubic-bezier(.22,1,.36,1) both; }
+    @keyframes cardIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
+    .card.archiving { opacity: 0; transform: translateX(40px) scale(.96); transition: opacity .3s, transform .3s; }
+
+    .card-head { display: flex; align-items: flex-start; gap: 10px; }
+    .avatar {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: grid; place-items: center; font-size: .68rem; font-weight: 700;
+      letter-spacing: .02em; flex-shrink: 0; color: #fff;
+    }
+    .card-meta { flex: 1; min-width: 0; }
+    .card-meta-top { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .sender-name { font-weight: 600; font-size: .82rem; white-space: nowrap; }
+    .channel-pill {
+      display: flex; align-items: center; gap: 3px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 100px; padding: 1px 7px;
+      font-size: .66rem; color: var(--txt-muted);
+      white-space: nowrap; max-width: 180px; overflow: hidden; text-overflow: ellipsis;
+    }
+    .ch-icon { font-size: .6rem; flex-shrink: 0; }
+    .time-ago { font-size: .68rem; color: var(--txt-dim); margin-left: auto; white-space: nowrap; }
+
+    .card-body { margin-top: 8px; padding-left: 40px; }
+    .msg-text {
+      font-size: .82rem; color: var(--txt); line-height: 1.55;
+      display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .card[data-priority="high"] .msg-text { -webkit-line-clamp: 4; }
+    .card[data-priority="low"]  .msg-text { -webkit-line-clamp: 2; }
+
+    .card-actions { display: flex; align-items: center; gap: 7px; margin-top: 9px; flex-wrap: wrap; }
+    .open-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .7rem; font-weight: 500; color: var(--purple);
+      text-decoration: none; padding: 3px 9px; border-radius: 100px;
+      border: 1px solid var(--purple-dim); background: var(--purple-glow); transition: all .15s;
+    }
+    .open-link:hover { background: rgba(124,92,252,.28); border-color: var(--purple); }
+
+    .priority-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .66rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+      padding: 2px 8px; border-radius: 100px; cursor: default; position: relative;
+    }
+    .priority-badge[data-priority="high"]   { color: var(--high-color);   background: var(--high-bg);   border: 1px solid var(--high-border); }
+    .priority-badge[data-priority="medium"] { color: var(--medium-color); background: var(--medium-bg); border: 1px solid var(--medium-border); }
+    .priority-badge[data-priority="low"]    { color: var(--low-color);    background: var(--low-bg);    border: 1px solid var(--low-border); }
+    .priority-badge::after {
+      content: attr(data-reason);
+      position: absolute; bottom: calc(100% + 5px); left: 50%; transform: translateX(-50%);
+      background: #1e2040; border: 1px solid var(--border-hi);
+      border-radius: 7px; padding: 4px 9px;
+      font-size: .68rem; font-weight: 400; letter-spacing: 0; text-transform: none;
+      white-space: nowrap; color: var(--txt); pointer-events: none;
+      opacity: 0; transition: opacity .15s; z-index: 10;
+    }
+    .priority-badge:hover::after { opacity: 1; }
+    .priority-badge.keyword { border-style: dashed; opacity: .8; }
+
+    .archive-btn {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: .68rem; font-weight: 500; color: var(--txt-dim);
+      text-decoration: none; padding: 3px 9px; border-radius: 100px;
+      border: 1px solid var(--border); background: transparent;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .archive-btn:hover { border-color: var(--border-hi); color: var(--txt-muted); background: var(--surface2); }
+
+    .reply-btn {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: .68rem; font-weight: 500; color: #22d3a0;
+      padding: 3px 9px; border-radius: 100px;
+      border: 1px solid rgba(34,211,160,.25); background: transparent;
+      cursor: pointer; transition: all .15s; font-family: inherit;
+    }
+    .reply-btn:hover { border-color: #22d3a0; background: rgba(34,211,160,.1); }
+
+    .reply-row { display: none; margin-top: 7px; padding-left: 40px; gap: 5px; align-items: center; }
+    .reply-row.open { display: flex; }
+    .reply-input {
+      flex: 1; min-width: 0;
+      padding: 6px 10px; border-radius: 7px;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--txt); font-size: .76rem; font-family: inherit;
+      outline: none; transition: border-color .15s;
+    }
+    .reply-input:focus { border-color: #22d3a0; }
+    .reply-input::placeholder { color: var(--txt-dim); }
+    .reply-send-btn {
+      padding: 6px 12px; border-radius: 7px;
+      border: none; background: #22d3a0; color: #0d0e1a;
+      font-size: .74rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: opacity .15s; white-space: nowrap;
+    }
+    .reply-send-btn:hover { opacity: .85; }
+    .reply-send-btn:disabled { opacity: .4; cursor: not-allowed; }
+    .reply-row.sent .reply-input { opacity: .5; }
+    .reply-row.sent .reply-send-btn { background: var(--border); color: var(--txt-dim); }
+
+    .tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-left: 40px; }
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 2px;
+      font-size: .6rem; font-weight: 600; letter-spacing: .03em;
+      padding: 1px 7px; border-radius: 100px;
+      white-space: nowrap; text-transform: uppercase;
+    }
+    .tag-pill--gray   { color: var(--txt-muted);    background: rgba(120,128,168,.1);  border: 1px solid rgba(120,128,168,.2); }
+    .tag-pill--blue   { color: var(--blue);          background: rgba(92,173,252,.08);  border: 1px solid rgba(92,173,252,.25); }
+    .tag-pill--green  { color: var(--green);         background: rgba(34,211,160,.08);  border: 1px solid rgba(34,211,160,.25); }
+    .tag-pill--purple { color: var(--purple);        background: rgba(124,92,252,.08);  border: 1px solid rgba(124,92,252,.25); }
+    .tag-pill--orange { color: var(--amber);         background: rgba(245,166,35,.08);  border: 1px solid rgba(245,166,35,.25); }
+    .tag-pill--red    { color: var(--red);           background: rgba(244,93,93,.08);   border: 1px solid rgba(244,93,93,.25); }
+    .tag-pill--muted  { color: var(--txt-dim);       background: rgba(74,79,122,.08);   border: 1px solid rgba(74,79,122,.2); }
+
+    .routing-attention-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: .63rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 100px;
+      color: var(--red); background: rgba(244,93,93,.08); border: 1px solid rgba(244,93,93,.25);
+    }
+
+    /* ── Empty / shimmer ─────────────────────────────────────────── */
+    .empty { text-align: center; padding: 36px 16px; color: var(--txt-dim); }
+    .empty .emoji { font-size: 1.8rem; margin-bottom: 10px; }
+    .empty p { font-size: .8rem; line-height: 1.6; }
+    .shimmer {
+      background: linear-gradient(90deg, var(--surface) 25%, var(--surface2) 50%, var(--surface) 75%);
+      background-size: 200% 100%; animation: shimmer 1.4s infinite;
+      border-radius: var(--radius); height: 72px; margin-bottom: 8px;
+    }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+    /* ── Toast ──────────────────────────────────────────────────── */
+    #toast {
+      position: fixed; bottom: 20px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface2); border: 1px solid var(--border-hi);
+      border-radius: 100px; padding: 9px 18px; font-size: .78rem; color: var(--txt);
+      transition: transform .3s cubic-bezier(.22,1,.36,1);
+      z-index: 200; white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── Settings modal ─────────────────────────────────────────── */
+    .settings-overlay {
+      position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .2s;
+    }
+    .settings-overlay.open { opacity: 1; pointer-events: all; }
+    .settings-panel {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 18px; padding: 26px 26px 22px;
+      width: min(500px, calc(100vw - 40px));
+      transform: translateY(12px) scale(.98); transition: transform .2s;
+    }
+    .settings-overlay.open .settings-panel { transform: none; }
+    .settings-header {
+      display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;
+    }
+    .settings-header h2 { font-size: .95rem; font-weight: 600; }
+    .settings-close {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 50%; width: 26px; height: 26px;
+      font-size: .85rem; cursor: pointer; color: var(--txt-muted);
+      display: grid; place-items: center; transition: all .15s;
+    }
+    .settings-close:hover { color: var(--txt); border-color: var(--border-hi); }
+    .mode-tabs {
+      display: flex; gap: 4px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 4px; margin: 14px 0;
+    }
+    .mode-tab {
+      flex: 1; padding: 6px 10px; border-radius: 7px;
+      font-family: inherit; font-size: .74rem; font-weight: 500;
+      cursor: pointer; border: none; background: transparent;
+      color: var(--txt-muted); transition: all .15s; text-align: center;
+    }
+    .mode-tab.active {
+      background: var(--surface); color: var(--txt);
+      border: 1px solid var(--border-hi);
+    }
+    .mode-tab .mode-badge {
+      font-size: .62rem; background: var(--green); color: #000;
+      border-radius: 3px; padding: 1px 4px; margin-left: 4px;
+      font-weight: 700; vertical-align: middle;
+    }
+    .mode-pane { display: none; }
+    .mode-pane.active { display: block; }
+    .settings-hint {
+      font-size: .76rem; color: var(--txt-muted); line-height: 1.6;
+      background: rgba(124,92,252,.06); border: 1px solid rgba(124,92,252,.15);
+      border-radius: var(--radius-sm); padding: 10px 13px; margin-bottom: 16px;
+    }
+    .settings-hint strong { color: var(--purple); }
+    .settings-hint.warn { background: rgba(245,166,35,.06); border-color: rgba(245,166,35,.2); }
+    .settings-hint.warn strong { color: var(--amber); }
+    .settings-label {
+      display: block; font-size: .72rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .08em; color: var(--txt-muted); margin: 0 0 6px;
+    }
+    .token-row { display: flex; gap: 6px; align-items: stretch; margin-bottom: 6px; }
+    .token-input {
+      flex: 1; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 11px;
+      font-family: 'DM Mono', monospace; font-size: .76rem; color: var(--txt);
+      outline: none; transition: border-color .15s; min-width: 0;
+    }
+    .token-input:focus { border-color: var(--purple); }
+    .token-input::placeholder { color: var(--txt-dim); }
+    .btn-icon {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      font-size: .82rem; cursor: pointer; color: var(--txt-muted); transition: all .15s;
+      display: grid; place-items: center;
+    }
+    .btn-icon:hover { border-color: var(--border-hi); color: var(--txt); }
+    .settings-source {
+      font-size: .7rem; color: var(--txt-dim); margin: 5px 0 16px; min-height: 15px;
+    }
+    .settings-source.active  { color: var(--green); }
+    .settings-source.oauth   { color: var(--purple); }
+    .settings-source.runtime { color: var(--blue); }
+    .settings-actions { display: flex; justify-content: flex-end; gap: 8px; }
+  </style>
+</head>
+<body>
+
+  <!-- ── Top bar ─────────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="slack-icon">⚡</div>
+      <div class="title-block">
+        <h1>Gaurav-OS</h1>
+        <p id="last-updated-txt">Loading…</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="status-badge">
+        <div class="dot pulse" id="ws-dot"></div>
+        <span id="ws-status">Connecting…</span>
+      </div>
+      <div class="ai-badge" id="ai-badge" onclick="openSettings(_genosLive===false)" style="cursor:pointer" title="Click to configure GenOS">🤖 GenOS Off</div>
+      <button class="btn btn-ai" id="classify-btn" onclick="reClassify()" style="display:none">Re-classify</button>
+      <button class="btn btn-primary" id="refresh-btn" onclick="manualRefresh()">
+        <span id="refresh-icon">↻</span> Refresh
+      </button>
+      <button class="btn btn-gear" id="settings-btn" onclick="openSettings()" title="GenOS settings">⚙</button>
+    </div>
+  </header>
+
+  <!-- ── Classify status strip ────────────────────────────────────── -->
+  <div id="classify-strip"></div>
+
+  <!-- ── 3-column workspace ───────────────────────────────────────── -->
+  <div class="workspace">
+
+    <!-- ── LEFT NAV: Top 5 + Systems ──────────────────────────────── -->
+    <aside class="nav-left" id="nav-left">
+
+      <!-- Top 5 Today -->
+      <div class="top5-card" id="top5-card">
+        <div class="top5-header">
+          <h2>Top 5 Today <span class="count-badge" id="top5-done-count">0/5</span></h2>
+          <span class="notion-sync synced" id="notion-sync-status">
+            <span class="notion-icon">📓</span> Synced
+          </span>
+        </div>
+        <ol class="top5-list" id="top5-list"></ol>
+      </div>
+
+      <!-- Systems Check -->
+      <div class="systems-card" id="systems-card">
+        <div class="systems-header">
+          <span class="systems-icon">⚙️</span>
+          <h2>Systems <span class="systems-overall" id="systems-overall"></span></h2>
+          <span class="systems-checked" id="systems-checked"></span>
+          <button class="systems-refresh-btn" onclick="refreshSystems()" title="Check now" id="systems-refresh-btn">↻</button>
+        </div>
+        <div class="systems-grid" id="systems-grid">
+          <div class="systems-loading">Checking systems…</div>
+        </div>
+      </div>
+
+    </aside>
+
+    <div class="drag-handle" id="drag-left" title="Drag to resize"></div>
+
+    <!-- ── CENTER NAV: GenOS Chat ──────────────────────────────────── -->
+    <main class="nav-center" id="nav-center">
+      <div class="chat-header">
+        <span class="chat-header-title">
+          GenOS Chat
+          <span class="chat-genos-badge off" id="chat-genos-badge">Off</span>
+        </span>
+        <span class="chat-header-sub" id="chat-header-sub">Configure GenOS in ⚙ Settings to enable</span>
+        <div class="model-select-wrap">
+          <label for="model-select">Model</label>
+          <select id="model-select" title="Select model">
+            <option value="" disabled selected>Loading…</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="chat-messages" id="chat-messages">
+        <div class="chat-welcome" id="chat-welcome">
+          <div class="welcome-icon">⚡</div>
+          <h2>Gaurav-OS Assistant</h2>
+          <p>Your AI co-pilot for the workstream. Ask about priorities, draft Slack replies, think through decisions, or just get a quick answer.</p>
+          <div class="chat-suggestions">
+            <button class="chat-suggestion" onclick="useSuggestion(this)">What should I focus on today?</button>
+            <button class="chat-suggestion" onclick="useSuggestion(this)">Draft a status update for my team</button>
+            <button class="chat-suggestion" onclick="useSuggestion(this)">Help me think through a tough decision</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar" id="chat-input-bar">
+        <textarea id="chat-input" placeholder="Ask anything… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+        <button id="chat-mic-btn" onclick="toggleVoiceInput()" title="Hold to speak (uses browser mic)">🎤</button>
+        <button id="chat-send-btn" onclick="sendChatMessage()" title="Send">↑</button>
+      </div>
+    </main>
+
+    <div class="drag-handle" id="drag-right" title="Drag to resize"></div>
+
+    <!-- ── RIGHT NAV: Agent Inbox + Workstream ─────────────────────── -->
+    <aside class="nav-right" id="nav-right">
+
+      <!-- Agent Inbox -->
+      <div class="right-section" id="agent-inbox" style="display:none">
+        <div class="agent-inbox-header">
+          <div class="slack-icon" style="width:26px;height:26px;font-size:13px;border-radius:7px">🤖</div>
+          <h2>Agent Inbox <span class="inbox-count" id="inbox-count">0</span></h2>
+          <button id="inbox-clear-old-btn" onclick="clearOldDrafts()" title="Archive items older than 5 days" style="display:none;margin-right:4px;font-size:.65rem;padding:3px 8px;border-radius:6px;background:var(--surface2);border:1px solid var(--border);color:var(--txt-muted);cursor:pointer">Clear old</button>
+          <button id="inbox-refresh-btn" onclick="triggerCursorRefresh()">
+            <span id="inbox-refresh-icon">↻</span> Refresh
+          </button>
+        </div>
+        <div id="inbox-drafts"></div>
+      </div>
+
+      <!-- Workstream Mentions -->
+      <div class="workstream-section right-section">
+        <div class="workstream-header">
+          <h2>Workstream</h2>
+          <button class="workstream-refresh" onclick="manualRefresh()">
+            ↻ Refresh
+          </button>
+        </div>
+
+        <div class="tabs" id="tab-bar">
+          <button class="tab active" data-tab="all"    onclick="switchTab('all')">
+            All <span class="tab-count" id="count-all">0</span>
+          </button>
+          <button class="tab" data-tab="high"   onclick="switchTab('high')">
+            High <span class="tab-count" id="count-high">0</span>
+          </button>
+          <button class="tab" data-tab="medium" onclick="switchTab('medium')">
+            Med <span class="tab-count" id="count-medium">0</span>
+          </button>
+          <button class="tab" data-tab="low"    onclick="switchTab('low')">
+            Low <span class="tab-count" id="count-low">0</span>
+          </button>
+        </div>
+
+        <div class="tab-panel active" id="panel-all">
+          <div id="today-section"></div>
+          <div id="yesterday-section"></div>
+          <div id="older-section"></div>
+        </div>
+        <div class="tab-panel" id="panel-high"></div>
+        <div class="tab-panel" id="panel-medium"></div>
+        <div class="tab-panel" id="panel-low"></div>
+      </div>
+
+      <!-- Calendar Today -->
+      <div class="right-section right-section-last calendar-section" id="calendar-section">
+        <div class="calendar-header">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="calendar-icon">📅</span>
+            <h2>Today</h2>
+            <span class="calendar-date" id="calendar-date"></span>
+          </div>
+          <button class="calendar-refresh-btn" id="calendar-refresh-btn" onclick="loadCalendarEvents()" title="Refresh calendar">↻</button>
+        </div>
+        <div id="calendar-events-list">
+          <div class="cal-loading">Loading events…</div>
+        </div>
+      </div>
+
+    </aside>
+  </div>
+
+  <!-- ── Hidden JS anchor elements ──────────────────────────────────── -->
+  <div id="countdown-wrap" style="display:none"></div>
+
+  <!-- ── GenOS Settings modal ──────────────────────────────────────── -->
+  <div class="settings-overlay" id="settings-overlay" onclick="closeSettings()">
+    <div class="settings-panel" onclick="event.stopPropagation()">
+      <div class="settings-header">
+        <h2>⚙ GenOS Configuration</h2>
+        <button class="settings-close" onclick="closeSettings()">✕</button>
+      </div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="tab-auto" onclick="switchMode('auto')">
+          Auto-refresh <span class="mode-badge">RECOMMENDED</span>
+        </button>
+        <button class="mode-tab" id="tab-manual" onclick="switchMode('manual')">
+          One-time token
+        </button>
+      </div>
+
+      <div class="mode-pane active" id="pane-auto">
+        <div class="settings-hint">
+          Enter your <strong>App ID</strong> and <strong>App Secret</strong> from DevPortal → Credentials tab.
+          The server uses PrivateAuth — no token exchange needed.
+          <br><br>Get credentials at: <strong>devportal.intuit.com → gmehta-va → Credentials</strong>
+        </div>
+        <label class="settings-label" for="cred-appid">App ID (Client ID)</label>
+        <div class="token-row" style="margin-bottom:12px">
+          <input class="token-input" id="cred-appid" type="text"
+            placeholder="your-client-id" autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter') saveCreds()" />
+        </div>
+        <label class="settings-label" for="cred-secret">App Secret (Client Secret)</label>
+        <div class="token-row" style="margin-bottom:12px">
+          <input class="token-input" id="cred-secret" type="password"
+            placeholder="your-client-secret" autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter') saveCreds()" />
+          <button class="btn-icon" id="vis-secret-btn" onclick="toggleSecretVis()" title="Show / hide">👁</button>
+        </div>
+        <label class="settings-label" for="cred-exp-id">
+          Experience ID <span style="opacity:.55;font-weight:400">— required for GenOS v3</span>
+        </label>
+        <div class="token-row" style="margin-bottom:6px">
+          <input class="token-input" id="cred-exp-id" type="text"
+            placeholder="e.g. your-genos-experience-uuid"
+            autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter') saveCreds()" />
+        </div>
+        <div style="font-size:.7rem;color:var(--txt-muted);margin-bottom:12px;line-height:1.4">
+          Register at <strong>devportal.intuit.com → Create → AI Experience</strong>
+        </div>
+        <label class="settings-label" for="cred-token-url">Token URL <span style="opacity:.55;font-weight:400">(optional)</span></label>
+        <div class="token-row" style="margin-bottom:12px">
+          <input class="token-input" id="cred-token-url" type="text"
+            placeholder="https://oauth.e2e.intuit.com/oauth2/v1/tokens/bearer"
+            autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter') saveCreds()" />
+        </div>
+        <div class="settings-source" id="settings-source-auto">No credentials configured</div>
+        <div class="settings-actions">
+          <button class="btn btn-ghost" onclick="clearCreds()">Clear</button>
+          <button class="btn btn-primary" onclick="saveCreds()">Save &amp; Classify</button>
+        </div>
+
+        <hr style="border:none;border-top:1px solid var(--border);margin:16px 0 14px">
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <label class="settings-label" for="cred-iam-ticket" style="margin-bottom:0">
+            IAM Ticket <span style="opacity:.55;font-weight:400">— expires ~10h, required for this service</span>
+          </label>
+          <span id="iam-ticket-probe-badge" style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:100px;display:none"></span>
+        </div>
+        <div style="font-size:.68rem;color:var(--txt-dim);margin-bottom:8px;line-height:1.5">
+          Paste <strong>only the ticket value</strong> — e.g. <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.68rem">V1-229-Bxxxxx</code> — from
+          <a href="https://devportal.intuit.com" target="_blank" style="color:var(--accent)">DevPortal</a>
+          (App → Generate Token → copy just the <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.68rem">intuit_token=</code> value).<br>
+          <strong>Do NOT paste the full <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.68rem">Intuit_IAM_Authentication …</code> header</strong> — the server builds that automatically using the App Secret from <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:.68rem">.env</code>.
+        </div>
+        <div class="token-row" style="margin-bottom:8px">
+          <input class="token-input" id="cred-iam-ticket" type="password"
+            placeholder="V1-229-Bxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false"
+            onkeydown="if(event.key==='Enter') saveIamTicket()" />
+          <button class="btn-icon" id="vis-iam-btn" onclick="toggleIamTicketVis()" title="Show / hide">👁</button>
+        </div>
+        <div class="settings-source" id="settings-source-iam">No ticket configured</div>
+        <div class="settings-actions">
+          <button class="btn btn-ghost" onclick="clearIamTicket()">Clear</button>
+          <button class="btn btn-primary" onclick="saveIamTicket()">Save Ticket</button>
+        </div>
+      </div>
+
+      <div class="mode-pane" id="pane-manual">
+        <div class="settings-hint warn">
+          <strong>⚠ Expires in ~1 hour. For IAM tickets use the field above instead.</strong> Only use this for a raw OAuth2 JWT bearer token (e.g. from a token exchange). Do NOT paste the IAM ticket or full <code style="font-size:.68rem;background:var(--surface2);padding:1px 4px;border-radius:3px">Intuit_IAM_Authentication …</code> header here.
+        </div>
+        <label class="settings-label" for="iam-token-input">OAuth2 Bearer Token (advanced)</label>
+        <div class="token-row">
+          <input class="token-input" id="iam-token-input" type="password"
+            placeholder="eyJhbG… or Intuit_IAM_Authentication intuit_appid=…" spellcheck="false" autocomplete="off"
+            onkeydown="if(event.key==='Enter') saveToken()" />
+          <button class="btn-icon" id="vis-btn" onclick="toggleTokenVis()" title="Show / hide">👁</button>
+        </div>
+        <div class="settings-source" id="settings-source-manual">No token configured</div>
+        <div class="settings-actions">
+          <button class="btn btn-ghost" onclick="clearToken()">Clear</button>
+          <button class="btn btn-primary" onclick="saveToken()">Save &amp; Classify</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+// ── Utilities ─────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+// Timezone for all date display — matches TZ in .env (America/Los_Angeles = PDT/PST)
+const LOCAL_TZ = 'America/Los_Angeles';
+
+function timeAgo(ts) {
+  const diff = (Date.now() - ts * 1000) / 1000;
+  if (diff < 60)    return 'just now';
+  if (diff < 3600)  return `${Math.round(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.round(diff/3600)}h ago`;
+  return `${Math.round(diff/86400)}d ago`;
+}
+function formatTime(ts) {
+  const d = new Date(ts * 1000);
+  const opts = { timeZone: LOCAL_TZ };
+  const timeStr = d.toLocaleTimeString([], { ...opts, hour: '2-digit', minute: '2-digit' });
+  if (isToday(ts)) return timeStr;
+  if (isYesterday(ts)) return `Yesterday ${timeStr}`;
+  return d.toLocaleDateString([], { ...opts, month: 'short', day: 'numeric' }) + ' ' + timeStr;
+}
+function formatDateTime(isoStr) {
+  if (!isoStr) return 'Never';
+  return new Date(isoStr).toLocaleString([], { timeZone: LOCAL_TZ, month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+function isToday(ts) {
+  const d = new Date(ts * 1000);
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: LOCAL_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  const nd  = new Intl.DateTimeFormat('en-US', { timeZone: LOCAL_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  return fmt.format(d) === nd.format(new Date());
+}
+function isYesterday(ts) {
+  const d = new Date(ts * 1000);
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: LOCAL_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+  return fmt.format(d) === fmt.format(yesterday);
+}
+
+const PALETTE = [
+  ['#5b4eff','#1a1638'],['#22d3a0','#0d2820'],['#f45d5d','#2d1010'],
+  ['#f5a623','#2d2010'],['#5cadfc','#0d1e2d'],['#c45aff','#1e0d2d'],
+  ['#ff6b9d','#2d0d1a'],['#2dd4bf','#0d2220'],
+];
+function avatarStyle(name) {
+  const n = name || 'Unknown';
+  let h = 0;
+  for (let i = 0; i < n.length; i++) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  const [fg, bg] = PALETTE[h % PALETTE.length];
+  return `background:${bg};color:${fg};border:1.5px solid ${fg}33;`;
+}
+function initials(name) {
+  const n = name || 'Unknown';
+  return n.split(' ').slice(0,2).map(w => w[0]).join('').toUpperCase();
+}
+function channelIcon(type) {
+  if (type === 'dm')      return '👤';
+  if (type === 'groupdm') return '👥';
+  return '#';
+}
+function detectKeywordPriority(text) {
+  const t = text.toLowerCase();
+  if (/\burgent\b|\bcritical\b|\bblocker\b|\basap\b|\bredly\b|\bredl\b/.test(t)) return { priority: 'high',   reason: 'Contains urgency keyword', keyword: true };
+  if (/\beta\b|\bapprove\b|\breview\b|\bplease\b|\bcan you\b/.test(t))          return { priority: 'medium', reason: 'Contains action keyword',  keyword: true };
+  return null;
+}
+function cleanText(text) {
+  return text
+    .replace(/<@[A-Z0-9]+\|([^>]+)>/g, '@$1')
+    .replace(/<#[A-Z0-9]+\|([^>]+)>/g, '#$1')
+    .replace(/<(https?:\/\/[^|>]+)\|([^>]+)>/g, '$2')
+    .replace(/<(https?:\/\/[^>]+)>/g, '$1')
+    .replace(/<mailto:[^|>]+\|([^>]+)>/g, '$1')
+    .replace(/<!here>/g, '@here').replace(/<!channel>/g, '@channel')
+    .replace(/\n+/g, ' ').trim();
+}
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Top 5 ─────────────────────────────────────────────────────────────────────
+let _top5 = [];
+
+function renderTop5(items) {
+  _top5 = items || [];
+  const list = $('top5-list');
+  const doneCount = _top5.filter(t => t.done).length;
+  $('top5-done-count').textContent = `${doneCount}/5`;
+
+  const dirtyCount = _top5.filter(t => t.dirtyLocal).length;
+  const syncEl = $('notion-sync-status');
+  if (syncEl) {
+    if (dirtyCount > 0) {
+      syncEl.className = 'notion-sync pending';
+      syncEl.innerHTML = `<span class="notion-icon">📓</span> ${dirtyCount} pending`;
+    } else {
+      syncEl.className = 'notion-sync synced';
+      syncEl.innerHTML = `<span class="notion-icon">📓</span> Synced`;
+    }
+  }
+
+  list.innerHTML = _top5.map((item, i) => `
+    <li class="top5-item${item.done ? ' done' : ''}" data-id="${item.id}">
+      <span class="top5-num">${i + 1}</span>
+      <button class="top5-check" onclick="toggleTop5('${item.id}')" title="Toggle done">${item.done ? '✓' : ''}</button>
+      <input class="top5-text" value="${(item.text || '').replace(/"/g, '&quot;')}"
+        placeholder="Add a task…"
+        onblur="updateTop5Text('${item.id}', this.value)"
+        onkeydown="if(event.key==='Enter') this.blur()" />
+    </li>
+  `).join('');
+}
+
+async function toggleTop5(id) {
+  const item = _top5.find(t => t.id === id);
+  if (!item) return;
+  try {
+    await fetch('/api/top5/' + id, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ done: !item.done }),
+    });
+  } catch { toast('Server unreachable', 2000); }
+}
+
+let _saveTimer = null;
+function updateTop5Text(id, text) {
+  const item = _top5.find(t => t.id === id);
+  if (!item || item.text === text) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(async () => {
+    try {
+      await fetch('/api/top5/' + id, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+    } catch { toast('Server unreachable', 2000); }
+  }, 300);
+}
+
+// ── Priority badge HTML ───────────────────────────────────────────────────────
+function priorityBadgeHtml(m) {
+  const p = m.priority;
+  if (!p) {
+    const kw = detectKeywordPriority(m.text);
+    if (!kw) return '';
+    const label = kw.priority === 'high' ? '🔴 High' : '🟡 Med';
+    return `<span class="priority-badge keyword" data-priority="${kw.priority}" data-reason="${kw.reason}">${label}</span>`;
+  }
+  const icons  = { high: '🔴', medium: '🟡', low: '⚪' };
+  const labels = { high: 'High', medium: 'Med', low: 'Low' };
+  const reason = m.priorityReason ? m.priorityReason.replace(/"/g, '&quot;') : '';
+  return `<span class="priority-badge" data-priority="${p}" data-reason="${reason}">${icons[p] || ''} ${labels[p] || p}</span>`;
+}
+
+function renderTags(tags) {
+  if (!tags || !tags.length) return '';
+  const pills = tags.map(t => `<span class="tag-pill tag-pill--${t.color || 'gray'}">${t.label}</span>`).join('');
+  return `<div class="tag-row">${pills}</div>`;
+}
+
+// ── Render one mention card ───────────────────────────────────────────────────
+function renderCard(m, isNew = false) {
+  const text   = cleanText(m.text);
+  const pri    = m.priority || detectKeywordPriority(m.text)?.priority || '';
+  const sender = m.from || m.user || 'Unknown';
+  const replyBtnHtml = `<button class="reply-btn" onclick="toggleReply('${m.id}')">↩ Reply</button>`;
+  const replyRowHtml = `<div class="reply-row" id="reply-row-${m.id}">
+       <input class="reply-input" id="reply-input-${m.id}" placeholder="Type a reply…"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendReply('${m.id}','${m.channelId}','${m.threadTs || ''}')}" />
+       <button class="reply-send-btn" id="reply-send-${m.id}"
+               onclick="sendReply('${m.id}','${m.channelId}','${m.threadTs || ''}')">Send</button>
+     </div>`;
+  return `
+    <div class="card${isNew ? ' new-card' : ''}" data-type="${m.channelType}" data-priority="${pri}" data-id="${m.id}">
+      <div class="card-head">
+        <div class="avatar" style="${avatarStyle(sender)}">${initials(sender)}</div>
+        <div class="card-meta">
+          <div class="card-meta-top">
+            <span class="sender-name">${sender}</span>
+            <span class="channel-pill">
+              <span class="ch-icon">${channelIcon(m.channelType)}</span>${m.channel}
+            </span>
+            <span class="time-ago">${formatTime(m.ts)} · ${timeAgo(m.ts)}</span>
+          </div>
+        </div>
+      </div>
+      ${renderTags(m.tags)}
+      <div class="card-body">
+        <p class="msg-text">${text}</p>
+        <div class="card-actions">
+          ${priorityBadgeHtml(m)}
+          <a class="open-link" href="${m.permalink}" target="_blank">↗ Slack</a>
+          ${replyBtnHtml}
+          <button class="archive-btn" onclick="archiveMention('${m.id}', this)" title="Archive">✓</button>
+        </div>
+        ${replyRowHtml}
+      </div>
+    </div>`;
+}
+
+function renderSection(containerId, label, mentions, isNew = false) {
+  const el = $(containerId);
+  if (!mentions.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div class="section-header">
+      <h2>${label}</h2>
+      <span class="badge">${mentions.length}</span>
+      <div class="section-divider"></div>
+    </div>
+    ${mentions.map(m => renderCard(m, isNew)).join('')}`;
+}
+
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+
+function getEffectivePriority(m) {
+  if (m.priority) return m.priority;
+  return detectKeywordPriority(m.text)?.priority || 'low';
+}
+
+function renderPriorityPanel(panelId, mentions, priority) {
+  const panel    = $(panelId);
+  const filtered = mentions.filter(m => getEffectivePriority(m) === priority).sort((a, b) => b.ts - a.ts);
+  if (!filtered.length) {
+    const icon  = { high: '🙌', medium: '✅', low: '🎉' }[priority] || '📭';
+    const label = { high: "No high-priority mentions", medium: "No medium-priority mentions.", low: "No low-priority mentions." }[priority];
+    panel.innerHTML = `<div class="empty"><div class="emoji">${icon}</div><p>${label}</p></div>`;
+    return;
+  }
+  const today     = filtered.filter(m => isToday(m.ts));
+  const yesterday = filtered.filter(m => isYesterday(m.ts));
+  const older     = filtered.filter(m => !isToday(m.ts) && !isYesterday(m.ts));
+  let html = '';
+  if (today.length)     html += sectionHtml('Today', today);
+  if (yesterday.length) html += sectionHtml('Yesterday', yesterday);
+  if (older.length)     html += sectionHtml('Older', older);
+  panel.innerHTML = html;
+}
+
+function sectionHtml(label, mentions) {
+  return `
+    <div class="section-header">
+      <h2>${label}</h2><span class="badge">${mentions.length}</span><div class="section-divider"></div>
+    </div>
+    ${mentions.map(m => renderCard(m)).join('')}`;
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+let activeTab = 'all';
+function switchTab(tab) {
+  activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${tab}`));
+}
+
+// ── Full render ───────────────────────────────────────────────────────────────
+let _lastData = null;
+
+function renderAll(data, isNew = false) {
+  if (!data || !data.mentions) return;
+  _lastData = data;
+  const mentions = [...data.mentions].sort((a, b) => b.ts - a.ts);
+  const counts = { high: 0, medium: 0, low: 0 };
+  mentions.forEach(m => { const ep = getEffectivePriority(m); counts[ep] = (counts[ep] || 0) + 1; });
+  ['high','medium','low'].forEach(p => { $(`count-${p}`).textContent = counts[p] || 0; });
+  $('count-all').textContent = mentions.length;
+  renderPriorityPanel('panel-high',   mentions, 'high');
+  renderPriorityPanel('panel-medium', mentions, 'medium');
+  renderPriorityPanel('panel-low',    mentions, 'low');
+  const today     = mentions.filter(m => isToday(m.ts));
+  const yesterday = mentions.filter(m => isYesterday(m.ts));
+  const older     = mentions.filter(m => !isToday(m.ts) && !isYesterday(m.ts));
+  renderSection('today-section',     'Today',     today,     isNew);
+  renderSection('yesterday-section', 'Yesterday', yesterday, isNew);
+  if (older.length) renderSection('older-section', 'Older', older, isNew);
+  else $('older-section').innerHTML = '';
+  $('last-updated-txt').textContent = data.lastUpdated ? `Updated ${formatDateTime(data.lastUpdated)}` : 'Data preloaded';
+  if (isNew && activeTab === 'all') switchTab('all');
+}
+
+let _tokenSource    = 'none';
+let hasGenOS        = false;
+let _genosLive      = null;   // null=not yet probed, true=ok, false=failed
+let _genosProbeError = '';
+
+function updateGenosUI(hasG, source) {
+  hasGenOS     = !!hasG;
+  _tokenSource = source || 'none';
+
+  const badge = $('chat-genos-badge');
+  const sub   = $('chat-header-sub');
+
+  if (!hasGenOS) {
+    $('classify-btn').style.display = 'none';
+    setAIBadge('', '🤖 GenOS Off');
+    badge.textContent = 'Off';
+    badge.className = 'chat-genos-badge off';
+    if (sub) sub.textContent = 'Configure GenOS in ⚙ Settings to enable chat';
+  } else if (_genosLive === false) {
+    // Configured but live probe failed — show warning
+    $('classify-btn').style.display = '';
+    setAIBadge('error', '🤖 GenOS ⚠');
+    badge.textContent = '⚠ Error';
+    badge.className = 'chat-genos-badge warn';
+    const hint = _genosProbeError ? _genosProbeError.slice(0, 80) : 'check IAM ticket in ⚙ Settings';
+    if (sub) sub.textContent = `GenOS unreachable — ${hint}`;
+  } else {
+    // Configured and either probe passed or not yet probed
+    $('classify-btn').style.display = '';
+    const liveTag = _genosLive === true ? ' ✓' : '';
+    const label   = source === 'manual' ? `🤖 GenOS (token)${liveTag}` : `🤖 GenOS${liveTag}`;
+    setAIBadge('active', label);
+    badge.textContent = _genosLive === true ? '✓ Live' : 'On';
+    badge.className = 'chat-genos-badge';
+    if (sub) sub.textContent = 'Ask anything — powered by GenOS';
+  }
+  refreshSettingsSource(hasGenOS, source);
+}
+
+function applyGenosProbe(live, error) {
+  _genosLive       = live;
+  _genosProbeError = error || '';
+  updateGenosUI(hasGenOS, _tokenSource);
+
+  // Update the probe badge inside Settings if it's open
+  const badge = $('iam-ticket-probe-badge');
+  if (badge) {
+    if (live === true) {
+      badge.textContent = '✓ Live';
+      badge.style.display = 'inline';
+      badge.style.background = 'rgba(52,211,153,.15)';
+      badge.style.color = 'var(--green)';
+      badge.style.border = '1px solid rgba(52,211,153,.3)';
+    } else if (live === false) {
+      badge.textContent = '⚠ Auth failed';
+      badge.style.display = 'inline';
+      badge.style.background = 'rgba(245,166,35,.12)';
+      badge.style.color = 'var(--amber)';
+      badge.style.border = '1px solid rgba(245,166,35,.3)';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+  // Update IAM source label
+  const iamEl = $('settings-source-iam');
+  if (iamEl) {
+    if (live === true)  { iamEl.className = 'settings-source active'; iamEl.textContent = '✓ IAM ticket valid — GenOS responding'; }
+    else if (live === false) { iamEl.className = 'settings-source'; iamEl.style.color = 'var(--amber)'; iamEl.textContent = `⚠ Probe failed — paste a new ticket below`; }
+  }
+}
+
+function refreshSettingsSource(hasGenosVal, source) {
+  const autoEl   = $('settings-source-auto');
+  const manualEl = $('settings-source-manual');
+  if (source === 'privateauth' || source === 'oauth2') {
+    if (autoEl)   { autoEl.className = 'settings-source oauth';   autoEl.textContent   = '✓ Credentials configured via .env'; }
+    if (manualEl) { manualEl.className = 'settings-source';        manualEl.textContent = 'No token configured'; }
+  } else if (source === 'runtime-creds') {
+    if (autoEl)   { autoEl.className = 'settings-source runtime'; autoEl.textContent   = '✓ App credentials active — tokens auto-refresh'; }
+    if (manualEl) { manualEl.className = 'settings-source';        manualEl.textContent = 'No token configured'; }
+  } else if (source === 'manual') {
+    if (autoEl)   { autoEl.className = 'settings-source';          autoEl.textContent   = 'No credentials configured'; }
+    if (manualEl) { manualEl.className = 'settings-source active'; manualEl.textContent = '✓ Manual IAM token active (~1hr)'; }
+  } else {
+    if (autoEl)   { autoEl.className = 'settings-source';          autoEl.textContent   = 'No credentials configured'; }
+    if (manualEl) { manualEl.className = 'settings-source';        manualEl.textContent = 'No token configured'; }
+  }
+}
+
+function setAIBadge(state, text) {
+  const el = $('ai-badge');
+  el.className = 'ai-badge ' + state;
+  el.textContent = text;
+}
+
+function showClassifyStrip(state, text) {
+  const strip = $('classify-strip');
+  strip.className = state;
+  strip.innerHTML = text;
+}
+
+function renderCountdown() {}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+let ws = null;
+let reconnectTimer = null;
+
+function connectWS() {
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  ws = new WebSocket(`ws://${location.host}`);
+
+  ws.onopen = () => {
+    $('ws-dot').className = 'dot pulse';
+    $('ws-status').textContent = 'Live';
+  };
+
+  const handleMsg = e => {
+    const msg = JSON.parse(e.data);
+
+    if (msg.type === 'init') {
+      hasGenOS = msg.hasGenOS;
+      if (msg.genosLive !== undefined) { _genosLive = msg.genosLive; _genosProbeError = msg.genosProbeError || ''; }
+      updateGenosUI(msg.hasGenOS, msg.tokenSource);
+      if (msg.top5)  renderTop5(msg.top5);
+      if (msg.data)  {
+        renderAll(msg.data, false);
+        if (msg.data.classifiedAt) {
+          showClassifyStrip('done', `✦ AI classified ${msg.data.mentions.length} messages · ${formatDateTime(msg.data.classifiedAt)}`);
+        }
+      }
+      if (msg.agentDrafts) { renderAgentInbox(msg.agentDrafts); applyHumanOnlyBadges(); }
+      renderCountdown();
+      loadCalendarEvents();
+    }
+
+    if (msg.type === 'update') {
+      // Check if this is a post-classification update
+      if (msg.data?.classifiedAt) {
+        renderAll(msg.data, false);
+        applyHumanOnlyBadges();
+        showClassifyStrip('done', `✦ AI classified ${msg.data.mentions.length} messages · ${formatDateTime(msg.data.classifiedAt)}`);
+        updateGenosUI(true, _tokenSource);
+        enableClassifyBtn();
+      } else {
+        renderAll(msg.data, true);
+        applyHumanOnlyBadges();
+        toast(`✓ ${msg.data.mentions.length} mentions loaded`);
+        enableRefreshBtn();
+      }
+    }
+
+    if (msg.type === 'genos_status') {
+      hasGenOS = msg.hasGenOS;
+      updateGenosUI(msg.hasGenOS, msg.tokenSource);
+    }
+
+    if (msg.type === 'genos_probe') {
+      applyGenosProbe(msg.live, msg.error);
+    }
+
+    if (msg.type === 'classifying') {
+      showClassifyStrip('classifying', `<span class="spin">⟳</span> GenOS classifying ${msg.count} messages…`);
+      setAIBadge('classifying', '🤖 Classifying…');
+    }
+
+    if (msg.type === 'classify_error') {
+      showClassifyStrip('error', `⚠ Classification failed: ${msg.message}`);
+      setAIBadge('error', '🤖 Error');
+      enableClassifyBtn();
+    }
+
+    if (msg.type === 'reply_queued')  { toast('📨 Reply queued — agent will send on next refresh'); }
+    if (msg.type === 'reply_sent')    { toast('✓ Reply sent to Slack'); }
+
+    if (msg.type === 'agent_drafts_updated') {
+      renderAgentInbox(msg.drafts);
+      applyHumanOnlyBadges();
+      if (msg.drafts && msg.drafts.length) {
+        toast(`🤖 ${msg.drafts.length} draft${msg.drafts.length > 1 ? 's' : ''} in Agent Inbox`);
+      }
+    }
+
+    if (msg.type === 'agent_draft_approved' || msg.type === 'agent_draft_rejected') {
+      removeDraftCard(msg.draftId);
+    }
+
+    if (msg.type === 'top5_update')   { renderTop5(msg.items); }
+    if (msg.type === 'error')         { toast('⚠ Refresh failed: ' + msg.message, 4000); enableRefreshBtn(); }
+  };
+
+  ws.onmessage = handleMsg;
+
+  ws.onclose = () => {
+    $('ws-dot').className = 'dot amber pulse';
+    $('ws-status').textContent = 'Reconnecting…';
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+  ws.onerror = () => ws.close();
+}
+
+// ── DEMO MODE — static showcase (no live server) ───────────────────────────────
+(function bootStatic() {
+  // Inject demo banner above topbar
+  const banner = document.createElement('div');
+  banner.id = 'demo-banner';
+  banner.innerHTML = '⚡ <strong>Demo Mode</strong> — showcasing real Slack data snapshot from Gaurav&#x27;s Personal OS · Live features (reply, archive, AI chat) are disabled · <a href="../../index.html#projects" style="color:var(--purple);text-decoration:none;font-weight:600">← Back to portfolio</a>';
+  banner.style.cssText = 'position:relative;z-index:20;background:rgba(124,92,252,.12);border-bottom:1px solid rgba(124,92,252,.25);padding:7px 20px;font-size:.74rem;color:var(--txt-muted);text-align:center;flex-shrink:0;';
+  document.body.insertBefore(banner, document.body.firstChild);
+
+  // Update status badges for demo mode  
+  const wsDot = document.getElementById('ws-dot');
+  const wsStatus = document.getElementById('ws-status');
+  if (wsDot) wsDot.className = 'dot purple';
+  if (wsStatus) wsStatus.textContent = 'Demo snapshot';
+
+  // Disable live action buttons
+  function disableBtn(id, tooltip) {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = true; el.title = tooltip; el.style.opacity = '.4'; el.style.cursor = 'not-allowed'; }
+  }
+  disableBtn('refresh-btn', 'Live refresh disabled in demo');
+  disableBtn('classify-btn', 'GenOS classification disabled in demo');
+
+  // Override archive/reply/approve/reject to show toast
+  window.archiveMention = function(id, btnEl) { toast('Demo mode — archive disabled'); };
+  window.sendReply = function(id, channelId, threadTs) { toast('Demo mode — replies disabled'); };
+  window.approveDraft = function(id) { toast('Demo mode — approve disabled'); };
+  window.rejectDraft = function(id) { toast('Demo mode — reject disabled'); };
+  window.toggleTop5 = function(id) { /* demo: toggle locally */ const item = _top5.find(t=>t.id===id); if(item){item.done=!item.done; renderTop5(_top5);} };
+  window.updateTop5Text = function() {};
+  window.manualRefresh = function() { toast('Live refresh disabled in demo mode'); };
+  window.reClassify = function() { toast('GenOS classification disabled in demo mode'); };
+
+  // Mock calendar with realistic data
+  window.loadCalendarEvents = function() {
+    const dateEl = document.getElementById('calendar-date');
+    const listEl = document.getElementById('calendar-events-list');
+    if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const mockEvents = [
+      { subject: 'GTMT Data Orch Weekly', start: today+'T09:00:00', end: today+'T09:30:00', location: 'Zoom', allDay: false },
+      { subject: 'AEP Migration Standup', start: today+'T10:30:00', end: today+'T11:00:00', location: 'Teams', allDay: false },
+      { subject: 'Segment PRD Review', start: today+'T13:00:00', end: today+'T14:00:00', location: 'Zoom', allDay: false },
+      { subject: 'Capital Campaign Design', start: today+'T15:00:00', end: today+'T15:30:00', location: '', allDay: false },
+    ];
+    renderCalendarEvents(mockEvents);
+  };
+
+  // Inject static data via fake init message
+  const STATIC_DATA = {
+    type: 'init',
+    hasGenOS: false,
+    tokenSource: 'none',
+    top5: [{"id":"1","text":"Segment Inventory Closure","done":true,"notionPageId":"3490e122-5a87-818c-9277-cd9648526867","dirtyLocal":true},{"id":"2","text":"Validation Strategy (Campaign, Segment)","done":false,"notionPageId":"3490e122-5a87-8104-9db5-fbb805dae016","dirtyLocal":true},{"id":"3","text":"Capital Campaign","done":false,"notionPageId":"3490e122-5a87-8130-a421-d2691ac9dcb6","dirtyLocal":true},{"id":"4","text":"Targeted Offer","done":false,"notionPageId":"3490e122-5a87-81da-90b1-e65b4eafcc4a","dirtyLocal":true},{"id":"5","text":"IPD Audience Strategy","done":false,"notionPageId":"3490e122-5a87-81d2-b404-e7ea6b7b2200","dirtyLocal":true},{"id":"6","text":"Segment PRD","done":false,"notionPageId":"3500e122-5a87-81f6-afe3-ecbbd0c6a96b","dirtyLocal":true},{"id":"7","text":"Reporting (Validation, Campsight)","done":false,"notionPageId":"3500e122-5a87-81a1-9152-d515012d0cb3","dirtyLocal":true}],
+    data: {
+      lastUpdated: "2026-05-22T19:26:28.279Z",
+      classifiedAt: "2026-05-22T18:30:00.000Z",
+      mentions: [{"id":"D08EAUF6F7G-1778195189.232959","from":"ssubramania4","fromId":"U046331K8LW","fromName":"ssubramania4","text":"can we connect now?","ts":"1778195189.232959","channelId":"D08EAUF6F7G","channelName":"U046331K8LW","channel":"U046331K8LW","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D08EAUF6F7G/p1778195189232959","channelType":"dm","priority":"high","priorityReason":"Immediate meeting request, same-day action","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0AGY1KHQMA-1778192090.645629","from":"klo","fromId":"W8FMARTT6","fromName":"klo","text":"<@U03N2C0QR98|Deepak> are we still joining zoom?","ts":"1778192090.645629","channelId":"C0AGY1KHQMA","channelName":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","channel":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0AGY1KHQMA/p1778192090645629","channelType":"groupdm","priority":"high","priorityReason":"Direct question requiring immediate response about meeting attendance","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0AGY1KHQMA-1778191096.389809","from":"dgupta10","fromId":"U03N2C0QR98","fromName":"dgupta10","text":"<@W8FMARTT6|klo> <@U072DBVB2G6|Gaurav Mehta> can we connect for few on next steps with closing 15 attribs","ts":"1778191096.389809","channelId":"C0AGY1KHQMA","channelName":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","channel":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","source":"@mention","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0AGY1KHQMA/p1778191096389809","channelType":"groupdm","priority":"high","priorityReason":"Direct request to connect, blocking project closure","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C09T4H5KE1H-1778179410.889479","from":"pvijayvargi","fromId":"U034ZP4FRRQ","fromName":"pvijayvargi","text":"<@U072DBVB2G6|Gaurav Mehta> since this is GTMT, I am hoping you can help follow up with who from the PD team might be working on. These attributes as you mentioned are required. <@U01TEQVLVNW|lpaladugu> can you help?","ts":"1778179410.889479","channelId":"C09T4H5KE1H","channelName":"sbg-eloqua-adobe-migration-core-team","channel":"sbg-eloqua-adobe-migration-core-team","source":"@mention","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C09T4H5KE1H/p1778179410889479?thread_ts=1778174794.749519","channelType":"channel","priority":"high","priorityReason":"Direct mention asking you to follow up on attributes","tags":[{"type":"source","label":"Channel","color":"gray"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"D0ATHN2BA6M-1778179151.199319","from":"smarquina","fromId":"U03R81KTXTR","fromName":"smarquina","text":"It seems this current instance is using a public Ubuntu AMI and ubuntu is not supported by IDD so we we would need to file an exception and restack instance to an Intuit approved AMI. <@WS25M18P4|dsumeet> asked me to check with you that instance was in usage before proceeding with next steps.","ts":"1778179151.199319","channelId":"D0ATHN2BA6M","channelName":"U03R81KTXTR","channel":"U03R81KTXTR","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D0ATHN2BA6M/p1778179151199319","channelType":"dm","priority":"high","priorityReason":"Direct question needing your confirmation on instance usage","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C09T4H5KE1H-1778176916.181229","from":"pvijayvargi","fromId":"U034ZP4FRRQ","fromName":"pvijayvargi","text":"<@U072DBVB2G6|Gaurav Mehta>, I am not requesting you to confirm if the JIRA is closed, instead if these attributes are ready for UAT by MOPs. Closing the JIRA is an indication that dev team is done with their work and the attribute is ready for UAT. Process is:\n1. Dev team works on attribute and marks JIRA closed once attribute is ready for UAT in CDC.\n2. Tag <@U0778LTCNDS|Vraj Shah> and <@U084GSUTQ9M|Rhonda Wildy> in JIRA comments to perform UAT.\n3. Provide the new CDC path information or necessary information if the attribute was replaced by another attribute.\nSo, I am trying to confirm if the dev work was done and therefore MOPs can perform UAT, and if so, can the team pls update the JIRA accordingly.","ts":"1778176916.181229","channelId":"C09T4H5KE1H","channelName":"sbg-eloqua-adobe-migration-core-team","channel":"sbg-eloqua-adobe-migration-core-team","source":"@mention","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C09T4H5KE1H/p1778176916181229?thread_ts=1778174794.749519","channelType":"channel","priority":"high","priorityReason":"Direct mention asking for UAT readiness confirmation","tags":[{"type":"source","label":"Channel","color":"gray"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"D0ATHN2BA6M-1778176258.525669","from":"smarquina","fromId":"U03R81KTXTR","fromName":"smarquina","text":"Hi <@U072DBVB2G6|Gaurav Mehta>, I was working on this <https://acp.intuit.com/dashboard?page=issueView&issueId=996ef0c1-8d81-4f67-877c-31ff9bf5b6c5&compliant=FAILED|ACP> ticket (All EC2 instances must have a drift detection agent running) regarding this AwsEcsInstance, <https://us-east-2.console.aws.amazon.com/ec2/home?region=us-east-2#Instances:|knowledge-graph-poc>, and I wanted to check with you if this instance was still needed?","ts":"1778176258.525669","channelId":"D0ATHN2BA6M","channelName":"U03R81KTXTR","channel":"U03R81KTXTR","source":"@mention","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D0ATHN2BA6M/p1778176258525669","channelType":"dm","priority":"high","priorityReason":"Direct question about EC2 instance still needed","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0AUB3KBLTX-1778176132.341349","from":"hpark2","fromId":"U043JR126EB","fromName":"hpark2","text":"<@WS25M18P4|dsumeet> <@WC687HQ3X|tdalwai> <@U08CUCSD2GJ|Anastasiia Lukashenko> <@U02SLGTUF5H|Adi Levinshtein> Do we all need to jump on a quick call to make sure we are all on the same page?","ts":"1778176132.341349","channelId":"C0AUB3KBLTX","channelName":"mpdm-alevinshtei--tdalwai--eburwell--vmoganti--dsumeet--lpaladugu--hpark2--gmehta--alukashenko-1","channel":"mpdm-alevinshtei--tdalwai--eburwell--vmoganti--dsumeet--lpaladugu--hpark2--gmehta--alukashenko-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0AUB3KBLTX/p1778176132341349","channelType":"groupdm","priority":"high","priorityReason":"Request to join urgent sync call now","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0B2DNMAWSW-1778199023.878339","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"Fir the last 3 attributes, they all seems same. The last one, do you know what is the source for it?","ts":"1778199023.878339","channelId":"C0B2DNMAWSW","channelName":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","channel":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0B2DNMAWSW/p1778199023878339","channelType":"groupdm","priority":"medium","priorityReason":"Technical question needing follow-up, not urgent","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0AGY1KHQMA-1778197847.746419","from":"klo","fromId":"W8FMARTT6","fromName":"klo","text":"posted the update and risk here <@U03N2C0QR98|Deepak> <https://intuit-teams.slack.com/archives/C0AUYRP3KDX/p1778197617482759>","ts":"1778197847.746419","channelId":"C0AGY1KHQMA","channelName":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","channel":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0AGY1KHQMA/p1778197847746419","channelType":"groupdm","priority":"medium","priorityReason":"Update posted with risk flag, may need review","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C0B2AA3RNHK-1778194962.575009","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"Hello good people, I am trying to see who will help with the SUI related campaign migration. I want to keep everyone in the loop for the new design","ts":"1778194962.575009","channelId":"C0B2AA3RNHK","channelName":"mpdm-rmittal3--ghagihara--eburwell--htallapaka1--gmehta-1","channel":"mpdm-rmittal3--ghagihara--eburwell--htallapaka1--gmehta-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0B2AA3RNHK/p1778194962575009","channelType":"groupdm","priority":"medium","priorityReason":"Coordination request for campaign migration help","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C091R10N7DG-1778194702.634479","from":"smallick1","fromId":"U08BGE3GK4Z","fromName":"smallick1","text":"<@U072DBVB2G6|Gaurav Mehta> I have created this <https://docs.google.com/spreadsheets/d/1TeOhY52TQ1-IZ9XzWUfw9lQkSN9PO9cHF6VUrKNZQoY/edit?gid=0#gid=0|sheet>, which has all the audiences that has been created. I have added a flag that notifies which audiences should be kept in AEP. Rest can be deleted.","ts":"1778194702.634479","channelId":"C091R10N7DG","channelName":"gbsg-aep-and-ops-team","channel":"gbsg-aep-and-ops-team","source":"@mention","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C091R10N7DG/p1778194702634479?thread_ts=1777989734.319479","channelType":"channel","priority":"medium","priorityReason":"Review request for audience cleanup decision","tags":[{"type":"source","label":"Channel","color":"gray"},{"type":"project","label":"AEP Ops","color":"blue"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"D08EAUF6F7G-1778192867.041919","from":"ssubramania4","fromId":"U046331K8LW","fromName":"ssubramania4","text":"In another call, Can we talk at 4?","ts":"1778192867.041919","channelId":"D08EAUF6F7G","channelName":"U046331K8LW","channel":"U046331K8LW","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D08EAUF6F7G/p1778192867041919?thread_ts=1778192799.037289","channelType":"dm","priority":"medium","priorityReason":"Scheduling request for same-day call","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"D08EAUF6F7G-1778192799.037289","from":"ssubramania4","fromId":"U046331K8LW","fromName":"ssubramania4","text":"Hey, I have the Quick question, is this is the source of truth, where u fetched the data?\nI am looking for the old attribute used vs new attributes.\nWhere we also have the attribute name and the source is the segment, Do we had the same attribute name in the CDC before?","ts":"1778192799.037289","channelId":"D08EAUF6F7G","channelName":"U046331K8LW","channel":"U046331K8LW","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D08EAUF6F7G/p1778192799037289?thread_ts=1778192799.037289","channelType":"dm","priority":"medium","priorityReason":"Technical question needing clarification on data source","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"D08EAUF6F7G-1778191841.489019","from":"ssubramania4","fromId":"U046331K8LW","fromName":"ssubramania4","text":"Can I get access?","ts":"1778191841.489019","channelId":"D08EAUF6F7G","channelName":"U046331K8LW","channel":"U046331K8LW","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D08EAUF6F7G/p1778191841489019","channelType":"dm","priority":"medium","priorityReason":"Access request requires action within 1-2 days","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0B2DNMAWSW-1778200037.716979","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"Sounds good. Lemme confirm on those audiences. For do_not_email either <@U08AVGYDRM3|Arindam Das(PM)> or <@W8F4XGTGR|aagrawal7> can confirm","ts":"1778200037.716979","channelId":"C0B2DNMAWSW","channelName":"mpdm-klo--dgupta10--rmittal3--gmehta--adas21-1","channel":"mpdm-klo--dgupta10--rmittal3--gmehta--adas21-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0B2DNMAWSW/p1778200037716979","channelType":"groupdm","priority":"low","priorityReason":"Acknowledgment and delegation, no action needed from manager","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C0B2DNMAWSW-1778199509.872689","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"The 3 segment audience seem exactly the same, and its probably used for liveramp. That usecase is now done outside of Segment Engage. Lemme confirm","ts":"1778199509.872689","channelId":"C0B2DNMAWSW","channelName":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","channel":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0B2DNMAWSW/p1778199509872689","channelType":"groupdm","priority":"low","priorityReason":"FYI update, confirming info, no action needed","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"C0B2DNMAWSW-1778199421.363589","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"Do not email is probably is preference and enablrd when a user does a channel level opt out.  But understanding is that now GPC publishes opt-outs for all preferences when the user opts out at the channel level, so this is not needed.","ts":"1778199421.363589","channelId":"C0B2DNMAWSW","channelName":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","channel":"mpdm-gmehta--adas21--rmittal3--dgupta10-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0B2DNMAWSW/p1778199421363589","channelType":"groupdm","priority":"low","priorityReason":"Informational explanation, no action required","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false},{"id":"D078AMVE8LQ-1778198362.429129","from":"rmittal3","fromId":"U048U4DTU4F","fromName":"rmittal3","text":"Bhai regex hamare liye chod do.. 2 inch walon pe shobha nahi deta","ts":"1778198362.429129","channelId":"D078AMVE8LQ","channelName":"U048U4DTU4F","channel":"U048U4DTU4F","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/D078AMVE8LQ/p1778198362429129","channelType":"dm","priority":"low","priorityReason":"Casual banter, no action needed","tags":[{"type":"source","label":"DM","color":"green"},{"type":"mention","label":"Direct","color":"green"},{"type":"action","label":"Action Needed","color":"orange"}],"hasScheduledReply":false},{"id":"C0AGY1KHQMA-1778198031.696929","from":"klo","fromId":"W8FMARTT6","fromName":"klo","text":"Got it - yes i see when i look it up, it refers to UK CM offer","ts":"1778198031.696929","channelId":"C0AGY1KHQMA","channelName":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","channel":"mpdm-dgupta10--skrishnan6--klo--rmittal3--lpaladugu--gmehta-1","source":"dm","threadTs":null,"permalink":"https://intuit-teams.slack.com/archives/C0AGY1KHQMA/p1778198031696929","channelType":"groupdm","priority":"low","priorityReason":"Acknowledgment of information lookup","tags":[{"type":"source","label":"Group DM","color":"purple"},{"type":"mention","label":"Direct","color":"green"}],"hasScheduledReply":false}],
+      archived: []
+    },
+    agentDrafts: [{"id":"8467cf45-4bc7-44a1-b9f1-30e72cb9ccb4","mentionId":"C0ALCQY33N0-1778626664.446709","from":"ajigajinni","fromId":"U039U4E8ZK8","channel":"mpdm-aagrawal7--ajigajinni--ssubramania4--rmittal3--gmehta-1","channelId":"C0ALCQY33N0","channelType":"groupdm","text":"Hey <@U048U4DTU4F|Rishi Mittal> / <@U072DBVB2G6|Gaurav Mehta>,\n\nWhile testing i noticed that\n\u2022 AEP prod has some audience created already. for ex: <https://experience.adobe.com/#/@turbotax/sname:gbsg-prod/platform/account/audience/browse/3a7449b3-b30e-4388-976b-ab11a6e213f1/detail|Durable_Payroll_Core>\n    \u25e6 Are Audiences in AEP supposed to created with a prefix Durable always as i am noticing thats the pattern?\n\u2022 The <https://experience.adobe.com/#/@turbotax/sname:gbsg-prod/platform/account/audience/browse/3a7449b3-b30e-4388-976b-ab11a6e213f1/detail|Durable_Payroll_Core> audience on Prod CDP has criteria sku_name contains any of \"Core\" \"Payroll\" But the same in AEP prod has sku_name equals \"Core\"\n    \u25e6 Is this is right or a miss by someone who has created this in prod manually.","permalink":"https://intuit-teams.slack.com/archives/C0ALCQY33N0/p1778626664446709","threadTs":null,"routing":{"criticality":"General Colleague","hasActiveProject":true,"complexity":"High","decision":"Hybrid","pattern":"Intake Coordinator \u2192 Escalation","rationale":"ajigajinni is a general colleague, the message touches an active project, the ask is complex, routing to Hybrid (Intake Coordinator \u2192 Escalation).","hasScheduledReply":false,"playbookMatch":false},"draft":"Appreciate the flag \u2014 let me connect you with the right person for this.","status":"pending","createdAt":"2026-05-12T23:42:02.673Z","reviewedAt":null},{"id":"85b04ec1-f89f-4c2d-a80d-2485b56e9d32","mentionId":"D0770G2R8KH-1778623410.761599","from":"dgupta10","fromId":"U03N2C0QR98","channel":"U03N2C0QR98","channelId":"D0770G2R8KH","channelType":"dm","text":"<@U072DBVB2G6|Gaurav Mehta> joining?","permalink":"https://intuit-teams.slack.com/archives/D0770G2R8KH/p1778623410761599","threadTs":null,"routing":{"criticality":"General Colleague","hasActiveProject":false,"complexity":"Low","decision":"Agent (Stateless)","pattern":"The Vending Machine","rationale":"dgupta10 is a general colleague, the ask is straightforward, routing to Agent (Stateless) (The Vending Machine).","hasScheduledReply":false,"playbookMatch":false},"draft":"Noted \u2014 will take a look.","status":"pending","createdAt":"2026-05-12T23:42:02.734Z","reviewedAt":null},{"id":"a94b13e4-6a32-4bfa-a425-eb3ab4b94aa8","mentionId":"C059NECN8MT-1778619358.701429","from":"dgupta10","fromId":"U03N2C0QR98","channel":"gtmt-data-orch","channelId":"C059NECN8MT","channelType":"channel","text":"hey <@U072DBVB2G6|Gaurav Mehta> some Qs\n\u2022 how are y\u2019all collaborating on same claude code project (git?) with your partners\n\u2022 does someone have access to CDC to connect","permalink":"https://intuit-teams.slack.com/archives/C059NECN8MT/p1778619358701429?thread_ts=1778561704.190489","threadTs":null,"routing":{"criticality":"General Colleague","hasActiveProject":false,"complexity":"Low","decision":"Agent (Stateless)","pattern":"The Vending Machine","rationale":"dgupta10 is a general colleague, the ask is straightforward, routing to Agent (Stateless) (The Vending Machine).","hasScheduledReply":false,"playbookMatch":false},"draft":"Acknowledged, thanks.","status":"pending","createdAt":"2026-05-12T23:42:02.826Z","reviewedAt":null},{"id":"81f66dcd-7560-445e-b81d-a388e35c451d","mentionId":"C09QESGQ6L9-1778617583.614469","from":"aagrawal7","fromId":"W8F4XGTGR","channel":"gtmt-gbsg-adobe-drivers-only","channelId":"C09QESGQ6L9","channelType":"channel","text":"<@W8FMARTT6|klo> <@U072DBVB2G6|Gaurav Mehta>\nto simplify this cohort 2 and 3, can we tie these to the data availability? Too many factors like - campaign duration, campaign complexity, etc, will make it very challenging to sequence these.","permalink":"https://intuit-teams.slack.com/archives/C09QESGQ6L9/p1778617583614469?thread_ts=1778535138.931179","threadTs":null,"routing":{"criticality":"General Colleague","hasActiveProject":true,"complexity":"High","decision":"Hybrid","pattern":"Intake Coordinator \u2192 Escalation","rationale":"aagrawal7 is a general colleague, the message touches an active project, the ask is complex, routing to Hybrid (Intake Coordinator \u2192 Escalation).","hasScheduledReply":false,"playbookMatch":false},"draft":"Thanks for reaching out. Can you drop a brief with the key details so I can route this to the right owner?","status":"pending","createdAt":"2026-05-12T23:42:02.898Z","reviewedAt":null},{"id":"125c8002-85f6-4d88-bbe8-8069fd33b27e","mentionId":"C09QESGQ6L9-1778615873.513969","from":"klo","fromId":"W8FMARTT6","channel":"gtmt-gbsg-adobe-drivers-only","channelId":"C09QESGQ6L9","channelType":"channel","text":"<@U072DBVB2G6|Gaurav Mehta> did you already set up a call to align on above?","permalink":"https://intuit-teams.slack.com/archives/C09QESGQ6L9/p1778615873513969?thread_ts=1778535138.931179","threadTs":null,"routing":{"criticality":"General Colleague","hasActiveProject":true,"complexity":"Low","decision":"Agent (Stateless)","pattern":"The Vending Machine","rationale":"klo is a general colleague, the message touches an active project, the ask is straightforward, routing to Agent (Stateless) (The Vending Machine).","hasScheduledReply":false,"playbookMatch":false},"draft":"Noted \u2014 will take a look.","status":"pending","createdAt":"2026-05-12T23:42:02.947Z","reviewedAt":null}]
+  };
+
+  // Process as if received from WebSocket
+  setTimeout(() => {
+    if (STATIC_DATA.top5) renderTop5(STATIC_DATA.top5);
+    if (STATIC_DATA.data) {
+      renderAll(STATIC_DATA.data, false);
+      if (STATIC_DATA.data.classifiedAt) {
+        showClassifyStrip('done', '✦ AI classified ' + STATIC_DATA.data.mentions.length + ' messages (sample snapshot) · ' + formatDateTime(STATIC_DATA.data.classifiedAt));
+      } else {
+        showClassifyStrip('done', '✦ ' + STATIC_DATA.data.mentions.length + ' messages loaded · Demo snapshot from May 22, 2026');
+      }
+    }
+    if (STATIC_DATA.agentDrafts && STATIC_DATA.agentDrafts.length) {
+      renderAgentInbox(STATIC_DATA.agentDrafts);
+      applyHumanOnlyBadges();
+    }
+    updateGenosUI(false, 'none');
+    loadCalendarEvents();
+  }, 100);
+})();
+
+// ── Manual refresh ────────────────────────────────────────────────────────────
+function disableRefreshBtn() { $('refresh-btn').disabled = true; $('refresh-icon').style.animation = 'spin 1s linear infinite'; }
+function enableRefreshBtn()  { $('refresh-btn').disabled = false; $('refresh-icon').style.animation = ''; }
+function disableClassifyBtn() { const b = $('classify-btn'); if (b) b.disabled = true; }
+function enableClassifyBtn()  { const b = $('classify-btn'); if (b) b.disabled = false; }
+
+// ── Calendar Today ────────────────────────────────────────────────────────────
+
+function formatCalTime(isoStr) {
+  if (!isoStr) return '';
+  const d = new Date(isoStr);
+  return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+}
+
+function formatCalDate(d) {
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function isCalEventNow(event) {
+  const now = Date.now();
+  return !event.allDay && new Date(event.start).getTime() <= now && new Date(event.end).getTime() >= now;
+}
+
+function renderCalendarEvents(events) {
+  const el = document.getElementById('calendar-events-list');
+  if (!el) return;
+
+  if (!events || !events.length) {
+    el.innerHTML = '<div class="cal-empty">No events today ✦</div>';
+    return;
+  }
+
+  el.innerHTML = events.map(e => {
+    const isNow = isCalEventNow(e);
+    const timeHtml = e.allDay
+      ? `<span class="cal-allday">All day</span>`
+      : `${formatCalTime(e.start)}`;
+    return `
+      <div class="cal-event${isNow ? ' cal-now' : ''}">
+        <div class="cal-time">${timeHtml}</div>
+        <div class="cal-body">
+          <div class="cal-title" title="${e.subject.replace(/"/g,'&quot;')}">${e.subject}</div>
+          ${e.location ? `<div class="cal-loc">📍 ${e.location}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadCalendarEvents() {
+  const listEl    = document.getElementById('calendar-events-list');
+  const refreshBtn = document.getElementById('calendar-refresh-btn');
+  const dateEl    = document.getElementById('calendar-date');
+
+  if (dateEl) dateEl.textContent = formatCalDate(new Date());
+  if (listEl) listEl.innerHTML = '<div class="cal-loading">Loading…</div>';
+  if (refreshBtn) refreshBtn.disabled = true;
+
+  try {
+    const res  = await fetch('/api/calendar/today');
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error || 'Failed to load');
+    renderCalendarEvents(json.events);
+  } catch (err) {
+    if (listEl) listEl.innerHTML = `<div class="cal-error">⚠ ${err.message}</div>`;
+  } finally {
+    if (refreshBtn) refreshBtn.disabled = false;
+  }
+}
+
+async function manualRefresh() {
+  disableRefreshBtn();
+  try {
+    const res  = await fetch('/api/refresh', { method: 'POST' });
+    const json = await res.json();
+    if (!res.ok) { toast(json.message || 'Refresh failed', 5000); enableRefreshBtn(); }
+  } catch { toast('Server unreachable', 3000); enableRefreshBtn(); }
+}
+
+async function reClassify() {
+  disableClassifyBtn();
+  try {
+    const res  = await fetch('/api/classify', { method: 'POST' });
+    const json = await res.json();
+    if (!res.ok) { toast(json.error || 'Classification failed', 5000); enableClassifyBtn(); }
+    else toast('✦ Classification started…');
+  } catch { toast('Server unreachable', 3000); enableClassifyBtn(); }
+}
+
+// ── Archive ───────────────────────────────────────────────────────────────────
+async function archiveMention(id, btnEl) {
+  const card = btnEl.closest('.card');
+  if (card) card.classList.add('archiving');
+  try {
+    const res  = await fetch('/api/archive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id }) });
+    const json = await res.json();
+    if (res.ok) { toast('✓ Archived'); }
+    else { if (card) card.classList.remove('archiving'); toast('⚠ ' + (json.error || 'Archive failed'), 3000); }
+  } catch {
+    if (card) card.classList.remove('archiving');
+    toast('Server unreachable', 3000);
+  }
+}
+
+// ── Reply ─────────────────────────────────────────────────────────────────────
+function toggleReply(id) {
+  const row = $('reply-row-' + id);
+  if (!row) return;
+  const isOpen = row.classList.toggle('open');
+  if (isOpen) { const input = $('reply-input-' + id); if (input) setTimeout(() => input.focus(), 50); }
+}
+
+async function sendReply(id, channelId, threadTs) {
+  const input = $('reply-input-' + id);
+  const btn   = $('reply-send-' + id);
+  const row   = $('reply-row-' + id);
+  if (!input || !input.value.trim()) return;
+  const text = input.value.trim();
+  btn.disabled = true; btn.textContent = 'Queuing…';
+  try {
+    const body = { channelId, text };
+    if (threadTs) body.threadTs = threadTs;
+    const res  = await fetch('/api/reply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const json = await res.json();
+    if (res.ok) {
+      toast('📨 Queued');
+      row.classList.add('sent');
+      input.value = ''; input.placeholder = 'Queued ✓'; btn.textContent = 'Queued';
+      setTimeout(() => {
+        row.classList.remove('open', 'sent');
+        input.placeholder = 'Type a reply…';
+        btn.textContent = 'Send'; btn.disabled = false;
+      }, 3000);
+    } else {
+      toast('⚠ ' + (json.error || 'Queue failed'), 3000);
+      btn.disabled = false; btn.textContent = 'Send';
+    }
+  } catch {
+    toast('Server unreachable', 3000);
+    btn.disabled = false; btn.textContent = 'Send';
+  }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, duration = 2500) {
+  const el = $('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), duration);
+}
+
+// Initial shimmer
+['panel-high','panel-medium','panel-low'].forEach(id => {
+  $(id).innerHTML = `<div class="shimmer"></div><div class="shimmer"></div>`;
+});
+['today-section','yesterday-section'].forEach(id => {
+  $(id).innerHTML = `<div class="shimmer"></div>`;
+});
+
+// ── Settings modal ────────────────────────────────────────────────────────────
+let _settingsMode = 'auto';
+
+function openSettings(focusIam) {
+  $('settings-overlay').classList.add('open');
+  refreshSettingsSource(hasGenOS, _tokenSource);
+  // Show current probe state in the badge when panel opens
+  applyGenosProbe(_genosLive, _genosProbeError);
+  setTimeout(() => {
+    const focus = focusIam
+      ? $('cred-iam-ticket')
+      : _settingsMode === 'auto' ? $('cred-appid') : $('iam-token-input');
+    focus && focus.focus();
+  }, 150);
+}
+function closeSettings() { $('settings-overlay').classList.remove('open'); }
+function switchMode(mode) {
+  _settingsMode = mode;
+  ['auto','manual'].forEach(m => {
+    $(`tab-${m}`).classList.toggle('active', m === mode);
+    $(`pane-${m}`).classList.toggle('active', m === mode);
+  });
+}
+function toggleTokenVis() {
+  const input = $('iam-token-input'); const btn = $('vis-btn');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+function toggleSecretVis() {
+  const input = $('cred-secret'); const btn = $('vis-secret-btn');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+function toggleIamTicketVis() {
+  const input = $('cred-iam-ticket'); const btn = $('vis-iam-btn');
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = '🙈'; }
+  else { input.type = 'password'; btn.textContent = '👁'; }
+}
+
+async function saveCreds() {
+  const clientId     = $('cred-appid').value.trim();
+  const clientSecret = $('cred-secret').value.trim();
+  const tokenUrl     = $('cred-token-url').value.trim();
+  const experienceId = $('cred-exp-id').value.trim();
+  if (!clientId || !clientSecret) { toast('Enter both App ID and App Secret', 2500); return; }
+  try {
+    const res  = await fetch('/api/config/credentials', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId, clientSecret, tokenUrl: tokenUrl || '', experienceId: experienceId || '' }),
+    });
+    const json = await res.json();
+    if (!res.ok) { toast('⚠ ' + (json.error || 'Failed to save credentials'), 4000); return; }
+    toast('✓ Credentials saved — classifying…');
+    closeSettings();
+    const classRes = await fetch('/api/classify', { method: 'POST' });
+    const classJson = await classRes.json();
+    if (!classRes.ok) toast('⚠ ' + (classJson.error || 'Classification error'), 4000);
+  } catch { toast('Server unreachable', 3000); }
+}
+
+async function clearCreds() {
+  try {
+    await fetch('/api/config/credentials', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId: '', clientSecret: '' }),
+    });
+    $('cred-appid').value = ''; $('cred-secret').value = ''; $('cred-exp-id').value = '';
+    toast('Credentials cleared'); closeSettings();
+  } catch { toast('Server unreachable', 3000); }
+}
+
+async function saveToken() {
+  const raw = $('iam-token-input').value.trim();
+  // Strip "Bearer " prefix only — leave Intuit_IAM_Authentication headers untouched
+  const token = /^Intuit_IAM_Authentication\s/i.test(raw) ? raw : raw.replace(/^bearer\s+/i, '');
+  if (!token) { toast('Paste a bearer token first', 2500); return; }
+  try {
+    const res  = await fetch('/api/config/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    const json = await res.json();
+    if (!res.ok) { toast('⚠ ' + (json.error || 'Failed to save token'), 4000); return; }
+    toast('✓ Token saved — classifying…'); closeSettings();
+    const classRes = await fetch('/api/classify', { method: 'POST' });
+    const classJson = await classRes.json();
+    if (!classRes.ok) toast('⚠ ' + (classJson.error || 'Classification error'), 4000);
+  } catch { toast('Server unreachable', 3000); }
+}
+
+async function clearToken() {
+  try {
+    await fetch('/api/config/token', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: '' }),
+    });
+    $('iam-token-input').value = ''; $('iam-token-input').type = 'password'; $('vis-btn').textContent = '👁';
+    toast('Token cleared'); closeSettings();
+  } catch { toast('Server unreachable', 3000); }
+}
+
+async function saveIamTicket() {
+  const ticket = $('cred-iam-ticket').value.trim();
+  if (!ticket) { toast('Paste an IAM ticket first (starts with V1-…)', 2500); return; }
+  try {
+    const res  = await fetch('/api/config/iam-ticket', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket }),
+    });
+    const json = await res.json();
+    if (!res.ok) { toast('⚠ ' + (json.error || 'Failed to save ticket'), 4000); return; }
+    toast('✓ IAM ticket saved — probing GenOS…');
+    $('cred-iam-ticket').value = '';
+    closeSettings();
+  } catch { toast('Server unreachable', 3000); }
+}
+
+async function clearIamTicket() {
+  try {
+    await fetch('/api/config/iam-ticket', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticket: '' }),
+    });
+    $('cred-iam-ticket').value = '';
+    const iamEl = $('settings-source-iam');
+    if (iamEl) { iamEl.className = 'settings-source'; iamEl.textContent = 'No ticket configured'; iamEl.style.color = ''; }
+    toast('IAM ticket cleared');
+  } catch { toast('Server unreachable', 3000); }
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+
+// ── Agent Inbox ───────────────────────────────────────────────────────────────
+let _drafts = [];
+let _draftsByMentionId = {};
+
+function decisionClass(decision) {
+  if (!decision) return '';
+  const d = decision.toLowerCase();
+  if (d.includes('human only')) return 'human-only';
+  if (d.includes('stateless'))  return 'agent-stateless';
+  if (d.includes('stateful'))   return 'agent-stateful';
+  if (d.includes('hybrid'))     return 'hybrid';
+  return 'hybrid';
+}
+const ROUTING_LABELS = {
+  'human-only': 'Human Only', 'hybrid': 'Hybrid',
+  'agent-stateful': 'Agent Stateful', 'agent-stateless': 'Agent Stateless',
+};
+function routingBadgeHtml(routing) {
+  if (!routing) return '';
+  const dc = decisionClass(routing.decision);
+  return `<span class="routing-badge ${dc}">${ROUTING_LABELS[dc] || routing.decision}</span>`;
+}
+
+function renderDraftCard(d) {
+  const dc        = decisionClass(d.routing && d.routing.decision);
+  const isHumanOnly = dc === 'human-only';
+  const sender    = d.from || 'Unknown';
+  const text      = cleanText(d.text || '');
+  const pattern   = d.routing && d.routing.pattern   ? `"${escapeHtml(d.routing.pattern)}"` : '';
+  const rationale = d.routing && d.routing.rationale ? escapeHtml(d.routing.rationale)       : '';
+
+  // Timestamp — prefer the Slack message ts embedded in mentionId, fall back to createdAt
+  const msgTsMs  = draftMsgTs(d);
+  const msgDate  = msgTsMs ? new Date(msgTsMs) : null;
+  const tsLabel  = msgDate ? formatTime(msgDate.getTime() / 1000) : '';
+
+  const draftSection = (!isHumanOnly && d.draft)
+    ? `<textarea class="draft-textarea" id="draft-text-${d.id}">${escapeHtml(d.draft)}</textarea>
+       <textarea class="approve-note" id="approve-note-${d.id}" rows="2" placeholder="Optional note…"></textarea>`
+    : '';
+
+  const approveBtn = !isHumanOnly
+    ? `<button class="approve-btn" id="approve-btn-${d.id}" onclick="approveDraft('${d.id}')">✓ Approve</button>`
+    : '';
+
+  const rejectLabel = isHumanOnly ? 'Dismiss' : 'Reject';
+  const rejectPanel = isHumanOnly ? '' : `
+    <div class="reject-panel" id="reject-panel-${d.id}">
+      <select id="reject-cat-${d.id}">
+        <option value="">— Why rejecting? —</option>
+        <option value="wrong_routing">Wrong routing</option>
+        <option value="tone_off">Tone is off</option>
+        <option value="too_long">Too long</option>
+        <option value="too_short">Too short</option>
+        <option value="wrong_recipient">Wrong recipient</option>
+        <option value="already_handled">Already handled</option>
+        <option value="other">Other</option>
+      </select>
+      <textarea id="reject-comment-${d.id}" rows="2" placeholder="Notes (optional)…"></textarea>
+      <div class="reject-panel-actions">
+        <button class="confirm-reject-btn" onclick="confirmReject('${d.id}')">Confirm Reject</button>
+        <button class="cancel-reject-btn"  onclick="cancelReject('${d.id}')">Cancel</button>
+      </div>
+    </div>`;
+
+  return `
+    <div class="draft-card decision-${dc}" data-draft-id="${d.id}" id="draft-card-${d.id}">
+      <div class="draft-card-head">
+        <div class="avatar" style="${avatarStyle(sender)}">${initials(sender)}</div>
+        ${routingBadgeHtml(d.routing)}
+        <span class="sender-name" style="font-size:.8rem">${escapeHtml(sender)}</span>
+        <span class="channel-pill">
+          <span class="ch-icon">${channelIcon(d.channelType)}</span>${escapeHtml(d.channel)}
+        </span>
+        ${pattern ? `<span class="routing-pattern">${pattern}</span>` : ''}
+        ${tsLabel ? `<span class="draft-ts">${tsLabel}</span>` : ''}
+      </div>
+      ${rationale ? `<p class="routing-rationale">${rationale}</p>` : ''}
+      <div class="draft-original">${escapeHtml(text)}</div>
+      ${draftSection}
+      <div class="draft-actions">
+        ${approveBtn}
+        <button class="reject-btn" id="reject-btn-${d.id}" onclick="${isHumanOnly ? `rejectDraft('${d.id}')` : `showRejectPanel('${d.id}')`}">${rejectLabel}</button>
+        <a class="open-link" href="${escapeHtml(d.permalink)}" target="_blank" style="margin-left:auto">↗ Slack</a>
+      </div>
+      ${rejectPanel}
+    </div>`;
+}
+
+const DRAFT_DECISION_RANK    = { 'Human Only': 0, 'Hybrid': 1, 'Agent (Stateful)': 2, 'Agent (Stateless)': 3 };
+const DRAFT_CRITICALITY_RANK = { 'VIP': 0, 'Peer / Core Team': 1, 'General Colleague': 2 };
+
+function draftMsgTs(d) {
+  const id = d.mentionId || '';
+  const idx = id.lastIndexOf('-');
+  const ts = idx >= 0 ? parseFloat(id.slice(idx + 1)) : NaN;
+  if (!isNaN(ts) && ts > 1_000_000_000) return ts * 1000;
+  return d.createdAt ? Date.parse(d.createdAt) : 0;
+}
+
+function sortDraftsClient(drafts) {
+  return [...drafts].sort((a, b) => {
+    const ra = DRAFT_DECISION_RANK[a.routing?.decision] ?? 99;
+    const rb = DRAFT_DECISION_RANK[b.routing?.decision] ?? 99;
+    if (ra !== rb) return ra - rb;
+    const ca = DRAFT_CRITICALITY_RANK[a.routing?.criticality] ?? 99;
+    const cb = DRAFT_CRITICALITY_RANK[b.routing?.criticality] ?? 99;
+    if (ca !== cb) return ca - cb;
+    return draftMsgTs(b) - draftMsgTs(a);
+  });
+}
+
+function renderAgentInbox(drafts) {
+  _drafts = sortDraftsClient(drafts || []);
+  _draftsByMentionId = {};
+  for (const d of _drafts) { if (d.mentionId) _draftsByMentionId[d.mentionId] = d; }
+
+  const inbox       = $('agent-inbox');
+  const inboxDrafts = $('inbox-drafts');
+  const inboxCount  = $('inbox-count');
+
+  if (!_drafts.length) { inbox.style.display = 'none'; return; }
+
+  inbox.style.display = '';
+  inboxCount.textContent = _drafts.length;
+
+  // Age buckets
+  const now      = Date.now();
+  const DAY_MS   = 86_400_000;
+  const todayMs  = now - DAY_MS;
+  const weekMs   = now - 7 * DAY_MS;
+  let hasOld = false;
+
+  const groups   = { today: [], week: [], older: [] };
+  for (const d of _drafts) {
+    const ts = draftMsgTs(d);
+    if      (ts >= todayMs) groups.today.push(d);
+    else if (ts >= weekMs)  groups.week.push(d);
+    else                    { groups.older.push(d); hasOld = true; }
+  }
+
+  const clearOldBtn = $('inbox-clear-old-btn');
+  if (clearOldBtn) clearOldBtn.style.display = hasOld ? '' : 'none';
+
+  function groupHtml(label, items) {
+    if (!items.length) return '';
+    return `<div class="inbox-group-label">${label}</div>` + items.map(d => renderDraftCard(d)).join('');
+  }
+
+  inboxDrafts.innerHTML =
+    groupHtml('Today', groups.today) +
+    groupHtml('This week', groups.week) +
+    groupHtml('Older', groups.older);
+}
+
+function applyHumanOnlyBadges() {
+  for (const d of _drafts) {
+    if (!d.routing || d.routing.decision !== 'Human Only') continue;
+    document.querySelectorAll(`.card[data-id="${d.mentionId}"]`).forEach(card => {
+      if (card.querySelector('.routing-attention-badge')) return;
+      const actions = card.querySelector('.card-actions');
+      if (actions) {
+        const badge = document.createElement('span');
+        badge.className = 'routing-attention-badge';
+        badge.textContent = 'Human Only';
+        actions.insertBefore(badge, actions.firstChild);
+      }
+    });
+  }
+}
+
+function removeDraftCard(draftId) {
+  const card = $('draft-card-' + draftId);
+  if (!card) return;
+  card.classList.add('resolving');
+  setTimeout(() => {
+    card.remove();
+    _drafts = _drafts.filter(d => d.id !== draftId);
+    _draftsByMentionId = {};
+    for (const d of _drafts) { if (d.mentionId) _draftsByMentionId[d.mentionId] = d; }
+    const inbox = $('agent-inbox');
+    if ($('inbox-drafts') && !$('inbox-drafts').children.length) {
+      if (inbox) inbox.style.display = 'none';
+    } else if ($('inbox-count')) {
+      $('inbox-count').textContent = _drafts.length;
+    }
+  }, 350);
+}
+
+async function clearOldDrafts() {
+  const btn = $('inbox-clear-old-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Clearing…'; }
+  try {
+    const res  = await fetch('/api/agent-drafts/archive-stale', { method: 'POST' });
+    const data = await res.json();
+    toast(`✓ Archived ${data.archived} old item${data.archived !== 1 ? 's' : ''} — ${data.pending} remaining`);
+    if (!data.pending) { $('agent-inbox').style.display = 'none'; }
+  } catch { toast('Error clearing old items', 3000); }
+  finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Clear old'; }
+  }
+}
+
+async function triggerCursorRefresh() {
+  const btn  = $('inbox-refresh-btn');
+  const icon = $('inbox-refresh-icon');
+  btn.disabled = true; icon.className = 'spin'; icon.textContent = '↻';
+  btn.childNodes[1].textContent = ' Running…';
+  try {
+    const res  = await fetch('/api/cursor-refresh', { method: 'POST' });
+    const data = await res.json();
+    if (!data.ok) alert('Refresh error: ' + (data.error || 'unknown'));
+  } catch (e) { alert('Could not reach the server: ' + e.message); }
+  finally {
+    setTimeout(() => {
+      btn.disabled = false; icon.className = ''; icon.textContent = '↻';
+      btn.childNodes[1].textContent = ' Refresh';
+    }, 4000);
+  }
+}
+
+async function approveDraft(id) {
+  const approveBtn = $('approve-btn-' + id);
+  const rejectBtn  = $('reject-btn-'  + id);
+  const textarea   = $('draft-text-'  + id);
+  const noteField  = $('approve-note-'+ id);
+  if (approveBtn) approveBtn.disabled = true;
+  if (rejectBtn)  rejectBtn.disabled  = true;
+  const editedText = textarea  ? textarea.value.trim()  : undefined;
+  const note       = noteField ? noteField.value.trim() : undefined;
+  try {
+    const body = {};
+    if (editedText) body.editedText = editedText;
+    if (note)       body.note       = note;
+    const res  = await fetch('/api/agent-drafts/' + id + '/approve', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (res.ok) {
+      toast(json.wasEdited ? '✓ Approved with edits — queued' : '✓ Approved — queued');
+      removeDraftCard(id);
+    } else {
+      toast('⚠ ' + (json.error || 'Approve failed'), 3000);
+      if (approveBtn) approveBtn.disabled = false;
+      if (rejectBtn)  rejectBtn.disabled  = false;
+    }
+  } catch {
+    toast('Server unreachable', 3000);
+    if (approveBtn) approveBtn.disabled = false;
+    if (rejectBtn)  rejectBtn.disabled  = false;
+  }
+}
+
+function showRejectPanel(id) {
+  const panel = $('reject-panel-' + id);
+  if (panel) panel.classList.add('open');
+  const rejectBtn = $('reject-btn-' + id);
+  if (rejectBtn) rejectBtn.style.display = 'none';
+}
+function cancelReject(id) {
+  const panel = $('reject-panel-' + id);
+  if (panel) panel.classList.remove('open');
+  const rejectBtn = $('reject-btn-' + id);
+  if (rejectBtn) rejectBtn.style.display = '';
+}
+
+async function confirmReject(id) {
+  const catEl     = $('reject-cat-'     + id);
+  const commentEl = $('reject-comment-' + id);
+  const category  = catEl     ? catEl.value.trim()     : '';
+  const comment   = commentEl ? commentEl.value.trim() : '';
+  const confirmBtn = document.querySelector(`#reject-panel-${id} .confirm-reject-btn`);
+  if (confirmBtn) confirmBtn.disabled = true;
+  try {
+    const res  = await fetch('/api/agent-drafts/' + id + '/reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: category || 'unspecified', comment: comment || undefined }),
+    });
+    const json = await res.json();
+    if (res.ok) { toast('Rejected — feedback saved'); removeDraftCard(id); }
+    else { toast('⚠ ' + (json.error || 'Failed'), 3000); if (confirmBtn) confirmBtn.disabled = false; }
+  } catch { toast('Server unreachable', 3000); if (confirmBtn) confirmBtn.disabled = false; }
+}
+
+async function rejectDraft(id) {
+  const rejectBtn = $('reject-btn-' + id);
+  if (rejectBtn) rejectBtn.disabled = true;
+  try {
+    const res  = await fetch('/api/agent-drafts/' + id + '/reject', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category: 'dismissed' }),
+    });
+    const json = await res.json();
+    if (res.ok) { toast('Dismissed'); removeDraftCard(id); }
+    else { toast('⚠ ' + (json.error || 'Failed'), 3000); if (rejectBtn) rejectBtn.disabled = false; }
+  } catch { toast('Server unreachable', 3000); if (rejectBtn) rejectBtn.disabled = false; }
+}
+
+(async function loadInitialDrafts() {
+  try {
+    const res  = await fetch('/api/agent-drafts');
+    const json = await res.json();
+    if (json.drafts && json.drafts.length) renderAgentInbox(json.drafts);
+  } catch {}
+})();
+
+// ── Systems Check ─────────────────────────────────────────────────────────────
+let systemsRefreshTimer = null;
+
+function relativeTime(isoStr) {
+  if (!isoStr) return '—';
+  // Normalise: replace space separator, ensure UTC marker so Date parses correctly
+  const normalised = isoStr.replace(' ', 'T');
+  const d = new Date(normalised.endsWith('Z') || normalised.includes('+') ? normalised : normalised + 'Z');
+  if (isNaN(d)) return '—';
+  const diff = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (diff < 60)    return `${diff}s ago`;
+  if (diff < 3600)  return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return `${Math.floor(diff/86400)}d ago`;
+}
+
+function worstStatus(systems) {
+  if (systems.some(s => s.status === 'down'))  return 'down';
+  if (systems.some(s => s.status === 'error')) return 'error';
+  if (systems.some(s => s.status === 'warn'))  return 'warn';
+  if (systems.every(s => s.status === 'ok'))   return 'ok';
+  return 'unknown';
+}
+
+function renderSystems(data) {
+  const grid    = $('systems-grid');
+  const overall = $('systems-overall');
+  const checked = $('systems-checked');
+  const ws = worstStatus(data.systems);
+  const labelMap = { ok: 'All OK', warn: 'Warn', error: 'Errors', down: 'Down', unknown: '' };
+  overall.className = 'systems-overall ' + ws;
+  overall.textContent = labelMap[ws] || '';
+  checked.textContent = 'checked ' + relativeTime(data.checkedAt);
+  grid.innerHTML = data.systems.map(sys => {
+    const logLines = (sys.logTail || []).join('\n');
+    return `
+      <div class="system-row" id="sysrow-${sys.id}" onclick="toggleSystemLog('${sys.id}')">
+        <div class="system-dot ${sys.status}"></div>
+        <div class="system-info">
+          <div class="system-label">${sys.label}</div>
+          <div class="system-msg">${sys.message || '—'}</div>
+          <div class="system-log" id="syslog-${sys.id}">
+            <pre>${logLines.replace(/</g,'&lt;').replace(/>/g,'&gt;') || 'No log data'}</pre>
+          </div>
+        </div>
+        <div class="system-meta">
+          <div class="system-sync">${relativeTime(sys.lastSync)}</div>
+          <div class="system-launchctl">${sys.launchctl || ''}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function toggleSystemLog(id) {
+  const row = document.getElementById('sysrow-' + id);
+  if (row) row.classList.toggle('expanded');
+}
+
+async function refreshSystems() {
+  const btn = $('systems-refresh-btn');
+  if (btn) btn.classList.add('spinning');
+  try {
+    const res  = await fetch('/api/systems-status');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderSystems(data);
+  } catch (e) {
+    $('systems-grid').innerHTML = `<div class="systems-loading" style="color:var(--red)">Status unavailable: ${e.message}</div>`;
+  } finally {
+    if (btn) btn.classList.remove('spinning');
+  }
+}
+
+refreshSystems();
+systemsRefreshTimer = setInterval(refreshSystems, 60_000);
+
+// ── Model selector ────────────────────────────────────────────────────────────
+let _selectedModel = '';
+let _defaultModel  = '';
+
+async function loadModels() {
+  try {
+    const res  = await fetch('/api/models');
+    const data = await res.json();
+    const sel  = $('model-select');
+    if (!data.models || !data.models.length) return;
+
+    _defaultModel  = data.defaultModel || data.models[0].id;
+    _selectedModel = _defaultModel;
+
+    // Group by provider for optgroups
+    const byProvider = {};
+    for (const m of data.models) {
+      if (!byProvider[m.provider]) byProvider[m.provider] = [];
+      byProvider[m.provider].push(m);
+    }
+
+    sel.innerHTML = Object.entries(byProvider).map(([provider, models]) => {
+      const options = models.map(m => {
+        const tag = m.fast ? ' ⚡' : '';
+        return `<option value="${m.id}"${m.id === _defaultModel ? ' selected' : ''}>${m.label}${tag}</option>`;
+      }).join('');
+      return `<optgroup label="${provider}">${options}</optgroup>`;
+    }).join('');
+
+    sel.addEventListener('change', () => { _selectedModel = sel.value; });
+  } catch {
+    const sel = $('model-select');
+    if (sel) sel.innerHTML = '<option value="">Default</option>';
+  }
+}
+
+loadModels();
+
+// ── Chat ──────────────────────────────────────────────────────────────────────
+const chatHistory = [];
+let chatBusy = false;
+
+const chatInput   = $('chat-input');
+const chatSendBtn = $('chat-send-btn');
+const chatMsgs    = $('chat-messages');
+
+chatInput.addEventListener('input', () => {
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+});
+chatInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); }
+});
+
+function useSuggestion(btn) {
+  chatInput.value = btn.textContent;
+  chatInput.style.height = 'auto';
+  chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  chatInput.focus();
+}
+
+function scrollChatToBottom() {
+  chatMsgs.scrollTop = chatMsgs.scrollHeight;
+}
+
+function hideWelcome() {
+  const w = $('chat-welcome');
+  if (w) { w.style.display = 'none'; }
+}
+
+function buildActionBadges(actions) {
+  if (!actions || !actions.length) return '';
+  return '<div class="chat-actions">' + actions.map(a => {
+    if (a.tool === 'send_slack_message' && a.result?.ok) {
+      const link = a.result.permalink || '#';
+      return `<span class="chat-action-badge sent"><a href="${escapeHtml(link)}" target="_blank" rel="noopener">Sent message</a></span>`;
+    }
+    if (a.tool === 'search_slack' && a.result?.ok) {
+      return `<span class="chat-action-badge search">Searched Slack (${a.result.count} results)</span>`;
+    }
+    if (a.tool === 'read_slack_thread' && a.result?.ok) {
+      return `<span class="chat-action-badge read">Read thread (${a.result.count} messages)</span>`;
+    }
+    if (a.result?.error) {
+      return `<span class="chat-action-badge error">Failed: ${escapeHtml(a.result.error.slice(0, 60))}</span>`;
+    }
+    return '';
+  }).join('') + '</div>';
+}
+
+function appendChatMessage(role, text, actions) {
+  hideWelcome();
+  const wrapper = document.createElement('div');
+  wrapper.className = `chat-msg ${role}`;
+
+  const badges = (role === 'assistant') ? buildActionBadges(actions) : '';
+
+  if (role === 'assistant') {
+    wrapper.innerHTML = `
+      <div class="chat-avatar">G</div>
+      <div class="chat-bubble-wrap">${badges}<div class="chat-bubble">${escapeHtml(text)}</div></div>`;
+  } else if (role === 'user') {
+    wrapper.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+  } else {
+    wrapper.innerHTML = `<div class="chat-bubble">${escapeHtml(text)}</div>`;
+  }
+
+  chatMsgs.appendChild(wrapper);
+  scrollChatToBottom();
+  return wrapper;
+}
+
+function showChatThinking() {
+  hideWelcome();
+  const wrapper = document.createElement('div');
+  wrapper.className = 'chat-msg assistant';
+  const id = 'thinking-' + Date.now();
+  wrapper.id = id;
+  wrapper.innerHTML = `
+    <div class="chat-avatar">G</div>
+    <div class="chat-bubble thinking-dots">
+      <span></span><span></span><span></span>
+    </div>`;
+  chatMsgs.appendChild(wrapper);
+  scrollChatToBottom();
+  return id;
+}
+
+function removeChatThinking(id) {
+  const el = $(id);
+  if (el) el.remove();
+}
+
+async function sendChatMessage() {
+  const text = chatInput.value.trim();
+  if (!text || chatBusy) return;
+
+  chatBusy = true;
+  chatSendBtn.disabled = true;
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+
+  appendChatMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  const thinkingId = showChatThinking();
+
+  try {
+    const res  = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        history: chatHistory.slice(0, -1),
+        model:   _selectedModel || _defaultModel || undefined,
+      }),
+    });
+    const data = await res.json();
+    removeChatThinking(thinkingId);
+
+    if (data.ok && data.reply) {
+      appendChatMessage('assistant', data.reply, data.actions);
+      chatHistory.push({ role: 'assistant', content: data.reply });
+    } else {
+      const errMsg = data.error || 'Something went wrong';
+      appendChatMessage('system', '⚠ ' + errMsg);
+      // If GenOS not configured, prompt to open settings
+      if (errMsg.toLowerCase().includes('not configured')) {
+        setTimeout(() => openSettings(), 800);
+      }
+    }
+  } catch (err) {
+    removeChatThinking(thinkingId);
+    appendChatMessage('system', '⚠ Server unreachable — is the dashboard running?');
+  } finally {
+    chatBusy = false;
+    chatSendBtn.disabled = false;
+    chatInput.focus();
+  }
+}
+
+// ── Voice input (Web Speech API) ─────────────────────────────────────────────
+
+(function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const micBtn = $('chat-mic-btn');
+
+  if (!SpeechRecognition) {
+    // Browser doesn't support it — hide the button silently
+    if (micBtn) micBtn.style.display = 'none';
+    return;
+  }
+
+  const recognition  = new SpeechRecognition();
+  recognition.continuous      = false;   // single utterance per tap
+  recognition.interimResults  = true;    // show live interim text
+  recognition.lang            = 'en-US';
+  recognition.maxAlternatives = 1;
+
+  let isListening  = false;
+  let baseText     = '';   // text already in box before we started
+
+  function startListening() {
+    if (isListening) return;
+    baseText    = chatInput.value;
+    isListening = true;
+    micBtn.classList.add('listening');
+    micBtn.title = 'Listening… click to stop';
+    chatInput.placeholder = '🎤 Listening…';
+    recognition.start();
+  }
+
+  function stopListening() {
+    if (!isListening) return;
+    recognition.stop();
+  }
+
+  recognition.onresult = e => {
+    let interim = '';
+    let final   = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) final += t;
+      else interim += t;
+    }
+    // Show interim text live; append final text to box
+    chatInput.value = baseText + (final || interim);
+    // Auto-resize
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  };
+
+  recognition.onend = () => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    micBtn.title = 'Hold to speak (uses browser mic)';
+    chatInput.placeholder = 'Ask anything… (Enter to send, Shift+Enter for newline)';
+    // If we captured something, move cursor to end and focus
+    if (chatInput.value.trim()) {
+      chatInput.focus();
+      chatInput.setSelectionRange(chatInput.value.length, chatInput.value.length);
+    }
+  };
+
+  recognition.onerror = e => {
+    isListening = false;
+    micBtn.classList.remove('listening');
+    chatInput.placeholder = 'Ask anything… (Enter to send, Shift+Enter for newline)';
+    if (e.error === 'not-allowed') {
+      toast('⚠ Microphone access denied — enable it in browser settings', 4000);
+    } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
+      toast(`⚠ Voice error: ${e.error}`, 3000);
+    }
+  };
+
+  window.toggleVoiceInput = function() {
+    if (!hasGenOS) {
+      toast('GenOS must be configured to use voice — open ⚙ Settings', 3000);
+      return;
+    }
+    if (isListening) stopListening();
+    else startListening();
+  };
+})();
+
+// ── Column resize (drag handles) ──────────────────────────────────────────────
+
+(function initResize() {
+  const LS_LEFT  = 'gauravos-left-w';
+  const LS_RIGHT = 'gauravos-right-w';
+  const MIN_SIDE = 180;   // px — minimum side panel width
+  const MIN_CTR  = 360;   // px — minimum center panel width
+
+  const workspace  = document.querySelector('.workspace');
+  const handleL    = $('drag-left');
+  const handleR    = $('drag-right');
+
+  // Restore saved widths
+  function applyWidths(leftW, rightW) {
+    workspace.style.setProperty('--left-w',  leftW  + 'px');
+    workspace.style.setProperty('--right-w', rightW + 'px');
+  }
+
+  const savedL = parseInt(localStorage.getItem(LS_LEFT),  10);
+  const savedR = parseInt(localStorage.getItem(LS_RIGHT), 10);
+  if (savedL && savedR) applyWidths(savedL, savedR);
+
+  let dragging  = null;   // 'left' | 'right'
+  let startX    = 0;
+  let startW    = 0;
+
+  function onMouseDown(side, e) {
+    e.preventDefault();
+    dragging = side;
+    startX   = e.clientX;
+    startW   = side === 'left'
+      ? parseInt(getComputedStyle(workspace).getPropertyValue('--left-w')  || '268', 10)
+      : parseInt(getComputedStyle(workspace).getPropertyValue('--right-w') || '340', 10);
+    handleL.classList.toggle('dragging', side === 'left');
+    handleR.classList.toggle('dragging', side === 'right');
+    document.body.style.cursor    = 'col-resize';
+    document.body.style.userSelect = 'none';
+  }
+
+  function onMouseMove(e) {
+    if (!dragging) return;
+    const totalW = workspace.getBoundingClientRect().width;
+    const delta  = e.clientX - startX;
+
+    if (dragging === 'left') {
+      const rightW = parseInt(getComputedStyle(workspace).getPropertyValue('--right-w') || '340', 10);
+      const newW   = Math.max(MIN_SIDE, Math.min(startW + delta, totalW - rightW - MIN_CTR - 8));
+      workspace.style.setProperty('--left-w', newW + 'px');
+    } else {
+      const leftW = parseInt(getComputedStyle(workspace).getPropertyValue('--left-w') || '268', 10);
+      const newW  = Math.max(MIN_SIDE, Math.min(startW - delta, totalW - leftW - MIN_CTR - 8));
+      workspace.style.setProperty('--right-w', newW + 'px');
+    }
+  }
+
+  function onMouseUp() {
+    if (!dragging) return;
+    const leftW  = parseInt(getComputedStyle(workspace).getPropertyValue('--left-w')  || '268', 10);
+    const rightW = parseInt(getComputedStyle(workspace).getPropertyValue('--right-w') || '340', 10);
+    localStorage.setItem(LS_LEFT,  leftW);
+    localStorage.setItem(LS_RIGHT, rightW);
+    handleL.classList.remove('dragging');
+    handleR.classList.remove('dragging');
+    document.body.style.cursor     = '';
+    document.body.style.userSelect = '';
+    dragging = null;
+  }
+
+  handleL.addEventListener('mousedown', e => onMouseDown('left',  e));
+  handleR.addEventListener('mousedown', e => onMouseDown('right', e));
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup',   onMouseUp);
+
+  // Double-click to reset to defaults
+  handleL.addEventListener('dblclick', () => {
+    workspace.style.setProperty('--left-w', '268px');
+    localStorage.removeItem(LS_LEFT);
+  });
+  handleR.addEventListener('dblclick', () => {
+    workspace.style.setProperty('--right-w', '340px');
+    localStorage.removeItem(LS_RIGHT);
+  });
+})();
+</script>
+</body>
+</html>
