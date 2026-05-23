@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Personal OS — Product Brief · Gaurav Mehta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0d0e1a;
+      --surface:     #13152b;
+      --surface2:    #1a1d38;
+      --surface3:    #22263f;
+      --border:      #252847;
+      --border2:     #3a3f70;
+      --purple:      #7c5cfc;
+      --purple-dim:  #4a3896;
+      --purple-glow: rgba(124,92,252,.18);
+      --purple-bg:   rgba(124,92,252,.08);
+      --green:       #22d3a0;
+      --green-bg:    rgba(34,211,160,.08);
+      --amber:       #f5a623;
+      --amber-bg:    rgba(245,166,35,.08);
+      --red:         #f45d5d;
+      --red-bg:      rgba(244,93,93,.08);
+      --blue:        #5cadfc;
+      --blue-bg:     rgba(92,173,252,.08);
+      --txt:         #e8eaf6;
+      --txt2:        #7880a8;
+      --txt3:        #4a4f7a;
+      --radius:      14px;
+      --radius-sm:   8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.6;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Nav ── */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(13,14,26,.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--txt3); }
+    .nav-breadcrumb a { color: var(--purple); text-decoration: none; }
+    .nav-breadcrumb a:hover { text-decoration: underline; }
+    .nav-breadcrumb span { color: var(--border2); }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 100px;
+      font-size: 12px; font-weight: 500; text-decoration: none;
+      border: 1px solid var(--border); color: var(--txt3);
+      background: var(--surface); transition: all .15s;
+    }
+    .nav-pill:hover { border-color: var(--purple); color: var(--purple); }
+    .nav-pill.primary { background: var(--purple); color: #fff; border-color: var(--purple); }
+    .nav-pill.primary:hover { background: var(--purple-dim); border-color: var(--purple-dim); }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 64px 32px 48px;
+      position: relative; z-index: 1;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--purple-bg); border: 1px solid rgba(124,92,252,.28);
+      color: var(--purple); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(24px, 4vw, 36px);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1.15;
+      margin-bottom: 16px; color: var(--txt);
+    }
+    .hero-sub { font-size: 16px; color: var(--txt2); max-width: 680px; line-height: 1.75; margin-bottom: 32px; }
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 0;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .meta-item {
+      padding: 14px 20px; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label { color: var(--txt3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .meta-value { color: var(--txt); font-weight: 600; font-size: 13px; }
+
+    /* ── Body ── */
+    .doc-body {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 32px 96px;
+      display: flex; flex-direction: column; gap: 52px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Section ── */
+    .section { display: flex; flex-direction: column; gap: 20px; }
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--purple-bg); border: 1px solid rgba(124,92,252,.3);
+      color: var(--purple); font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 19px; font-weight: 700; letter-spacing: -.02em; color: var(--txt); }
+
+    /* ── Callout ── */
+    .callout {
+      padding: 16px 20px; border-radius: var(--radius-sm);
+      font-size: 14px; line-height: 1.7; color: var(--txt2);
+    }
+    .callout.purple { background: var(--purple-bg); border-left: 3px solid var(--purple); }
+    .callout.green  { background: var(--green-bg);  border-left: 3px solid var(--green); }
+    .callout.amber  { background: var(--amber-bg);  border-left: 3px solid var(--amber); }
+    .callout strong { color: var(--txt); }
+    .callout code {
+      background: var(--surface2); padding: 1px 6px; border-radius: 4px;
+      font-family: 'DM Mono', monospace; font-size: 12px; color: var(--purple);
+    }
+
+    /* ── Stat grid ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px 18px;
+    }
+    .stat-card .num { font-size: 28px; font-weight: 700; color: var(--purple); letter-spacing: -.04em; line-height: 1.1; margin-bottom: 4px; }
+    .stat-card .desc { font-size: 12px; color: var(--txt3); }
+
+    /* ── Routing matrix ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: var(--surface2); }
+    th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px;
+         text-transform: uppercase; letter-spacing: .05em; color: var(--txt3);
+         border-bottom: 1px solid var(--border); }
+    td { padding: 10px 14px; color: var(--txt2); border-bottom: 1px solid var(--surface2); }
+    tr:last-child td { border-bottom: none; }
+    td strong { color: var(--txt); }
+    .badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 100px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-purple  { background: var(--purple-bg);  color: var(--purple); }
+    .badge-green   { background: var(--green-bg);   color: var(--green); }
+    .badge-amber   { background: var(--amber-bg);   color: var(--amber); }
+    .badge-blue    { background: var(--blue-bg);    color: var(--blue); }
+
+    /* ── Feature cards ── */
+    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+    .feature-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px 18px;
+    }
+    .feature-card .f-icon {
+      font-size: 20px; margin-bottom: 10px; display: block;
+    }
+    .feature-card .f-title { font-size: 14px; font-weight: 600; color: var(--txt); margin-bottom: 5px; }
+    .feature-card .f-body  { font-size: 13px; color: var(--txt3); line-height: 1.55; }
+
+    /* ── Decision cards ── */
+    .decision-grid { display: flex; flex-direction: column; gap: 10px; }
+    .decision-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 16px 20px;
+      display: grid; grid-template-columns: auto 1fr; gap: 0 14px;
+    }
+    .decision-icon {
+      width: 30px; height: 30px; border-radius: var(--radius-sm);
+      background: var(--purple-bg); color: var(--purple);
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      grid-row: span 2; flex-shrink: 0; margin-top: 2px;
+    }
+    .d-title { font-size: 14px; font-weight: 600; color: var(--txt); margin-bottom: 4px; }
+    .d-body  { font-size: 13px; color: var(--txt3); line-height: 1.6; }
+    .d-body code { background: var(--surface2); padding: 1px 5px; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 11px; color: var(--purple); }
+
+    /* ── Insight list ── */
+    .insight-list { display: flex; flex-direction: column; gap: 10px; }
+    .insight-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 16px; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 14px; line-height: 1.65; color: var(--txt2);
+    }
+    .insight-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--purple); flex-shrink: 0; margin-top: 6px;
+    }
+    .insight-item strong { color: var(--txt); }
+
+    /* ── Body text ── */
+    p { font-size: 14px; color: var(--txt2); line-height: 1.75; }
+    p strong { color: var(--txt); }
+
+    /* ── MCP skill list ── */
+    .skill-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+    .skill-pill {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--txt2); padding: 5px 12px; border-radius: 100px;
+      font-size: 12px; font-weight: 500;
+    }
+
+    /* ── Footer ── */
+    .doc-footer {
+      max-width: 860px; margin: 0 auto;
+      padding: 24px 32px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      font-size: 13px; color: var(--txt3);
+      position: relative; z-index: 1;
+    }
+
+    @media (max-width: 640px) {
+      .topnav { padding: 0 16px; }
+      .hero, .doc-body { padding-left: 16px; padding-right: 16px; }
+      .meta-item { border-right: none; border-bottom: 1px solid var(--border); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="nav-breadcrumb">
+      <a href="../../index.html">Portfolio</a>
+      <span>›</span>
+      <a href="index.html">Personal OS</a>
+      <span>›</span>
+      <span>Product Brief</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-pill">← Live Demo</a>
+      <a href="../../index.html#projects" class="nav-pill primary">All Projects</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-tag">📋 Product Brief</div>
+    <h1>Personal OS — An AI-Native Command Center for a Senior PM's Async Life</h1>
+    <p class="hero-sub">
+      How I built my own personal operating system: a local-first, file-backed Slack triage dashboard with AI routing, human-in-the-loop reply approval, Notion task sync, and a knowledge graph — so I can stay ahead of a high-volume async workstream without constant context-switching.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item"><span class="meta-label">User</span><span class="meta-value">Gaurav Mehta (myself)</span></div>
+      <div class="meta-item"><span class="meta-label">Stack</span><span class="meta-value">Node.js · GenOS · Neo4j · WebSocket</span></div>
+      <div class="meta-item"><span class="meta-label">Integrations</span><span class="meta-value">15+ via MCP</span></div>
+      <div class="meta-item"><span class="meta-label">Data snapshot</span><span class="meta-value">1,021 mentions · 722 AI drafts</span></div>
+      <div class="meta-item"><span class="meta-label">Wake word</span><span class="meta-value">"Neo"</span></div>
+    </div>
+  </header>
+
+  <main class="doc-body">
+
+    <!-- 1. Problem -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>The Problem</h2>
+      </div>
+      <p>
+        As a Staff PM leading GTM Tech at Intuit, I operate across multiple high-stakes concurrent workstreams: a 200-campaign Eloqua→Marketo migration with a hard 7/31 deadline, an agentic AI platform being presented to CTO leadership, and a parallel job search. The throughput problem isn't meetings — it's <strong>async communication that doesn't stop</strong>.
+      </p>
+      <div class="callout purple">
+        <strong>The core constraint:</strong> My Slack surface in a typical week generates 50–100+ @mentions and DMs across group threads, direct messages, and migration coordination channels. Manual triage — reading, prioritizing, drafting, sending — consumed multiple hours daily. The cognitive cost of context-switching between a high-priority "are we still joining zoom?" and a low-priority informational update is asymmetric and cumulative.
+      </div>
+      <p>
+        Standard approaches (Slack saved items, notification batching, labels) don't solve the underlying problem: <strong>the reply still requires me to context-switch, compose, and decide</strong>. What I needed was a system that could make those decisions for me — and present completed drafts for a single-click approval.
+      </p>
+    </section>
+
+    <!-- 2. Design Goals -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Design Goals</h2>
+      </div>
+      <div class="feature-grid">
+        <div class="feature-card">
+          <span class="f-icon">⚡</span>
+          <div class="f-title">Zero Outbox Surprises</div>
+          <div class="f-body">No AI message ever sends without my explicit approval. Every draft surfaces in an inbox — I approve, edit, or reject. The system defaults to "human decides."</div>
+        </div>
+        <div class="feature-card">
+          <span class="f-icon">🧠</span>
+          <div class="f-title">Context-Aware Routing</div>
+          <div class="f-body">Routing decisions use sender identity from the Neo4j KG — not just keywords. A message from my manager (Deepak) routes differently than the same words from an unknown colleague.</div>
+        </div>
+        <div class="feature-card">
+          <span class="f-icon">📁</span>
+          <div class="f-title">Local-First, No SaaS Lock-In</div>
+          <div class="f-body">State lives in JSON files on disk — portable, auditable, git-trackable. No subscription, no cloud vendor dependency for core functionality.</div>
+        </div>
+        <div class="feature-card">
+          <span class="f-icon">🔁</span>
+          <div class="f-title">Learning from Approvals</div>
+          <div class="f-body">Every approve/reject decision is logged to <code>routing-feedback.json</code> for future routing improvement. The system gets better the more I use it.</div>
+        </div>
+        <div class="feature-card">
+          <span class="f-icon">🛠️</span>
+          <div class="f-title">Extensible via MCP</div>
+          <div class="f-body">Airtable, Eloqua, Outlook, Databricks, Obsidian, Segment CDP, Neo4j — all accessible from the same agent surface via MCP servers, without building custom integrations.</div>
+        </div>
+        <div class="feature-card">
+          <span class="f-icon">📓</span>
+          <div class="f-title">Mandatory Memory Logging</div>
+          <div class="f-body">Every meaningful agent action appends to <code>memory.md</code>. The audit trail is a feature — it enables the JobMagic skill to pull verified facts for resume generation without fabrication.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Architecture -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>System Architecture</h2>
+      </div>
+      <p>
+        The system has three layers: a <strong>dashboard</strong> (browser SPA for triage), an <strong>orchestrator</strong> (always-on Node.js daemon for Slack events), and a <strong>knowledge graph</strong> (Neo4j for sender context and personal memory).
+      </p>
+      <div class="callout green" style="margin-top:4px">
+        <strong>Refresh pipeline (5 phases):</strong>
+        Scheduled messages check → @mentions fetch → DMs fetch → Tracked thread poll → GenOS classification → Agent inbox → Human approval → Pending replies queue → Slack send. Every step is logged; every send gate requires my action.
+      </div>
+      <div class="table-wrap" style="margin-top:12px">
+        <table>
+          <thead><tr><th>Layer</th><th>Technology</th><th>Port</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Dashboard SPA</strong></td><td>Vanilla HTML/CSS/JS · WebSocket</td><td>:3737</td><td>Real-time triage UI; approve/reject drafts; Top 5 tasks; calendar</td></tr>
+            <tr><td><strong>Orchestrator</strong></td><td>Node.js · Slack Socket Mode</td><td>:3838</td><td>Always-on event listener; intent classification; voice input ("Neo")</td></tr>
+            <tr><td><strong>Personal KG</strong></td><td>Neo4j 5</td><td>bolt://:7687</td><td>Person nodes (VIP/peer/general), project context, sender relationship graph</td></tr>
+            <tr><td><strong>MCP servers</strong></td><td>Node.js (custom + npx)</td><td>stdio</td><td>Airtable, Eloqua, Outlook (AppleScript), Obsidian, Databricks, Segment, IXP</td></tr>
+            <tr><td><strong>Cursor IDE</strong></td><td>VS Code extension · iframe sidebar</td><td>—</td><td>Dashboard embedded in IDE; skills library; hooks</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4. Routing Matrix -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>The Routing Intelligence</h2>
+      </div>
+      <p>
+        The most PM-critical design decision was the <strong>routing matrix</strong> — how the system decides which messages need me immediately, which can be drafted by an agent, and which can be fully automated. The matrix combines sender criticality (from KG) with message complexity (from GenOS classification):
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Sender</th><th>Complexity</th><th>Routing Decision</th><th>Pattern Name</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>VIP</strong> (manager, skip-level, exec)</td>
+              <td>High</td>
+              <td><span class="badge badge-amber">Human Only</span></td>
+              <td>Direct Intervention</td>
+            </tr>
+            <tr>
+              <td><strong>VIP</strong></td>
+              <td>Low</td>
+              <td><span class="badge badge-blue">Hybrid — draft &amp; veto</span></td>
+              <td>Draft &amp; Veto</td>
+            </tr>
+            <tr>
+              <td><strong>Peer + Active Project</strong></td>
+              <td>High</td>
+              <td><span class="badge badge-blue">Hybrid — scope &amp; route</span></td>
+              <td>Scope &amp; Scatter</td>
+            </tr>
+            <tr>
+              <td><strong>Peer + Active Project</strong></td>
+              <td>Low</td>
+              <td><span class="badge badge-green">Agent auto-execute</span></td>
+              <td>The Nudge</td>
+            </tr>
+            <tr>
+              <td><strong>General colleague</strong></td>
+              <td>High</td>
+              <td><span class="badge badge-blue">Hybrid — intake &amp; escalate</span></td>
+              <td>Intake Coordinator → Escalation</td>
+            </tr>
+            <tr>
+              <td><strong>General colleague</strong></td>
+              <td>Low</td>
+              <td><span class="badge badge-green">Agent auto-execute</span></td>
+              <td>The Vending Machine</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout amber" style="margin-top:8px">
+        <strong>Key guardrail:</strong> VIP + High complexity messages never reach the agent. The system surfaces them immediately in the High priority tab with the sender's KG relationship context — so when I open the dashboard, I see exactly why this message needs direct attention, not an AI draft.
+      </div>
+    </section>
+
+    <!-- 5. Key Decisions -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Key Design Decisions &amp; Tradeoffs</h2>
+      </div>
+      <div class="decision-grid">
+        <div class="decision-card">
+          <div class="decision-icon">📁</div>
+          <div class="d-title">File-Backed JSON over a Database</div>
+          <div class="d-body">
+            <code>mentions.json</code>, <code>agent-drafts.json</code>, <code>top5.json</code>, <code>routing-feedback.json</code> — all on disk. The tradeoff: no concurrent write safety, but the payoff is total portability, debuggability, and git-trackability. For a single-user personal system, this is the right call. If I wanted multi-user, I'd add SQLite; if I needed real-time collaboration, I'd add a proper DB.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🔀</div>
+          <div class="d-title">Two Parallel Dispatch Paths (Idempotent)</div>
+          <div class="d-body">
+            The dashboard (Phase 4 flow) and the orchestrator (30s polling loop) can both trigger a reply send. To prevent double-sends, the endpoint is idempotent — a <code>complete</code> status on a pending reply prevents re-execution. This redundancy means if my laptop's dashboard is closed, the orchestrator still processes approvals.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🎭</div>
+          <div class="d-title">Agent as a First-Class Peer, Not a Plugin</div>
+          <div class="d-body">
+            The Cursor agent accesses the same REST API as the dashboard for updates and agent draft pushes. There's no "agent mode" — the agent can do everything a human can via the API, subject to the same approval gates. This means agentic workflows and human workflows compose naturally without special casing.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🚫</div>
+          <div class="d-title">Anti-Fabrication Guardrails in JobMagic</div>
+          <div class="d-body">
+            JobMagic (the resume generation skill) has a 13-point immutability ruleset: employer names, job titles, tenure dates, education, and contact info are locked and sourced from <code>memory.md</code> — never inferred. The KG enriches with verified accomplishments; the LLM only rephases, never invents. This was prompted by a near-miss where a first draft fabricated a plausible-but-false metric.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">📊</div>
+          <div class="d-title">Playbook Design: Only for Low-Complexity Patterns</div>
+          <div class="d-body">
+            Playbooks (SOPs as markdown templates) are deliberately scoped to <code>Agent (Stateless)</code> and <code>Agent (Stateful)</code> decision paths — never for VIP or High-complexity messages. The principle: playbooks codify known, repeatable patterns (e.g. Eloqua developer access requests). Novel or high-stakes situations always route to human judgment.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Integrations -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Integrations via MCP</h2>
+      </div>
+      <p>
+        Rather than building bespoke integrations into the dashboard, I used the <strong>Model Context Protocol (MCP)</strong> to expose 15+ tools to the agent layer in Cursor. This means the agent can pull Eloqua campaign data, create Airtable records, search the Obsidian vault, or query Databricks tables — all from the same conversational interface, without maintaining custom API clients.
+      </p>
+      <div class="skill-wrap" style="margin-top: 4px;">
+        <span class="skill-pill">Slack API (Socket Mode)</span>
+        <span class="skill-pill">Notion (Top 5 sync)</span>
+        <span class="skill-pill">Neo4j Personal KG</span>
+        <span class="skill-pill">Airtable MCP</span>
+        <span class="skill-pill">Eloqua MCP</span>
+        <span class="skill-pill">Outlook (AppleScript)</span>
+        <span class="skill-pill">Obsidian vault</span>
+        <span class="skill-pill">Databricks MCP</span>
+        <span class="skill-pill">Segment CDP MCP</span>
+        <span class="skill-pill">IXP MCP</span>
+        <span class="skill-pill">macOS Calendar (SQLite)</span>
+        <span class="skill-pill">Cursor API</span>
+        <span class="skill-pill">GenOS (Intuit LLM)</span>
+        <span class="skill-pill">OpenAI Whisper (voice)</span>
+      </div>
+    </section>
+
+    <!-- 7. Reflections -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Reflections &amp; What I Learned Building It</h2>
+      </div>
+      <div class="insight-list">
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>Building your own tool is the best PM exercise.</strong> I am the user, designer, developer, and customer support. Every friction point is immediate and unambiguous. The dashboard has been rewritten 4 times in its column layout alone — because I actually use it daily and feel every pixel that's wrong.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>The routing matrix is where the PM thinking lives.</strong> The decision about what routes to "Human Only" vs. "Agent auto-execute" encodes my values and risk tolerance. Getting that matrix wrong in either direction has real cost: over-routing to human means I'm back to manual triage; under-routing means a GenOS draft goes to my manager without review. The matrix is the product.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>Memory logging is underrated.</strong> The mandatory <code>memory.md</code> requirement — which felt like overhead when I designed it — has become the most valuable part of the system. It created a verified, timestamped record of every significant decision, product build, and outcome. That record became the source of truth for JobMagic and for this portfolio.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>The Eloqua playbook false-positive taught me about edge cases in NLP routing.</strong> The original regex-based playbook matching fired on messages that contained the word "Eloqua" regardless of intent — causing an automation draft on a message that needed human escalation. The fix (2-stage: keyword preFilter → GenOS intent classifier) is a pattern I've applied in AgenticMOps as well.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>Personal OS and AgenticMOps share the same architectural DNA.</strong> The agent-as-peer design, the HITL approval gates, the KG-for-context pattern, and the playbook-as-SOP model — all originated in the Personal OS and were refined and scaled in AgenticMOps. Building the personal version first meant I shipped the enterprise version faster.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Stats Snapshot -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">8</div>
+        <h2>Live System Snapshot (as of May 22, 2026)</h2>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="num">1,021</div>
+          <div class="desc">Active Slack mentions in the system</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">722</div>
+          <div class="desc">AI-drafted replies awaiting review</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">39</div>
+          <div class="desc">High-priority mentions classified</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">7</div>
+          <div class="desc">Active Top 5 workstream tasks synced to Notion</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">15+</div>
+          <div class="desc">Tool integrations via MCP</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">5+</div>
+          <div class="desc">Tailored resumes generated via JobMagic</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="doc-footer">
+    <span>Gaurav Mehta · Staff PM, GTM Tech · Intuit</span>
+    <div style="display:flex;gap:10px">
+      <a href="../../projects/agentic-mops/product-thinking.html" class="nav-pill">← AgenticMOps Brief</a>
+      <a href="../../index.html#projects" class="nav-pill primary">All Projects</a>
+    </div>
+  </footer>
+
+</body>
+</html>

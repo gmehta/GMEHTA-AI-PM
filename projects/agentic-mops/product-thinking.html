@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgenticMOps — Product Brief · Gaurav Mehta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0b0c0e;
+      --surface:     #131417;
+      --surface2:    #1a1c20;
+      --surface3:    #22252b;
+      --border:      #1f2228;
+      --border2:     #2a2d35;
+      --border3:     #3a3d47;
+      --green:       #2db757;
+      --green-dim:   #1e8f42;
+      --green-glow:  rgba(45,183,87,.18);
+      --green-bg:    rgba(45,183,87,.08);
+      --amber:       #f5a623;
+      --amber-bg:    rgba(245,166,35,.08);
+      --blue:        #7aabff;
+      --blue-bg:     rgba(122,171,255,.08);
+      --purple:      #b07aff;
+      --purple-bg:   rgba(176,122,255,.08);
+      --red:         #ff6b6b;
+      --red-bg:      rgba(255,107,107,.08);
+      --txt:         #f0f1f3;
+      --txt2:        #9ea3b0;
+      --txt3:        #5a5f6e;
+      --radius:      10px;
+      --radius-sm:   6px;
+      --radius-lg:   16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 15px; scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', 'Avenir Next', 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      line-height: 1.6;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Nav ── */
+    .topnav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(11,12,14,.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 52px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--txt3); }
+    .nav-breadcrumb a { color: var(--green); text-decoration: none; }
+    .nav-breadcrumb a:hover { text-decoration: underline; }
+    .nav-breadcrumb span { color: var(--border3); }
+    .nav-links { display: flex; gap: 8px; }
+    .nav-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 12px; border-radius: 100px;
+      font-size: 12px; font-weight: 500; text-decoration: none;
+      border: 1px solid var(--border2); color: var(--txt3);
+      background: var(--surface); transition: all .15s;
+    }
+    .nav-pill:hover { border-color: var(--green); color: var(--green); }
+    .nav-pill.primary { background: var(--green); color: #fff; border-color: var(--green); }
+    .nav-pill.primary:hover { background: var(--green-dim); border-color: var(--green-dim); }
+
+    /* ── Hero ── */
+    .hero {
+      max-width: 860px; margin: 0 auto;
+      padding: 64px 32px 48px;
+      position: relative; z-index: 1;
+    }
+    .hero-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-bg); border: 1px solid rgba(45,183,87,.25);
+      color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; padding: 4px 12px; border-radius: 100px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(26px, 4vw, 38px);
+      font-weight: 700; letter-spacing: -.03em; line-height: 1.15;
+      margin-bottom: 16px; color: var(--txt);
+    }
+    .hero-sub { font-size: 16px; color: var(--txt2); max-width: 680px; line-height: 1.75; margin-bottom: 32px; }
+    .hero-meta {
+      display: flex; flex-wrap: wrap; gap: 0;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .meta-item {
+      padding: 14px 20px; border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .meta-item:last-child { border-right: none; }
+    .meta-label { color: var(--txt3); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+    .meta-value { color: var(--txt); font-weight: 600; font-size: 13px; }
+
+    /* ── Body ── */
+    .doc-body {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 32px 96px;
+      display: flex; flex-direction: column; gap: 52px;
+      position: relative; z-index: 1;
+    }
+
+    /* ── Section ── */
+    .section { display: flex; flex-direction: column; gap: 20px; }
+    .section-header {
+      display: flex; align-items: center; gap: 10px;
+      padding-bottom: 14px; border-bottom: 1px solid var(--border);
+    }
+    .section-num {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--green-bg); border: 1px solid rgba(45,183,87,.25);
+      color: var(--green); font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 19px; font-weight: 700; letter-spacing: -.02em; color: var(--txt); }
+
+    /* ── Callout ── */
+    .callout {
+      padding: 16px 20px; border-radius: var(--radius-sm);
+      font-size: 14px; line-height: 1.7; color: var(--txt2);
+    }
+    .callout.green  { background: var(--green-bg);  border-left: 3px solid var(--green); }
+    .callout.amber  { background: var(--amber-bg);  border-left: 3px solid var(--amber); }
+    .callout.blue   { background: var(--blue-bg);   border-left: 3px solid var(--blue); }
+    .callout strong { color: var(--txt); font-weight: 600; }
+
+    /* ── Stats ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 16px 18px;
+    }
+    .stat-card .num {
+      font-size: 30px; font-weight: 700; letter-spacing: -.04em;
+      color: var(--green); line-height: 1.1; margin-bottom: 4px;
+    }
+    .stat-card .desc { font-size: 12px; color: var(--txt3); }
+
+    /* ── Agent grid ── */
+    .agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+    .agent-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 14px 16px;
+      border-left: 3px solid var(--agent-color, var(--green));
+    }
+    .agent-card .agent-name { font-size: 13px; font-weight: 600; color: var(--txt); margin-bottom: 4px; }
+    .agent-card .agent-sub  { font-size: 12px; color: var(--txt3); line-height: 1.5; }
+    .agent-card .agent-badge {
+      display: inline-block; margin-bottom: 6px;
+      padding: 2px 8px; border-radius: 100px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em;
+      background: rgba(255,255,255,.05); color: var(--txt3);
+    }
+
+    /* ── Phase timeline ── */
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+    .timeline-item {
+      display: grid; grid-template-columns: 80px 1fr;
+      gap: 0 20px; position: relative;
+    }
+    .timeline-item:not(:last-child)::before {
+      content: '';
+      position: absolute; left: 39px; top: 34px;
+      width: 2px; height: calc(100% - 10px);
+      background: var(--border2);
+    }
+    .timeline-left { display: flex; flex-direction: column; align-items: center; padding-top: 6px; }
+    .t-dot {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--surface2); border: 2px solid var(--green);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: var(--green); flex-shrink: 0;
+    }
+    .t-dot.dim { border-color: var(--border3); color: var(--txt3); }
+    .timeline-right {
+      padding: 4px 0 28px;
+    }
+    .t-title { font-size: 14px; font-weight: 600; color: var(--txt); margin-bottom: 4px; }
+    .t-date  { display: inline-block; font-size: 11px; color: var(--txt3); margin-bottom: 6px; }
+    .t-body  { font-size: 13px; color: var(--txt3); line-height: 1.6; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius-sm); border: 1px solid var(--border2); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: var(--surface2); }
+    th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 11px;
+         text-transform: uppercase; letter-spacing: .05em; color: var(--txt3);
+         border-bottom: 1px solid var(--border2); }
+    td { padding: 10px 14px; color: var(--txt2); border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    td strong { color: var(--txt); }
+    .badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 100px;
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .badge-green  { background: var(--green-bg);  color: var(--green); }
+    .badge-amber  { background: var(--amber-bg);  color: var(--amber); }
+    .badge-blue   { background: var(--blue-bg);   color: var(--blue); }
+    .badge-purple { background: var(--purple-bg); color: var(--purple); }
+    .badge-red    { background: var(--red-bg);    color: var(--red); }
+
+    /* ── Decision cards ── */
+    .decision-grid { display: flex; flex-direction: column; gap: 10px; }
+    .decision-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius); padding: 16px 20px;
+      display: grid; grid-template-columns: auto 1fr; gap: 0 14px;
+    }
+    .decision-icon {
+      width: 30px; height: 30px; border-radius: var(--radius-sm);
+      background: var(--green-bg); color: var(--green);
+      font-size: 14px; display: flex; align-items: center; justify-content: center;
+      grid-row: span 2; flex-shrink: 0; margin-top: 2px;
+    }
+    .d-title { font-size: 14px; font-weight: 600; color: var(--txt); margin-bottom: 4px; }
+    .d-body  { font-size: 13px; color: var(--txt3); line-height: 1.6; }
+
+    /* ── Insight list ── */
+    .insight-list { display: flex; flex-direction: column; gap: 10px; }
+    .insight-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 14px 16px; background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); font-size: 14px; line-height: 1.65; color: var(--txt2);
+    }
+    .insight-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0; margin-top: 6px;
+    }
+    .insight-item strong { color: var(--txt); }
+
+    /* ── KG metric ── */
+    .kg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    .kg-card {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      text-align: center;
+    }
+    .kg-card .kg-num { font-size: 22px; font-weight: 700; color: var(--green); letter-spacing: -.02em; }
+    .kg-card .kg-lbl { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+    /* ── Body text ── */
+    p { font-size: 14px; color: var(--txt2); line-height: 1.75; }
+    p strong { color: var(--txt); }
+
+    /* ── Footer ── */
+    .doc-footer {
+      max-width: 860px; margin: 0 auto;
+      padding: 24px 32px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      font-size: 13px; color: var(--txt3);
+      position: relative; z-index: 1;
+    }
+
+    @media (max-width: 640px) {
+      .topnav { padding: 0 16px; }
+      .hero, .doc-body { padding-left: 16px; padding-right: 16px; }
+      .meta-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .hero-meta { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="topnav">
+    <div class="nav-breadcrumb">
+      <a href="../../index.html">Portfolio</a>
+      <span>›</span>
+      <a href="index.html">AgenticMOps</a>
+      <span>›</span>
+      <span>Product Brief</span>
+    </div>
+    <div class="nav-links">
+      <a href="index.html" class="nav-pill">← Live Demo</a>
+      <a href="../../index.html#projects" class="nav-pill primary">All Projects</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-tag">📋 Product Brief</div>
+    <h1>AgenticMOps — Compressing Campaign Launch from Months to Minutes</h1>
+    <p class="hero-sub">
+      How I architected a 7-agent platform that transforms campaign operations at Intuit — replacing weeks of human-in-series coordination with a parallel agent pipeline and a living knowledge graph of 20,000+ marketing nodes.
+    </p>
+    <div class="hero-meta">
+      <div class="meta-item"><span class="meta-label">Role</span><span class="meta-value">PM Architect + MOps Lead</span></div>
+      <div class="meta-item"><span class="meta-label">Stack</span><span class="meta-value">GenOS · Neo4j · MCP · React</span></div>
+      <div class="meta-item"><span class="meta-label">Scale</span><span class="meta-value">~1,000 campaigns / year</span></div>
+      <div class="meta-item"><span class="meta-label">Velocity gain</span><span class="meta-value">10,000× (2 months → minutes)</span></div>
+      <div class="meta-item"><span class="meta-label">KG nodes</span><span class="meta-value">~20,840</span></div>
+    </div>
+  </header>
+
+  <main class="doc-body">
+
+    <!-- 1. Problem -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">1</div>
+        <h2>The Problem</h2>
+      </div>
+      <p>
+        At Intuit SBSEG (Small Business Solutions Group), launching a marketing campaign takes <strong>2 weeks to 2 months</strong>. That's not a technology bottleneck — it's a coordination bottleneck. Humans work in series across six platforms: QuickBase (brief) → AEP (audiences) → Marketo (journey) → Campaign Manager (activation) → PPM (offers) → IXP (experiments). Each step waits for the prior team to finish before the next starts.
+      </p>
+      <div class="callout green">
+        <strong>The compounding cost:</strong> With ~1,000 campaigns per year across TurboTax and QuickBooks, even a modest 2-week average launch time means hundreds of person-weeks burned annually on handoff coordination — not on strategy or creative thinking. Institutional knowledge (attribute paths, suppression rules, holdout policies) lives in 3–4 senior MOps heads with no scalable transfer mechanism.
+      </div>
+      <p>
+        Existing tooling addressed individual platforms, not the whole. There was no system that could take a campaign brief and drive parallel, coordinated work across all six platforms simultaneously — with human review gates, not human execution.
+      </p>
+    </section>
+
+    <!-- 2. Vision -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">2</div>
+        <h2>Product Vision</h2>
+      </div>
+      <p style="font-size:16px; font-weight:600; color:var(--txt); margin-bottom:12px;">
+        "SOT to launch in a single working day."
+      </p>
+      <p>
+        The target state: a marketing ELM fills in a QuickBase brief (the Source of Truth). From that moment, agents drive every subsequent step — audience build, journey configuration, offer assignment, experiment setup, creative generation, and E2E validation — in parallel, with human review gates before any platform promotion. MOps partners move from hands-on-keyboard to <strong>strategic reviewers</strong>.
+      </p>
+      <div class="callout amber">
+        <strong>The shift in mental model:</strong> MOps stops being execution labor and becomes a quality assurance and strategy function. The agents handle the "how"; humans own the "what" and the final GO/NO-GO.
+      </div>
+    </section>
+
+    <!-- 3. Agent Architecture -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">3</div>
+        <h2>The Agent Architecture</h2>
+      </div>
+      <p>
+        The full vision is 7 agents operating across 4 phases, with a shared knowledge graph as the substrate. The current POC demonstrates the core Audience + Creative + IXP agents live.
+      </p>
+      <div class="agent-grid">
+        <div class="agent-card" style="--agent-color:#2db757">
+          <div class="agent-badge">Phase 1</div>
+          <div class="agent-name">SOT Intake Agent</div>
+          <div class="agent-sub">Parses QuickBase ELM brief (65+ fields) into structured Campaign node in KG. Blocks all downstream agents until Gaurav approves the extracted spec.</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#2db757">
+          <div class="agent-badge">Phase 2 — Parallel</div>
+          <div class="agent-name">Audience Agent</div>
+          <div class="agent-sub">KG-first sibling mining → Segment CDP trait resolution → AEP audience build → CDC DQ validation. Retries up to 3× before routing to HITL.</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#f5a623">
+          <div class="agent-badge">Phase 2 — Parallel</div>
+          <div class="agent-name">IXP Agent</div>
+          <div class="agent-sub">SOT experiment parsing → creates A/B experiment in IXP E2E with arms, splits, hashing constant, and assignment ID type.</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#7aabff">
+          <div class="agent-badge">Phase 2 — Parallel</div>
+          <div class="agent-name">Creative Agent</div>
+          <div class="agent-sub">Figma file → per-frame HTML generation → Marketo Design Studio deployment. First agent promoted to production (IKS AIR).</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#b07aff">
+          <div class="agent-badge">Phase 2 — Parallel</div>
+          <div class="agent-name">Offer Agent</div>
+          <div class="agent-sub">PPM offer assignment and Capital offer upstream resolution. Shares KG Audience Spec context with Audience Agent.</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#9ea3b0">
+          <div class="agent-badge">Phase 3</div>
+          <div class="agent-name">Campaign Assembler</div>
+          <div class="agent-sub">Waits for all Phase 2 agents. Assembles validated components into a unified campaign spec. Routes to Gaurav for final GO/NO-GO gate.</div>
+        </div>
+        <div class="agent-card" style="--agent-color:#ff6b6b">
+          <div class="agent-badge">Phase 4</div>
+          <div class="agent-name">E2E QA Agent</div>
+          <div class="agent-sub">Synthetic test-user harness. Fetches email HTML, sends test messages, validates rendering and deliverability before production launch.</div>
+        </div>
+      </div>
+      <div class="callout blue" style="margin-top:8px">
+        <strong>HITL design principle:</strong> Every agent completes its work autonomously then routes to the domain expert for approval. Gaurav is the final approver on Phase 1 (intake) and Phase 3 (assembly). No agent promotes to production without a human gate.
+      </div>
+    </section>
+
+    <!-- 4. Knowledge Graph -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">4</div>
+        <h2>The Knowledge Graph as Substrate</h2>
+      </div>
+      <p>
+        The most important architectural decision in AgenticMOps was making the <strong>campaign knowledge graph the shared substrate</strong> for all agents — not an optional enrichment layer. Every agent reads from the KG before deciding, and writes back to it after acting. This means agent intelligence compounds over time.
+      </p>
+      <div class="kg-grid">
+        <div class="kg-card"><div class="kg-num">20,840</div><div class="kg-lbl">Total KG nodes</div></div>
+        <div class="kg-card"><div class="kg-num">7,349</div><div class="kg-lbl">Campaigns ingested</div></div>
+        <div class="kg-card"><div class="kg-num">1,436</div><div class="kg-lbl">Audience Specs</div></div>
+        <div class="kg-card"><div class="kg-num">2,115</div><div class="kg-lbl">Journey Specs</div></div>
+        <div class="kg-card"><div class="kg-num">763</div><div class="kg-lbl">IXP Experiments</div></div>
+        <div class="kg-card"><div class="kg-num">872</div><div class="kg-lbl">Attribute Mappings</div></div>
+        <div class="kg-card"><div class="kg-num">1,719</div><div class="kg-lbl">SOT-enriched campaigns</div></div>
+        <div class="kg-card"><div class="kg-num">22,588</div><div class="kg-lbl">CM Access Points</div></div>
+      </div>
+      <p style="margin-top:8px">
+        The Audience Agent's sibling-campaign mining uses Neo4j Cypher to find structurally similar historical campaigns (cosine similarity on audience fingerprints) — then mines their validated attribute resolutions as a starting point. This eliminates cold-start for every new campaign build.
+      </p>
+      <div class="callout green">
+        <strong>Drift detection design:</strong> The KG tracks four dimensions of planned-vs-actual state using <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px">REALIZED_BY</code> relationships: Data Attributes, Audiences, Campaign Design, and IXP Experiments. This lets agents detect when a live platform diverges from the SOT spec — and route the delta to the right owner automatically.
+      </div>
+    </section>
+
+    <!-- 5. Key Decisions -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">5</div>
+        <h2>Key Design Decisions</h2>
+      </div>
+      <div class="decision-grid">
+        <div class="decision-card">
+          <div class="decision-icon">🎯</div>
+          <div class="d-title">Agents Own Outcomes, Not Platforms</div>
+          <div class="d-body">
+            I could have named these "AEP Agent," "Marketo Agent," etc. Instead: Audience Agent, Journey Agent, Creative Agent. The distinction matters — a platform agent is a wrapper; an outcome agent has a goal and makes decisions to reach it across however many platforms that goal requires. This shapes the agent's decision surface, its failure modes, and how humans review its output.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🗓️</div>
+          <div class="d-title">Build Wave Sequencing by Leverage, Not Completeness</div>
+          <div class="d-body">
+            Wave 1 (KG + SOT Intake + Audience Agent) unlocks 70% of the campaign lifecycle's value — audience is the longest pole. Wave 3 (Creative) is last because "email coding is the smallest part of the timeline today." Sequencing by leverage meant the POC delivered measurable speed improvement months before the full platform was complete.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🔬</div>
+          <div class="d-title">Journey + Campaign Manager as One Agent</div>
+          <div class="d-body">
+            Journey Agent owns both Marketo and Campaign Manager — deliberately unified. Splitting them recreates the exact coordination problem the agents are meant to eliminate. One customer experience means one agent that can reason end-to-end, not two agents that need to hand off to each other.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">📖</div>
+          <div class="d-title">Heuristics as First-Class KG Nodes</div>
+          <div class="d-body">
+            Platform conventions (naming schemas, suppression patterns, holdout rules) are encoded as <code style="background:var(--surface2);padding:1px 5px;border-radius:4px;font-size:12px">Convention</code> nodes in the KG rather than hardcoded in agent prompts. When a convention changes, one KG node update propagates to all agents that query it — no prompt engineering required.
+          </div>
+        </div>
+        <div class="decision-card">
+          <div class="decision-icon">🚫</div>
+          <div class="d-title">"Extract Only — Never Assume" Guardrail</div>
+          <div class="d-body">
+            The SOT Intake Agent has a hard constraint: never infer or fabricate a field value. A missing audience attribute is left blank, not guessed. The rationale: false positives in campaign configuration (wrong suppression, wrong IXP arm) are far more costly than gaps that a human reviewer catches at the approval gate.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Roadmap -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">6</div>
+        <h2>Roadmap &amp; Build Waves</h2>
+      </div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-left"><div class="t-dot">1</div></div>
+          <div class="timeline-right">
+            <div class="t-title">Wave 1 — Foundation <span class="badge badge-green" style="margin-left:8px;font-size:10px">Live POC</span></div>
+            <div class="t-date">Target: 5/31</div>
+            <div class="t-body">KG build complete · SOT Intake Agent · Audience Agent · IXP Agent · Creative Agent (production IKS). Audience + Creative now demonstrated in live demo. Cycle time: days → hours for audience build.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-left"><div class="t-dot">2</div></div>
+          <div class="timeline-right">
+            <div class="t-title">Wave 2 — Journey + E2E Validation <span class="badge badge-amber" style="margin-left:8px;font-size:10px">In Design</span></div>
+            <div class="t-date">Q3 FY26</div>
+            <div class="t-body">Journey Agent (Marketo + CM unified) · Synthetic test-user harness · E2E QA Agent · Offer Agent. Full campaign cycle demonstrably under 1 working day.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-left"><div class="t-dot">3</div></div>
+          <div class="timeline-right">
+            <div class="t-title">Wave 3 — Autonomous Launch + KG Learning Loop <span class="badge badge-blue" style="margin-left:8px;font-size:10px">Planned</span></div>
+            <div class="t-date">Q4 FY26</div>
+            <div class="t-body">Campaign Assembler · dark launch with monitoring · KPI baseline capture · tiered auto-promotion based on confidence scores · KG learns from each approved run.</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-left"><div class="t-dot dim">4</div></div>
+          <div class="timeline-right">
+            <div class="t-title">FY27 — Goal-Driven Campaign Briefing <span class="badge badge-purple" style="margin-left:8px;font-size:10px">Vision</span></div>
+            <div class="t-date">FY27 H1</div>
+            <div class="t-body">Marketers set business objectives; agents design, configure, and launch the campaign. Human role becomes strategic — KPI target setting, creative direction, campaign portfolio management.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Impact + Reflections -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-num">7</div>
+        <h2>Impact &amp; Reflections</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Dimension</th><th>Before</th><th>After (Wave 1)</th><th>Target (Wave 3)</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Campaign launch time</strong></td><td>2 weeks – 2 months</td><td>Hours (audience phase)</td><td>< 1 working day</td></tr>
+            <tr><td><strong>Execution model</strong></td><td>Human-driven, serial</td><td>Agent-driven, parallel</td><td>Autonomous with approval gates</td></tr>
+            <tr><td><strong>MOps role</strong></td><td>Hands-on-keyboard</td><td>Reviewer &amp; approver</td><td>Strategic + portfolio oversight</td></tr>
+            <tr><td><strong>KG intelligence</strong></td><td>None (heads of 3 people)</td><td>20,840 nodes, 7,349 campaigns</td><td>Self-reinforcing learning loop</td></tr>
+            <tr><td><strong>QA</strong></td><td>Manual spot-checks</td><td>Automated CDC DQ validation</td><td>Full E2E synthetic test harness</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="insight-list" style="margin-top:8px">
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>The KG is the defensible asset.</strong> Agent prompts can be rewritten; the 20,000-node knowledge graph of validated attribute mappings, historical campaigns, and platform conventions cannot be replicated quickly. Building the KG first was the right call — every subsequent agent gets smarter for free.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>Stage 2 → 3 readiness warning.</strong> The current "Read and Compose from SOT" skill set doesn't survive the shift to goal-driven design. The durable investment is the KG + Build/Verify/Act agent pattern. I've documented this as an architectural boundary so future agents don't regress to prompt-only designs.</div>
+        </div>
+        <div class="insight-item">
+          <div class="insight-dot"></div>
+          <div><strong>Presented at CTO Deep Dive; Adobe forward-deployed engineers to study the approach.</strong> The recognition validated the architectural choices — particularly the KG substrate and the HITL gate design — as differentiated rather than just "agents on top of APIs."</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="doc-footer">
+    <span>Gaurav Mehta · Staff PM, GTM Tech · Intuit</span>
+    <div style="display:flex;gap:10px">
+      <a href="../../projects/migrate-ai/product-thinking.html" class="nav-pill">← Migrate.ai Brief</a>
+      <a href="../../projects/personal-os/product-thinking.html" class="nav-pill">Personal OS Brief →</a>
+    </div>
+  </footer>
+
+</body>
+</html>
