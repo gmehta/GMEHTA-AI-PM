@@ -187,7 +187,8 @@ Linked from each project showcase page (breadcrumb nav) and from the main portfo
 **LinkedIn:** https://www.linkedin.com/in/gamehta/
 
 **Hero subtitle:** "Staff Product Manager · AI, Platform & Experiences"  
-**About section headline:** "Platform thinking, Agentic AI execution"
+**About section headline:** "AI-native builder, platform thinking at scale"  
+**Positioning:** AI-native PM builder; first-principles thinking; builds without waiting for briefs/roadmap slots; ships working products (code + agents)
 
 **Key stats:**
 - 13+ years in Product
