@@ -1,6 +1,6 @@
 # Gaurav AI PM Showcase — Project Memory
 
-> Last updated: May 23, 2026
+> Last updated: May 24, 2026
 > Workspace: `/Users/mehtahome/Documents/Claude/Projects/Gaurav AI PM Showcase`
 > GitHub repo: `https://github.com/gmehta/GMEHTA-AI-PM`
 > Live URL: `https://gmehta.github.io/GMEHTA-AI-PM/`
@@ -9,7 +9,7 @@
 
 ## 1. Project Overview
 
-A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with plain HTML + CSS + JS (no build step, no framework). Three main projects are showcased, each with:
+A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with plain HTML + CSS + JS (no build step, no framework). Four main projects are showcased, each with:
 - A **Live Demo** sub-page (embedded or adapted UI from the original app)
 - A **Product Brief** sub-page (PM-quality product thinking document)
 - A **GitHub** link
@@ -43,6 +43,13 @@ A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with p
     │       ├── index-BR0mLFjY.js  — bundled React app (251KB)
     │       └── index-CEPDO7wF.css — Tailwind CSS (6.5KB)
     │
+    ├── martech-audience-agent/
+    │   ├── index.html              — Build journal shell (React + Babel, GitHub Pages)
+    │   ├── styles.css / data.js    — design system + static demo script
+    │   ├── app.jsx / tweaks-panel.jsx
+    │   ├── tabs/                   — overview, strategy, architecture, demo
+    │   └── audienceagent.md        — full build context (Neon, Vercel, tools, UI plan)
+    │
     └── personal-os/
         ├── index.html              — Gaurav-OS Workstream dashboard (dark purple, modified)
         └── product-thinking.html  — Product Brief (dark purple theme, DM Sans/Mono)
@@ -56,6 +63,7 @@ A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with p
 |---|---|---|
 | **Migrate.ai** | `/Users/mehtahome/Downloads/migrateiq-app` | React 17 + TypeScript + AppFabric plugin; dashboards are vanilla HTML/JS with embedded JSON |
 | **AgenticMOps** | `/Users/mehtahome/Downloads/AgenticMOps` | React 19 + Vite + TypeScript; production build at `ui/dist/`; Express backend on :3939 |
+| **MarTech Audience Agent** | `/Users/mehtahome/Downloads/AgenticMOps/vercel` + Neon | Portfolio demo skeleton; Vercel AI agent + Neon fixture DB; context in `audienceagent.md` |
 | **Personal OS** | `/Users/mehtahome/Downloads/Gaurav_Mehta_OS` | Vanilla HTML/CSS/JS SPA; Express + WebSocket backend on :3737; Neo4j + GenOS |
 
 ---
