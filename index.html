@@ -19,6 +19,7 @@
       <ul class="nav-links" role="list">
         <li><a href="#about">About</a></li>
         <li><a href="#projects">Projects</a></li>
+        <li><a href="#agent-demos">Agents</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
       <a href="#contact" class="btn btn-sm">Get in Touch</a>
@@ -29,6 +30,7 @@
     <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
       <a href="#about">About</a>
       <a href="#projects">Projects</a>
+      <a href="#agent-demos">Agents</a>
       <a href="#contact">Contact</a>
     </div>
   </nav>
@@ -90,7 +92,7 @@
               I'm a Staff Product Manager with 13+ years building platforms and Agentic AI systems — and a builder by default. I don't wait for a brief or a roadmap slot: I start from first principles, identify what's broken or missing, and find a way to build it — often myself, with code, agents, and the tools on my desk.
             </p>
             <p>
-              At Intuit, I lead GTM Technology — owning the end-to-end marketing and customer engagement platform stack spanning MarTech (AEP, Marketo, Eloqua), SalesTech, and AdTech — while pioneering an industry-first agentic campaign operations system presented at the CTO Deep Dive. The four projects on this site aren't slide decks; they're products I designed, built, and shipped.
+              At Intuit, I lead GTM Technology — owning the end-to-end marketing and customer engagement platform stack spanning MarTech (AEP, Marketo, Eloqua), SalesTech, and AdTech — while pioneering an industry-first agentic campaign operations system presented at the CTO Deep Dive. The flagship projects and agent demos on this site aren't slide decks; they're products I designed, built, and shipped.
             </p>
             <p>
               Before Intuit, I spent 8 years at Fanatics building the CRM, personalization, and omnichannel commerce platform that powered <strong>$350M+ in annual revenue</strong> across 18 billion messages per year — including the LightHouse recommendation engine that alone contributed $125M.
@@ -150,10 +152,10 @@
         <div class="section-label reveal">Projects</div>
         <div class="projects-header reveal">
           <h2 class="section-title">What I've Built</h2>
-          <p class="section-subtitle">Four end-to-end AI products — first-principles problems I found, built, and shipped myself.</p>
+          <p class="section-subtitle">Three flagship AI products — first-principles problems I found, built, and shipped myself.</p>
         </div>
 
-        <div class="projects-grid">
+        <div class="projects-grid projects-grid--flagship">
 
           <!-- Migrate.ai -->
           <article class="card reveal" style="--delay: 0ms">
@@ -278,47 +280,143 @@
             </div>
           </article>
 
-          <!-- MarTech Audience Agent -->
-          <article class="card reveal" style="--delay: 240ms">
-            <div class="card-top">
-              <div class="card-icon card-icon-green" aria-hidden="true">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-              </div>
-              <span class="tag tag-green">MarTech</span>
-            </div>
-            <h3 class="card-title">MarTech Audience Agent</h3>
-            <p class="card-desc">
-              PM build journal for a KG-first Audience Agent — strategy, architecture, and an
-              interactive demo with traceability, data lineage, and HITL approval.
-              Backed by <strong>Neon + Vercel</strong> with 2K+ Segment audience fixtures for eval.
-            </p>
-            <div class="card-chips">
-              <span class="chip chip-sm">Neon Postgres</span>
-              <span class="chip chip-sm">Vercel AI SDK</span>
-              <span class="chip chip-sm">Segment CDP</span>
-              <span class="chip chip-sm">Tool API</span>
-            </div>
-            <div class="card-footer">
-              <a href="projects/martech-audience-agent/index.html" class="card-link">
-                Build Journal
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M7 17L17 7M17 7H7M17 7v10"/>
-                </svg>
-              </a>
-              <a href="projects/martech-audience-agent/audienceagent.md" class="card-link" style="margin-left:8px;opacity:.8;font-size:12px">
-                Context Doc
-              </a>
-              <a href="projects/agentic-mops/product-thinking.html" class="card-link" style="margin-left:8px;opacity:.7;font-size:12px">
-                AgenticMOps Brief
-              </a>
-            </div>
-          </article>
+        </div>
+      </div>
+    </section>
 
+    <!-- ─── Agent Demos ─────────────────────────────────────────────────────── -->
+    <section id="agent-demos" class="agents section">
+      <div class="container">
+        <div class="section-label reveal">RevOps Agents</div>
+        <div class="agents-header reveal">
+          <h2 class="section-title">Production agent walkthroughs</h2>
+          <p class="section-subtitle">
+            Interactive demos across AdTech, SalesTech, and MarTech — same architectures, guardrails,
+            and reasoning traces used in live enterprise stacks.
+          </p>
+        </div>
+
+        <div class="agent-subsection reveal" id="ad-tech-agents">
+          <h3 class="agent-subsection-title">Ad-Tech Agents</h3>
+          <div class="projects-grid projects-grid--agents">
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Portfolio Agent</h3>
+              <p class="card-desc">Monitors Google, Meta, TikTok, and programmatic spend; detects CPA anomalies; proposes guardrail-checked budget reallocations with visible agent reasoning.</p>
+              <div class="card-chips"><span class="chip chip-sm">Media buying</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/portfolio-agent/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Creative Agent</h3>
+              <p class="card-desc">Tracks ad-level frequency, CTR, and conversion drops; triggers generation of new variants and launches a test flight the same day fatigue is detected.</p>
+              <div class="card-chips"><span class="chip chip-sm">Creative ops</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/creative-agent/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Audience Expansion Agent</h3>
+              <p class="card-desc">Analyzes down-funnel behavior, refreshes Lookalike seeds dynamically, and pushes first-party exclusion lists to ad networks the moment a user converts.</p>
+              <div class="card-chips"><span class="chip chip-sm">CDP</span><span class="chip chip-sm">Exclusions</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/audience-expansion/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Copy Matrix Agent</h3>
+              <p class="card-desc">Generates a Persona × Pain Point copy matrix, deploys variants, scores early signals, and auto-drafts Round 2 around the winners.</p>
+              <div class="card-chips"><span class="chip chip-sm">Copy testing</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/copy-matrix/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Guardian Agent</h3>
+              <p class="card-desc">Supervisor that pings ad accounts and live URLs; pauses campaigns on 404s or spend spikes and opens high-priority engineering tickets automatically.</p>
+              <div class="card-chips"><span class="chip chip-sm">Compliance</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/guardian-agent/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-amber">AdTech</span></div>
+              <h3 class="card-title">Narrative Agent</h3>
+              <p class="card-desc">Capstone agent that ingests weekly outputs from operational agents, synthesizes a CMO-ready performance briefing, and sends prescriptions back to close the loop.</p>
+              <div class="card-chips"><span class="chip chip-sm">Executive</span><span class="chip chip-sm">Cross-agent</span></div>
+              <div class="card-footer"><a href="projects/agents/ad-tech/narrative-agent/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="agent-subsection reveal" id="sales-tech-agents">
+          <h3 class="agent-subsection-title">SalesTech Agents</h3>
+          <div class="projects-grid projects-grid--agents">
+            <article class="card">
+              <div class="card-top"><span class="tag tag-blue">SalesTech</span></div>
+              <h3 class="card-title">Account Research Agent</h3>
+              <p class="card-desc">Scores named accounts from filings, hiring signals, technographics, and intent data; surfaces Tier-1 briefs with "why now" reasoning and sequence handoff.</p>
+              <div class="card-chips"><span class="chip chip-sm">ABM</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/sales-tech/account-research/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-blue">SalesTech</span></div>
+              <h3 class="card-title">Outbound Sequencing Agent</h3>
+              <p class="card-desc">Designs a multi-touch warm-intro sequence, personalizes the opener from brief signals, executes across channels, triages replies, and books the discovery call.</p>
+              <div class="card-chips"><span class="chip chip-sm">Outbound</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/sales-tech/outbound-sequencing/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-blue">SalesTech</span></div>
+              <h3 class="card-title">Call-to-CRM Agent</h3>
+              <p class="card-desc">Live discovery call with real-time transcription, MEDDIC scorecard fill, Champion gap coaching, follow-up email draft, and CRM updates staged for AE review.</p>
+              <div class="card-chips"><span class="chip chip-sm">MEDDIC</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/sales-tech/call-to-crm/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-blue">SalesTech</span></div>
+              <h3 class="card-title">Deal Desk Agent</h3>
+              <p class="card-desc">Classifies MSA redlines against playbook fallbacks, pulls precedent for liability caps, and routes non-standard asks to Legal.</p>
+              <div class="card-chips"><span class="chip chip-sm">Deal desk</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/sales-tech/deal-desk/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-blue">SalesTech</span></div>
+              <h3 class="card-title">Pipeline Health &amp; Forecast Agent</h3>
+              <p class="card-desc">Capstone agent — scans in-flight deals, surfaces risk flags, composes the weekly VP Sales briefing, and sends prescriptions back to agents and AEs.</p>
+              <div class="card-chips"><span class="chip chip-sm">Forecast</span><span class="chip chip-sm">Capstone</span></div>
+              <div class="card-footer"><a href="projects/agents/sales-tech/pipeline-health/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+          </div>
+        </div>
+
+        <div class="agent-subsection reveal" id="martech-agents">
+          <h3 class="agent-subsection-title">MarTech (Lifecycle, Performance)</h3>
+          <div class="projects-grid projects-grid--agents">
+            <article class="card">
+              <div class="card-top"><span class="tag tag-green">MarTech</span></div>
+              <h3 class="card-title">Audience Agent</h3>
+              <p class="card-desc">Resolve campaign audience criteria into Segment CDP traits using a knowledge graph, sibling campaign mining, and NL lookup — with visible reasoning trace.</p>
+              <div class="card-chips"><span class="chip chip-sm">CDP</span><span class="chip chip-sm">Live API</span></div>
+              <div class="card-footer"><a href="projects/agents/martech/audience-agent/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-green">MarTech</span></div>
+              <h3 class="card-title">Audience Collision Agent</h3>
+              <p class="card-desc">Propose a new CDP audience and estimate overlap with active campaign audiences — pairwise Venn visualization, date re-filter, and plain-English reasoning.</p>
+              <div class="card-chips"><span class="chip chip-sm">Activation</span><span class="chip chip-sm">Live API</span></div>
+              <div class="card-footer"><a href="projects/agents/martech/audience-collision/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-green">MarTech</span></div>
+              <h3 class="card-title">Trial-to-Paid Conversion Agent</h3>
+              <p class="card-desc">Monitors trial usage and support signals, intercepts blind Day-N email tracks, sends hyper-personalized fix outreach, and routes high-intent accounts to CS.</p>
+              <div class="card-chips"><span class="chip chip-sm">Lifecycle</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/martech/trial-to-paid/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+            <article class="card">
+              <div class="card-top"><span class="tag tag-green">MarTech</span></div>
+              <h3 class="card-title">Expansion &amp; Upsell Agent</h3>
+              <p class="card-desc">Detects tier limit thresholds and usage spikes, enriches accounts with hiring signals, synthesizes Expansion Readiness Reports, and drafts tailored AE outbound.</p>
+              <div class="card-chips"><span class="chip chip-sm">Expansion</span><span class="chip chip-sm">Simulation</span></div>
+              <div class="card-footer"><a href="projects/agents/martech/expansion-upsell/index.html" class="card-link">Live Demo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg></a></div>
+            </article>
+          </div>
         </div>
       </div>
     </section>

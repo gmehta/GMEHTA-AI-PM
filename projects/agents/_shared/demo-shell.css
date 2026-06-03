@@ -1,0 +1,31 @@
+/* Portfolio chrome for ported RevForge agent demos */
+.portfolio-demo-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border, #2a2a2a);
+  font-family: var(--font-sans, Inter, sans-serif);
+}
+
+.portfolio-demo-back {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted, #9a9590);
+  text-decoration: none;
+}
+
+.portfolio-demo-back:hover {
+  color: var(--text, #f5f0e8);
+}
+
+.portfolio-demo-brand {
+  font-size: 13px;
+  color: var(--text-dim, #6b6660);
+}

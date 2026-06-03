@@ -191,6 +191,7 @@ img, svg { display: block; }
 .tag-blue   { background: var(--accent-bg); color: var(--accent); }
 .tag-purple { background: var(--purple-bg); color: var(--purple); }
 .tag-green  { background: var(--green-bg);  color: var(--green); }
+.tag-amber  { background: #FEF3C7; color: #B45309; }
 
 /* ─── Navigation ──────────────────────────────────────────────────────────── */
 #nav {
@@ -450,6 +451,42 @@ img, svg { display: block; }
   gap: 24px;
 }
 
+.projects-grid--flagship {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* ─── Agent demos ───────────────────────────────────────────────────────── */
+.agents {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.agents-header {
+  margin-bottom: 40px;
+}
+
+.agent-subsection {
+  margin-bottom: 72px;
+}
+
+.agent-subsection:last-child {
+  margin-bottom: 0;
+}
+
+.agent-subsection-title {
+  font-size: clamp(22px, 3vw, 28px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: var(--text);
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.projects-grid--agents {
+  grid-template-columns: repeat(3, 1fr);
+}
+
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -635,7 +672,9 @@ img, svg { display: block; }
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .projects-grid { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid,
+  .projects-grid--flagship,
+  .projects-grid--agents { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
 }
 

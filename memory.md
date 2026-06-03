@@ -1,6 +1,6 @@
 # Gaurav AI PM Showcase — Project Memory
 
-> Last updated: May 24, 2026
+> Last updated: June 3, 2026
 > Workspace: `/Users/mehtahome/Documents/Claude/Projects/Gaurav AI PM Showcase`
 > GitHub repo: `https://github.com/gmehta/GMEHTA-AI-PM`
 > Live URL: `https://gmehta.github.io/GMEHTA-AI-PM/`
@@ -9,10 +9,13 @@
 
 ## 1. Project Overview
 
-A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with plain HTML + CSS + JS (no build step, no framework). Four main projects are showcased, each with:
-- A **Live Demo** sub-page (embedded or adapted UI from the original app)
-- A **Product Brief** sub-page (PM-quality product thinking document)
-- A **GitHub** link
+A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with plain HTML + CSS + JS (no build step, no framework).
+
+**Flagship projects** (3): Migrate.ai, AgenticMOps, Personal OS — each with Live Demo + Product Brief.
+
+**RevOps agent demos** (15): Ported from `/Users/mehtahome/Documents/Claude/Projects/RevForgeHD/demos/` into `projects/agents/` — Ad-Tech (6), SalesTech (5), MarTech (4). Re-sync via `scripts/port-revforge-demos.py`.
+
+**Removed:** `projects/martech-audience-agent/` (build journal) — superseded by live Audience Agent demo under `projects/agents/martech/audience-agent/`.
 
 ---
 
@@ -43,12 +46,11 @@ A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with p
     │       ├── index-BR0mLFjY.js  — bundled React app (251KB)
     │       └── index-CEPDO7wF.css — Tailwind CSS (6.5KB)
     │
-    ├── martech-audience-agent/
-    │   ├── index.html              — Build journal shell (React + Babel, GitHub Pages)
-    │   ├── styles.css / data.js    — design system + static demo script
-    │   ├── app.jsx / tweaks-panel.jsx
-    │   ├── tabs/                   — overview, strategy, architecture, demo
-    │   └── audienceagent.md        — full build context (Neon, Vercel, tools, UI plan)
+    ├── agents/
+    │   ├── _shared/                — revforge-demo.css, demo-shell.css
+    │   ├── ad-tech/                — 6 simulation demos
+    │   ├── sales-tech/             — 5 simulation demos
+    │   └── martech/                — 4 demos (2 live API → revforgehq.com)
     │
     └── personal-os/
         ├── index.html              — Gaurav-OS Workstream dashboard (dark purple, modified)
@@ -63,7 +65,7 @@ A GitHub Pages portfolio site showcasing Gaurav Mehta's AI PM work. Built with p
 |---|---|---|
 | **Migrate.ai** | `/Users/mehtahome/Downloads/migrateiq-app` | React 17 + TypeScript + AppFabric plugin; dashboards are vanilla HTML/JS with embedded JSON |
 | **AgenticMOps** | `/Users/mehtahome/Downloads/AgenticMOps` | React 19 + Vite + TypeScript; production build at `ui/dist/`; Express backend on :3939 |
-| **MarTech Audience Agent** | `/Users/mehtahome/Downloads/AgenticMOps/vercel` + Neon | Portfolio demo skeleton; Vercel AI agent + Neon fixture DB; context in `audienceagent.md` |
+| **RevOps agent demos** | `/Users/mehtahome/Documents/Claude/Projects/RevForgeHD` | Source of truth for `projects/agents/*`; live API on Cloudflare Pages |
 | **Personal OS** | `/Users/mehtahome/Downloads/Gaurav_Mehta_OS` | Vanilla HTML/CSS/JS SPA; Express + WebSocket backend on :3737; Neo4j + GenOS |
 
 ---
@@ -232,6 +234,8 @@ Linked from each project showcase page (breadcrumb nav) and from the main portfo
 | May 23 | Updated about section: platform-centric framing (MarTech + SalesTech + AdTech) |
 | May 23 | Renamed "MarTech Platforms" skill group to "Platform Stack"; added SalesTech, AdTech chips |
 | May 23 | Added LinkedIn icon link to footer (was GitHub only) |
+| Jun 3 | Removed `martech-audience-agent`; added `#agent-demos` (Ad-Tech → SalesTech → MarTech) with 15 RevForge demos |
+| Jun 3 | Port script: `scripts/port-revforge-demos.py`; live API demos use `revforgehq.com` + CORS |
 
 ---
 
@@ -240,4 +244,5 @@ Linked from each project showcase page (breadcrumb nav) and from the main portfo
 - AgenticMOps pre-fill polling works but may miss fast-rendering tabs — could refine with MutationObserver
 - Personal OS calendar panel shows mock Intuit meetings; real calendar integration requires macOS + local server
 - Product Briefs are static; future version could add interactive timeline or embedded metrics
-- Could add a 4th project card or "More Work" section as portfolio grows
+- Audience Agent / Collision require RevForge Cloudflare deploy with CORS for GitHub Pages origin
+- Re-run `port-revforge-demos.py` after RevForgeHD demo updates
