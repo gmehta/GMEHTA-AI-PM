@@ -41,10 +41,27 @@ ANCHORS = {
 }
 
 PORTFOLIO_NAV = """<header class="portfolio-demo-bar" role="banner">
-  <a href="../../../index.html#{anchor}" class="portfolio-demo-back">← Portfolio</a>
+  <a href="../../../../index.html#{anchor}" class="portfolio-demo-back">← Portfolio</a>
   <span class="portfolio-demo-brand">Gaurav Mehta · Agent Demo</span>
 </header>
 """
+
+# RevForge /demos/{slug}/ → sibling folder under same domain
+DEMO_SLUGS_BY_DOMAIN = {
+    "martech": [
+        "audience-agent",
+        "audience-collision",
+        "trial-to-paid",
+        "expansion-upsell",
+    ],
+    "sales-tech": [
+        "account-research",
+        "outbound-sequencing",
+        "call-to-crm",
+        "deal-desk",
+        "pipeline-health",
+    ],
+}
 
 API_BASE_SNIPPET = "const API_BASE = 'https://www.revforgehq.com';"
 
@@ -98,8 +115,13 @@ def fix_paths(html: str, slug: str, domain: str) -> str:
 
     html = html.replace(
         'href="/demos/" class="back-link"',
-        f'href="../../../index.html#{ANCHORS[domain]}" class="back-link"',
+        f'href="../../../../index.html#{ANCHORS[domain]}" class="back-link"',
     )
+    for slug in DEMO_SLUGS_BY_DOMAIN.get(domain, []):
+        html = html.replace(
+            f'href="/demos/{slug}/"',
+            f'href="../{slug}/index.html"',
+        )
     html = re.sub(r" RevForgeHQ", " · Gaurav Mehta", html)
     html = html.replace("· RevForgeHQ", "· Gaurav Mehta")
 
