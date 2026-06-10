@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini-Studio — Prompt-to-App Builder Concept · Gaurav Mehta</title>
+<meta name="description" content="A working prompt-to-app builder concept: describe an app, watch the agentic build, refine it, ship it. Plus the commercial model behind it. Built by Gaurav Mehta." />
+<style>
+  :root{
+    --bg:#081520; --bg2:#0b1b29; --panel:#102536; --panel2:#143047; --line:#1f3c55;
+    --text:#e9f3fa; --muted:#8fabc0; --dim:#5f7e95;
+    --cyan:#00bceb; --blue:#049fd9; --green:#5ee089; --amber:#ffc14d; --red:#ff7a6e;
+    --radius:14px; --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55}
+  a{color:var(--cyan);text-decoration:none} a:hover{text-decoration:underline}
+  button{font-family:var(--sans);cursor:pointer}
+
+  .app{display:flex;min-height:100vh}
+  .sidebar{width:230px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh}
+  .logo{display:flex;align-items:center;gap:10px;padding:6px 8px 18px}
+  .logo-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--blue),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:800;color:#04121c;font-size:15px}
+  .logo-name{font-weight:700;font-size:15px}
+  .logo-sub{font-size:10.5px;color:var(--muted)}
+  .nav-btn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--muted);padding:10px 12px;border-radius:10px;font-size:14px;font-weight:500;transition:.15s}
+  .nav-btn:hover{background:var(--panel);color:var(--text)}
+  .nav-btn.active{background:var(--panel2);color:var(--text);box-shadow:inset 2px 0 0 var(--cyan)}
+  .nav-icon{width:20px;text-align:center}
+  .sidebar-foot{margin-top:auto;font-size:11px;color:var(--dim);padding:10px 8px;border-top:1px solid var(--line)}
+  .sidebar-foot a{color:var(--muted)}
+
+  .main{flex:1;min-width:0}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 26px;border-bottom:1px solid var(--line);background:var(--bg2);position:sticky;top:0;z-index:20}
+  .topbar-title{font-size:13px;color:var(--muted)} .topbar-title b{color:var(--text)}
+  .topbar-right{display:flex;align-items:center;gap:12px}
+  .live-pill{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--dim)} .dot.on{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .gear{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:6px 11px;font-size:14px}
+
+  .view{display:none;padding:26px clamp(18px,3.5vw,42px);max-width:1240px;width:100%;margin:0 auto}
+  .view.active{display:block}
+  h1{font-size:25px;font-weight:750;letter-spacing:-.3px}
+  h2{font-size:18px;font-weight:700;margin-bottom:10px}
+  h3{font-size:15px;font-weight:650}
+  .muted{color:var(--muted)} .dim{color:var(--dim)} .small{font-size:12.5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;border-radius:6px;padding:2px 8px}
+  .tag.cyan{background:rgba(0,188,235,.12);color:var(--cyan)}
+  .tag.green{background:rgba(94,224,137,.12);color:var(--green)}
+  .tag.amber{background:rgba(255,193,77,.14);color:var(--amber)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:7px 14px;font-size:13px;transition:.15s}
+  .chip:hover{border-color:var(--cyan);color:var(--text)}
+
+  /* STUDIO (builder) */
+  .promptbar{display:flex;gap:10px;margin:16px 0 10px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 18px;align-items:center;box-shadow:0 6px 30px rgba(0,0,0,.3)}
+  .promptbar input{flex:1;background:none;border:none;outline:none;color:var(--text);font-size:15.5px;padding:10px 0}
+  .promptbar input::placeholder{color:var(--dim)}
+  .btn-build{background:linear-gradient(135deg,var(--blue),var(--cyan));border:none;color:#04121c;font-weight:700;border-radius:11px;padding:11px 22px;font-size:14px}
+  .builder-wrap{display:grid;grid-template-columns:minmax(300px,380px) 1fr;gap:16px;margin-top:18px;align-items:start}
+  @media(max-width:960px){.builder-wrap{grid-template-columns:1fr}}
+  .trace-panel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .trace-head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  .trace-head h3{font-size:12.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted)}
+  .trace-list{padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:120px}
+  .bstep{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 13px;animation:fadeUp .3s ease}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .bstep .bs-head{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600}
+  .bstep .bs-num{width:20px;height:20px;border-radius:6px;background:var(--panel2);color:var(--cyan);font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .bstep p{font-size:12px;color:var(--muted);margin-top:4px}
+  .refine-box{padding:12px 16px;border-top:1px solid var(--line)}
+  .refine-box .rb-label{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--dim);margin-bottom:8px}
+  .refine-input{display:flex;gap:8px;margin-top:8px}
+  .refine-input input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:9px 12px;font-size:13px;outline:none}
+  .refine-input input:focus{border-color:var(--cyan)}
+  .refine-input button{background:var(--panel2);border:1px solid var(--line);color:var(--cyan);border-radius:9px;padding:0 14px;font-weight:600;font-size:13px}
+  .preview-panel{background:var(--bg2);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column;min-height:560px}
+  .preview-head{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .preview-head .url{flex:1;font-family:var(--mono);font-size:11.5px;color:var(--dim);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px 11px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .btn-ship{background:var(--green);border:none;color:#04121c;font-weight:700;border-radius:9px;padding:8px 18px;font-size:13px}
+  .btn-ship:disabled{opacity:.4;cursor:default}
+  .preview-frame{flex:1;border:none;width:100%;background:#0d1b26;min-height:480px}
+  .preview-empty{flex:1;display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:14px;text-align:center;padding:40px}
+  .shipped-banner{display:none;padding:10px 16px;background:rgba(94,224,137,.1);border-bottom:1px solid rgba(94,224,137,.3);font-size:13px;color:var(--green)}
+  .myapps{margin-top:22px}
+  .myapps-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;margin-top:10px}
+  .appcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+  .appcard h3{font-size:13.5px;color:var(--cyan)} .appcard p{font-size:12px;color:var(--dim);margin-top:4px}
+
+  /* AGENT PATH */
+  .codetabs{display:flex;gap:6px;margin:14px 0 0}
+  .codetab{background:var(--panel);border:1px solid var(--line);border-bottom:none;color:var(--muted);border-radius:10px 10px 0 0;padding:8px 16px;font-size:13px;font-weight:600}
+  .codetab.active{background:var(--bg2);color:var(--cyan)}
+  .codebox{background:var(--bg2);border:1px solid var(--line);border-radius:0 12px 12px 12px;padding:16px 18px;font-family:var(--mono);font-size:12px;color:#bfe3ff;white-space:pre-wrap;overflow-x:auto;min-height:280px;max-height:460px;overflow-y:auto}
+
+  /* COMMERCIAL */
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+  td{background:var(--panel);color:#c9dae8} td b{color:var(--text)}
+  td.center{text-align:center}
+  .whyrow{font-size:11.5px;color:var(--dim)}
+  .calc{display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start;margin-top:8px}
+  @media(max-width:880px){.calc{grid-template-columns:1fr}}
+  .slider-row{display:grid;grid-template-columns:1fr 220px 90px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .slider-row:last-child{border-bottom:none}
+  .slider-row input[type=range]{width:100%;accent-color:var(--cyan)}
+  .slider-row .val{font-family:var(--mono);font-size:12.5px;color:var(--cyan);text-align:right}
+  .arr-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;text-align:center}
+  .arr-num{font-size:32px;font-weight:800;color:var(--cyan);margin:6px 0}
+  .arr-bar{height:10px;background:var(--bg);border-radius:6px;overflow:hidden;margin:12px 0 6px}
+  .arr-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:0%;transition:.3s}
+  .moments{margin-top:8px}
+  .moment{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .moment:last-child{border-bottom:none}
+  .moment .m-at{flex:0 0 280px;font-weight:600;font-size:13.5px}
+  .moment .m-to{flex:0 0 90px}
+  .moment .m-note{flex:1;font-size:12.5px;color:var(--muted)}
+
+  /* BRIEF / ABOUT */
+  .brief h2{margin-top:28px;padding-top:16px;border-top:1px solid var(--line)}
+  .brief h2:first-of-type{margin-top:12px;border-top:none;padding-top:0}
+  .brief p{color:#c9dae8;margin-bottom:10px;max-width:850px}
+  .callout{border-left:3px solid var(--cyan);background:var(--panel);border-radius:0 10px 10px 0;padding:12px 16px;margin:12px 0;max-width:850px;font-size:14px;color:#d9e7f2}
+  .metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(225px,1fr));gap:12px;margin:14px 0}
+  .metric{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .metric .mname{font-weight:700;font-size:14px;color:var(--cyan)}
+  .metric p{font-size:12.5px;color:var(--muted);margin-top:5px}
+  .funnel{display:flex;gap:8px;margin:14px 0;flex-wrap:wrap}
+  .fstage{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:13px 15px;text-align:center}
+  .fstage .fnum{font-size:26px;font-weight:800;color:var(--cyan)}
+  .fstage .flab{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:3px}
+  .about p{color:#c9dae8;margin-bottom:12px;max-width:780px}
+  .disclaimer{font-size:11px;color:var(--dim);margin-top:8px}
+
+  /* MODAL */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(2,8,14,.72);z-index:50;align-items:center;justify-content:center}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;width:min(480px,92vw)}
+  .modal h3{margin-bottom:6px} .modal p{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .modal label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
+  .modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--text);padding:10px 12px;font-size:13.5px;outline:none;font-family:var(--mono)}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  .modal .row button{border-radius:9px;padding:9px 18px;font-weight:600;font-size:13.5px;border:none}
+  .btn-primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:#04121c}
+  .btn-ghost{background:none;border:1px solid var(--line)!important;color:var(--muted)}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  .portfolio-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;background:#060f18;border-bottom:1px solid var(--line);font-size:13px}
+  .portfolio-bar a{color:var(--muted);text-decoration:none;font-weight:500}
+  .portfolio-bar a:hover{color:var(--text)}
+  .portfolio-bar span{color:var(--dim)}
+</style>
+</head>
+<body>
+<header class="portfolio-bar" role="banner">
+  <a href="../../index.html#role-showcases">← Portfolio</a>
+  <span>Gaurav Mehta · Cisco Cloud Control Studio concept demo</span>
+</header>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-mark">▞▚</div>
+      <div>
+        <div class="logo-name">Mini-Studio</div>
+        <div class="logo-sub">prompt-to-app concept</div>
+      </div>
+    </div>
+    <button class="nav-btn active" data-view="studio"><span class="nav-icon">🛠️</span> Studio</button>
+    <button class="nav-btn" data-view="agent"><span class="nav-icon">🤖</span> BYO Coding Agent</button>
+    <button class="nav-btn" data-view="commercial"><span class="nav-icon">💳</span> Commercial Model</button>
+    <button class="nav-btn" data-view="brief"><span class="nav-icon">📐</span> PM Brief</button>
+    <button class="nav-btn" data-view="about"><span class="nav-icon">👋</span> About this demo</button>
+    <div class="sidebar-foot">
+      Concept prototype by<br><b style="color:var(--text)">Gaurav Mehta</b><br>
+      <a href="https://www.linkedin.com/in/gamehta" target="_blank" rel="noopener">LinkedIn</a> ·
+      <a href="../../index.html#role-showcases">Portfolio</a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Meridian Networks <span class="dim">·</span> <b id="topbar-view">Studio</b> <span class="dim">· fictional platform, mock data</span></div>
+      <div class="topbar-right">
+        <div class="live-pill"><span class="dot" id="live-dot"></span><span id="live-label">Scripted demo mode</span></div>
+        <button class="gear" id="gear-btn" title="Live mode settings">⚙️</button>
+      </div>
+    </div>
+
+    <!-- STUDIO -->
+    <section class="view active" id="view-studio">
+      <h1>What do you want to build?</h1>
+      <p class="muted" style="margin-top:6px;max-width:700px">Describe an app in plain language. Studio plans it, builds it against your platform's data, and renders a running preview you can refine and ship. Pick an example or write your own (live mode).</p>
+      <div class="promptbar">
+        <input id="prompt-input" placeholder="e.g. “Build a device health dashboard for my branch offices…”" />
+        <button class="btn-build" id="build-btn">Build</button>
+      </div>
+      <div class="chips" id="app-chips"></div>
+
+      <div class="builder-wrap">
+        <div class="trace-panel">
+          <div class="trace-head"><h3>Build trace</h3><span class="tag cyan">glass box</span></div>
+          <div class="trace-list" id="trace-list"><div class="preview-empty" style="min-height:80px">The plan, scaffold, data wiring, and generation checks appear here as the app builds.</div></div>
+          <div class="refine-box" id="refine-box" style="display:none">
+            <div class="rb-label">Refine with AI</div>
+            <div class="chips" id="refine-chips"></div>
+            <div class="refine-input">
+              <input id="refine-input" placeholder="Or describe a change… (live mode)" />
+              <button id="refine-btn">Refine</button>
+            </div>
+          </div>
+        </div>
+        <div class="preview-panel">
+          <div class="shipped-banner" id="shipped-banner"></div>
+          <div class="preview-head">
+            <span class="dim small">Preview</span>
+            <div class="url" id="preview-url">apps.meridian.example/draft</div>
+            <button class="btn-ship" id="ship-btn" disabled>🚀 Ship</button>
+          </div>
+          <iframe class="preview-frame" id="preview-frame" sandbox="allow-scripts" style="display:none"></iframe>
+          <div class="preview-empty" id="preview-empty">Your app preview renders here.<br>Pick an example below the prompt bar to start.</div>
+        </div>
+      </div>
+
+      <div class="myapps" id="myapps" style="display:none">
+        <h2>My shipped apps</h2>
+        <div class="myapps-grid" id="myapps-grid"></div>
+      </div>
+    </section>
+
+    <!-- BYO AGENT -->
+    <section class="view" id="view-agent">
+      <h1>Bring your own coding agent</h1>
+      <p class="muted" style="margin-top:6px;max-width:780px">The other half of Studio: engineers and AI agents who would rather build in their own tools get the same substrate through a spec, a CLI, and MCP tools. Build an app in the Studio tab first, then see it here as code — <b>two paths, one product.</b></p>
+      <div class="codetabs" id="codetabs">
+        <button class="codetab active" data-tab="spec">app.spec.json</button>
+        <button class="codetab" data-tab="cli">CLI workflow</button>
+        <button class="codetab" data-tab="mcp">MCP tools</button>
+        <button class="codetab" data-tab="agents">AGENTS.md</button>
+      </div>
+      <div class="codebox" id="codebox">Build an app in the Studio tab first — its spec, CLI workflow, and MCP surface will show up here.</div>
+      <div class="card" style="margin-top:16px;max-width:780px">
+        <h3 style="margin-bottom:6px">Why this matters</h3>
+        <p class="muted small">Every app built in the visual builder is also a spec an agent can pull, edit, and push back; every app built by an agent renders in the visual builder for refinement. Neither path is a second-class citizen — the seam is the product. The free tier keeps BYO-agent access rate-limited but open, because the builders who arrive with their own agents are the ecosystem's most influential users.</p>
+      </div>
+    </section>
+
+    <!-- COMMERCIAL -->
+    <section class="view" id="view-commercial">
+      <h1>Commercial model — free, paid, and why</h1>
+      <p class="muted" style="margin-top:6px;max-width:840px" id="tier-philosophy"></p>
+      <h2 style="margin-top:22px">Packaging</h2>
+      <table id="tier-table">
+        <thead><tr><th style="width:34%">Capability</th><th>Free</th><th>Pro ($30/builder/mo)</th><th>Enterprise (custom)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="small dim">Each row has a reason — hover/tap a row to see the packaging logic.</p>
+      <h2 style="margin-top:26px">Upgrade moments, placed in the product</h2>
+      <p class="muted small" style="max-width:800px">Monetization works when the ask arrives at the moment value is proven, in the flow, referencing the builder's own work.</p>
+      <div class="moments card" id="moments"></div>
+      <h2 style="margin-top:26px">Revenue model — interactive</h2>
+      <div class="calc">
+        <div class="card" id="calc-sliders"></div>
+        <div class="arr-box">
+          <div class="small dim">Projected ARR</div>
+          <div class="arr-num" id="arr-num">$0</div>
+          <div class="small dim">vs. a $25M commit</div>
+          <div class="arr-bar"><div class="arr-fill" id="arr-fill"></div></div>
+          <div class="small" id="arr-note" style="color:var(--muted)"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PM BRIEF -->
+    <section class="view brief" id="view-brief">
+      <h1>PM Brief — how I'd run Studio</h1>
+      <p class="dim small" style="margin-top:4px">The prototype shows the product; this shows the thinking. Your own session is instrumented below. ~4 min read.</p>
+      <div id="brief-content"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="view about" id="view-about">
+      <h1>About this demo</h1>
+      <div id="about-content"></div>
+    </section>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h3>Live Mode (bring your own key)</h3>
+    <p>Scripted mode replays three pre-built apps. Paste an Anthropic API key and the prompt bar becomes <b>real</b>: Claude generates a working app from any prompt against the mock platform APIs, renders it live, and refines it conversationally. The key stays in browser memory only (sent only to api.anthropic.com).</p>
+    <label>Anthropic API key</label>
+    <input id="api-key" type="password" placeholder="sk-ant-…" autocomplete="off" />
+    <label>Model</label>
+    <input id="api-model" value="claude-sonnet-4-6" />
+    <div class="row">
+      <button class="btn-ghost" id="modal-off">Use scripted mode</button>
+      <button class="btn-primary" id="modal-save">Enable live mode</button>
+    </div>
+    <div class="disclaimer">Demo-only pattern via <code>anthropic-dangerous-direct-browser-access</code>; production would proxy through a governed backend.</div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

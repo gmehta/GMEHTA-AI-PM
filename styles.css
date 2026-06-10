@@ -463,8 +463,7 @@ img, svg { display: block; }
 }
 
 .projects-grid--showcase {
-  grid-template-columns: 1fr;
-  max-width: 720px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 /* ─── Agent demos ───────────────────────────────────────────────────────── */
@@ -686,7 +685,8 @@ img, svg { display: block; }
 @media (max-width: 1024px) {
   .projects-grid,
   .projects-grid--flagship,
-  .projects-grid--agents { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid--agents,
+  .projects-grid--showcase { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
 }
 
@@ -694,7 +694,8 @@ img, svg { display: block; }
   :root { --section-gap: 80px; }
   .nav-links, .nav-inner > .btn { display: none; }
   .nav-toggle { display: flex; }
-  .projects-grid { grid-template-columns: 1fr; }
+  .projects-grid,
+  .projects-grid--showcase { grid-template-columns: 1fr; }
   .hero-stats { gap: 16px; }
   .contact-links { flex-direction: column; align-items: stretch; }
   .contact-btn { min-width: unset; width: 100%; }
