@@ -192,6 +192,7 @@ img, svg { display: block; }
 .tag-purple { background: var(--purple-bg); color: var(--purple); }
 .tag-green  { background: var(--green-bg);  color: var(--green); }
 .tag-amber  { background: #FEF3C7; color: #B45309; }
+.tag-teal   { background: #CCFBF1; color: #0F766E; }
 
 /* ─── Navigation ──────────────────────────────────────────────────────────── */
 #nav {
@@ -453,6 +454,17 @@ img, svg { display: block; }
 
 .projects-grid--flagship {
   grid-template-columns: repeat(3, 1fr);
+}
+
+/* ─── Role showcases ────────────────────────────────────────────────────── */
+.role-showcases {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--border);
+}
+
+.projects-grid--showcase {
+  grid-template-columns: 1fr;
+  max-width: 720px;
 }
 
 /* ─── Agent demos ───────────────────────────────────────────────────────── */
