@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Control Studio — Composable Build (Concept) · Gaurav Mehta</title>
+<style>
+:root{
+  --sky:#00bceb; --sky-d:#0a85b8; --navy:#0d274d; --navy-2:#13315c;
+  --ink:#16202e; --muted:#5c6b7e; --bg:#eef2f7; --card:#ffffff; --line:#e1e8f0;
+  --app:#0a6ed1; --app-bg:#e8f1fc; --agent:#7c3aed; --agent-bg:#f1ebfd;
+  --block:#0f8f8f; --block-bg:#e2f5f5; --green:#0f8a4f; --green-bg:#e6f6ec;
+  --amber:#b06a00; --amber-bg:#fdf1de; --red:#c0392b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+.portfolio-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;background:#061830;border-bottom:1px solid #244a72;font-size:13px;position:sticky;top:0;z-index:60}
+.portfolio-bar a{color:#9fb8d6;text-decoration:none;font-weight:600}
+.portfolio-bar a:hover{color:#fff}
+.portfolio-bar span{color:#6d8eb0;font-size:12px}
+.app-shell{display:flex;min-height:100vh}
+
+/* top bar */
+.topbar{position:fixed;top:40px;left:0;right:0;height:52px;background:var(--navy);display:flex;align-items:center;gap:14px;padding:0 18px;z-index:50;color:#fff}
+.logo{font-weight:800;letter-spacing:.5px;font-size:19px;color:#fff}
+.logo b{color:var(--sky)}
+.topbar .prod{font-size:13px;color:#bcd4ee;padding-left:14px;border-left:1px solid #2b4a72}
+.topbar .right{margin-left:auto;display:flex;align-items:center;gap:12px;font-size:12px;color:#9fb8d6}
+.pill{background:#16365f;border:1px solid #244a78;border-radius:20px;padding:4px 11px;color:#bcd4ee;font-size:11.5px;font-weight:600}
+.tenant{display:flex;align-items:center;gap:7px}
+.tenant .dot{width:8px;height:8px;border-radius:50%;background:var(--sky)}
+
+/* layout */
+.side{position:fixed;top:92px;bottom:0;left:0;width:212px;background:#fff;border-right:1px solid var(--line);padding:14px 10px;overflow-y:auto;z-index:40}
+.side .grp{font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:#9aa7b6;margin:14px 8px 6px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:none;background:none;color:var(--ink);padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:600}
+.nav button:hover{background:#f1f5fa}
+.nav button.on{background:var(--app-bg);color:var(--app)}
+.nav button .ic{width:17px;height:17px;flex:none}
+.main{margin-left:212px;margin-top:92px;padding:24px 30px 70px;flex:1;max-width:1180px}
+
+/* panels */
+.panel{display:none;animation:fade .25s ease}
+.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+h1{font-size:21px;letter-spacing:-.3px}
+.lede{color:var(--muted);margin-top:5px;max-width:760px}
+h2{font-size:16px;margin-bottom:4px}
+h3{font-size:13.5px;margin:0 0 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:16px}
+.muted{color:var(--muted)}
+.row{display:flex;gap:16px;flex-wrap:wrap}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.grid2,.grid3,.grid4{grid-template-columns:1fr}}
+
+.tag{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;vertical-align:middle}
+.t-app{background:var(--app-bg);color:var(--app)}
+.t-agent{background:var(--agent-bg);color:var(--agent)}
+.t-block{background:var(--block-bg);color:var(--block)}
+.t-gov{background:var(--amber-bg);color:var(--amber)}
+.t-ok{background:var(--green-bg);color:var(--green)}
+
+/* compose */
+.intent{display:flex;gap:10px;margin-top:6px}
+.intent input{flex:1;border:1.5px solid var(--line);border-radius:10px;padding:13px 15px;font-size:14.5px;font-family:inherit}
+.intent input:focus{outline:none;border-color:var(--sky)}
+.btn{border:none;border-radius:10px;padding:0 20px;font-size:14px;font-weight:700;cursor:pointer;background:var(--sky);color:#04263a}
+.btn:hover{background:var(--sky-d);color:#fff}
+.btn.ghost{background:#eef3f9;color:var(--ink)}
+.btn.ghost:hover{background:#e0e9f3}
+.btn.sm{padding:7px 13px;border-radius:8px;font-size:12.5px}
+.examples{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 13px;font-size:12.5px;cursor:pointer;color:var(--ink);font-weight:600}
+.chip:hover{border-color:var(--sky);color:var(--sky-d)}
+
+.compose-grid{display:grid;grid-template-columns:300px 1fr;gap:16px;margin-top:16px}
+@media(max-width:900px){.compose-grid{grid-template-columns:1fr}}
+
+/* build trace */
+.trace{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+.trace .step{display:flex;gap:9px;align-items:flex-start;padding:7px 0;opacity:.35;transition:opacity .3s}
+.trace .step.act{opacity:1}
+.trace .step .mk{width:16px;height:16px;border-radius:50%;border:2px solid var(--line);flex:none;margin-top:1px}
+.trace .step.act .mk{border-color:var(--green);background:var(--green)}
+.trace .step.run .mk{border-color:var(--sky);border-top-color:transparent;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.trace .step b{color:var(--ink)}
+.trace .step .sub{color:var(--muted);font-family:inherit;font-size:11.5px}
+
+/* output */
+.seg{display:inline-flex;background:#eef3f9;border-radius:9px;padding:3px;gap:3px}
+.seg button{border:none;background:none;padding:6px 14px;border-radius:7px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+.blocks-used{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+.bchip{display:flex;align-items:center;gap:6px;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;border:1px solid}
+.bchip.data{background:var(--block-bg);color:var(--block);border-color:#bfe6e6}
+.bchip.skill{background:#eef4ff;color:#2456c9;border-color:#cfe0ff}
+.bchip.action{background:var(--amber-bg);color:var(--amber);border-color:#f0dcb6}
+.bchip.surface{background:#f1ebfd;color:var(--agent);border-color:#ddccf7}
+
+/* mock app preview */
+.preview{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:6px;background:#fff}
+.pv-bar{display:flex;align-items:center;gap:8px;background:#f6f9fc;border-bottom:1px solid var(--line);padding:8px 12px;font-size:11.5px;color:var(--muted)}
+.pv-bar .url{background:#fff;border:1px solid var(--line);border-radius:6px;padding:3px 9px;font-family:ui-monospace,monospace;font-size:11px}
+.pv-body{padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:#f7fafd;border:1px solid var(--line);border-radius:9px;padding:11px}
+.kpi .v{font-size:20px;font-weight:800}
+.kpi .l{font-size:11px;color:var(--muted)}
+.kpi.bad .v{color:var(--red)} .kpi.warn .v{color:var(--amber)} .kpi.good .v{color:var(--green)}
+.bars{display:flex;align-items:flex-end;gap:8px;height:90px;margin-top:14px;padding:10px;background:#f7fafd;border:1px solid var(--line);border-radius:9px}
+.bars .b{flex:1;background:linear-gradient(var(--sky),var(--app));border-radius:4px 4px 0 0;min-height:6px}
+.tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
+.tbl th,.tbl td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+.tbl th{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted)}
+.dotok{color:var(--green);font-weight:800}.dotbad{color:var(--red);font-weight:800}.dotwarn{color:var(--amber);font-weight:800}
+
+/* agent preview */
+.agent-cfg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{font-size:12px}
+.field label{display:block;color:var(--muted);font-size:11px;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.field .val{background:#f7fafd;border:1px solid var(--line);border-radius:7px;padding:8px 10px}
+.sandbox{margin-top:12px;background:#0d1b2a;border-radius:10px;padding:13px;font-family:ui-monospace,monospace;font-size:11.5px;color:#cfe6ff;min-height:60px}
+.sandbox .ln{padding:2px 0;opacity:0;animation:typ .01s forwards}
+.sb-g{color:#5fe39b}.sb-a{color:#ffd479}.sb-m{color:#8fb7e8}
+.deploy-targets{display:flex;gap:10px;margin-top:12px}
+.dt{flex:1;border:1px solid var(--line);border-radius:9px;padding:11px;font-size:12px}
+.dt b{display:block;margin-bottom:2px}
+
+/* block library */
+.blib{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:8px}
+@media(max-width:900px){.blib{grid-template-columns:1fr 1fr}}
+.bcol h3{display:flex;align-items:center;gap:7px;padding:8px 10px;border-radius:8px;margin-bottom:8px;font-size:12.5px}
+.bcol.data h3{background:var(--block-bg);color:var(--block)}
+.bcol.skill h3{background:#eef4ff;color:#2456c9}
+.bcol.action h3{background:var(--amber-bg);color:var(--amber)}
+.bcol.surface h3{background:#f1ebfd;color:var(--agent)}
+.blk{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:8px;font-size:12px;cursor:pointer;transition:.15s}
+.blk:hover{border-color:var(--sky);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.blk .nm{font-weight:700}
+.blk .use{font-size:10.5px;color:var(--muted);margin-top:4px}
+.blk .use .u-app{color:var(--app)}.blk .use .u-agent{color:var(--agent)}
+
+/* generic list cards */
+.item{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;margin-top:10px;background:#fff}
+.item .ico{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex:none}
+.ico.app{background:var(--app-bg)}.ico.agent{background:var(--agent-bg)}
+.item .meta{flex:1}.item .meta .t{font-weight:700}.item .meta .s{font-size:11.5px;color:var(--muted)}
+.shared{font-size:11px;color:var(--block);font-weight:700}
+
+/* code tabs */
+.ctabs{display:flex;gap:6px;margin-bottom:0;flex-wrap:wrap}
+.ctabs button{border:1px solid var(--line);border-bottom:none;background:#f6f9fc;padding:7px 13px;border-radius:8px 8px 0 0;cursor:pointer;font-size:12px;font-weight:700;color:var(--muted)}
+.ctabs button.on{background:#0d1b2a;color:#cfe6ff;border-color:#0d1b2a}
+pre.code{background:#0d1b2a;color:#cfe6ff;border-radius:0 10px 10px 10px;padding:15px;overflow:auto;font-family:ui-monospace,monospace;font-size:12px;line-height:1.55;margin:0}
+pre.code .k{color:#ff9ec4}.code .s{color:#9ce6b0}.code .c{color:#7b94b8}.code .n{color:#ffd479}
+
+/* ladder */
+.ladder{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.rung{display:flex;gap:12px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer;transition:.15s}
+.rung:hover{border-color:var(--sky)}
+.rung .lv{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}
+.rung .lv.l1{background:#7fb2e8}.rung .lv.l2{background:#4f8fd6}.rung .lv.l3{background:#b06a00}.rung .lv.l4{background:#c0392b}
+.rung.on{background:#f7fafd;border-color:var(--sky)}
+.rung .meta{flex:1}.rung .meta b{font-size:13px}.rung .meta div{font-size:11.5px;color:var(--muted)}
+
+/* pricing */
+.ptable{width:100%;border-collapse:collapse;margin-top:10px;font-size:12.5px}
+.ptable th,.ptable td{padding:10px;border:1px solid var(--line);text-align:left;vertical-align:top}
+.ptable th{background:#f6f9fc;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted)}
+.metric{background:var(--navy);color:#fff;border-radius:12px;padding:18px;margin-top:16px}
+.metric b{color:var(--sky)}
+
+.callout{border-left:3px solid var(--sky);background:#f1fafe;border-radius:0 9px 9px 0;padding:11px 14px;margin-top:12px;font-size:13px}
+.warn{border-left:3px solid var(--amber);background:var(--amber-bg);border-radius:0 9px 9px 0;padding:11px 14px;margin-top:10px;font-size:12.5px}
+.foot{margin-top:30px;padding-top:16px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.foot a{color:var(--app);text-decoration:none}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="portfolio-bar" role="banner">
+  <a href="../../index.html#role-showcases">← Portfolio</a>
+  <span>Gaurav Mehta · Cloud Control Studio v2 concept</span>
+</header>
+
+<div class="topbar">
+  <div class="logo"><b>cisco</b></div>
+  <div class="prod">Cloud Control <b style="color:#fff">Studio</b></div>
+  <div class="right">
+    <span class="pill">Composable Build · concept</span>
+    <span class="tenant"><span class="dot"></span> Meridian Networks</span>
+  </div>
+</div>
+
+<div class="app-shell">
+  <aside class="side">
+    <div class="grp">Build</div>
+    <div class="nav">
+      <button class="on" data-p="compose">⌘ Compose</button>
+      <button data-p="library">▦ Block Library</button>
+      <button data-p="workspace">☰ My Workspace</button>
+      <button data-p="byo">⟁ BYO Coding Agent</button>
+    </div>
+    <div class="grp">Run &amp; Govern</div>
+    <div class="nav">
+      <button data-p="marketplace">◇ Marketplace</button>
+      <button data-p="governance">⛨ Governance</button>
+    </div>
+    <div class="grp">The PM Lens</div>
+    <div class="nav">
+      <button data-p="commercial">$ Commercial</button>
+      <button data-p="rationale">◎ Design Rationale</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+  <!-- COMPOSE -->
+  <section class="panel on" id="compose">
+    <h1>What do you want to build?</h1>
+    <p class="lede">One surface for the whole platform. Describe it in plain language — Studio composes it from shared <b>building blocks</b> (Data · Skills · Actions · Surfaces) and produces an <span class="tag t-app">app</span>, an <span class="tag t-agent">agent</span>, or both. Same blocks, two outputs. That's the product.</p>
+
+    <div class="card">
+      <div class="intent">
+        <input id="intentInput" placeholder="e.g. Help my NOC triage outages on the core fabric…">
+        <button class="btn" id="composeBtn">Compose</button>
+      </div>
+      <div class="examples" id="examples"></div>
+    </div>
+
+    <div class="compose-grid hide" id="composeArea">
+      <div class="card" style="margin-top:0">
+        <h3>Build trace <span class="tag t-ok" style="margin-left:4px">glass box</span></h3>
+        <p class="muted" style="font-size:11.5px;margin-bottom:8px">Every step is inspectable. Governance is applied as blocks are wired, not bolted on after.</p>
+        <div class="trace" id="trace"></div>
+      </div>
+
+      <div class="card" style="margin-top:0">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <h2 id="outTitle">Outage Triage</h2>
+            <span class="muted" style="font-size:12px" id="outSub">Composed from 6 shared blocks</span>
+          </div>
+          <div class="seg" id="outToggle">
+            <button data-o="app" class="on">App view</button>
+            <button data-o="agent">Agent</button>
+            <button data-o="both">Both</button>
+          </div>
+        </div>
+
+        <div class="blocks-used" id="blocksUsed"></div>
+
+        <div id="outApp"></div>
+        <div id="outAgent" class="hide"></div>
+
+        <div style="display:flex;gap:10px;margin-top:14px">
+          <button class="btn sm" onclick="toast('Born deployed ✓ — authenticated with Cisco identity, registered, hosted, live in Cloud Control')">🚀 Ship — born deployed</button>
+          <button class="btn ghost sm" onclick="go('byo')">View as code (BYO)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout"><b>The unification in one line:</b> an App is a <i>composition of blocks that renders a surface</i>; an Agent is a <i>composition of (mostly) the same blocks that takes actions</i>. Because they're built from one library, anything you make in one is reusable in the other — no rebuild, no second product.</div>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="panel" id="library">
+    <h1>Block Library</h1>
+    <p class="lede">The primitives every app and agent is composed from. A block is built once and reused everywhere — the same Splunk data feed, failover runbook, or change-approval action powers both a dashboard and an autonomous agent. <b>The library is the moat; apps and agents are just compositions.</b></p>
+    <div class="blib" id="blib"></div>
+    <div class="callout">Reuse is the point: see how the same blocks appear under "used in" for both an <span class="tag t-app">app</span> and an <span class="tag t-agent">agent</span>. When a customer encodes a runbook once, every future app and agent inherits it — knowledge compounds.</div>
+  </section>
+
+  <!-- WORKSPACE -->
+  <section class="panel" id="workspace">
+    <h1>My Workspace</h1>
+    <p class="lede">Apps and agents live together, not in separate tools — because they share blocks. The badges show which blocks each build reuses from the library.</p>
+    <div id="wsList"></div>
+  </section>
+
+  <!-- BYO -->
+  <section class="panel" id="byo">
+    <h1>Bring your own coding agent</h1>
+    <p class="lede">The power lane. Engineers and AI coding agents (Claude Code, Cursor, Codex) build against the <i>same blocks</i> via a spec, a CLI, and MCP tools. Anything composed in the visual builder is a spec an agent can pull, edit, and push back — and vice versa. Two paths, one block model.</p>
+    <div class="card">
+      <div class="ctabs" id="ctabs">
+        <button class="on" data-c="spec">build.spec.json</button>
+        <button data-c="cli">CLI</button>
+        <button data-c="mcp">MCP tools</button>
+        <button data-c="agents">AGENTS.md</button>
+      </div>
+      <pre class="code" id="codeOut"></pre>
+    </div>
+    <div class="callout">Neither path is a second-class citizen — <b>the seam is the product</b>. The free tier keeps BYO-agent access rate-limited but open, because builders who arrive with their own agents are the ecosystem's most influential users.</div>
+  </section>
+
+  <!-- MARKETPLACE -->
+  <section class="panel" id="marketplace">
+    <h1>Marketplace</h1>
+    <p class="lede">Certified Cisco and partner apps, agents, and blocks — deploy in one click, governed the moment they land. Partners publish reusable blocks too, so the ecosystem compounds the library, not just the app count.</p>
+    <div class="grid3" id="mkt"></div>
+    <div class="warn"><b>The unsolved frontier (and a PM owns it):</b> a customer- or partner-published agent acting on production infrastructure is a real liability surface. Certification tiers, runtime policy via AI Defense, versioned/immutable publishing, and a clear accountability model are how you open the Marketplace without the first bad agent poisoning trust.</div>
+  </section>
+
+  <!-- GOVERNANCE -->
+  <section class="panel" id="governance">
+    <h1>Governance &amp; the read → act ladder</h1>
+    <p class="lede">Governance is a primitive, not a tax. Every block carries scope; every action is checked at runtime. The further up the ladder a build goes, the more guardrails engage — which is exactly what makes letting agents <i>act</i> on production infrastructure safe. Click a rung.</p>
+    <div class="ladder" id="ladder"></div>
+    <div class="card" id="rungDetail"></div>
+    <div class="grid3" style="margin-top:16px">
+      <div class="card" style="margin-top:0"><h3>⛨ AI Defense</h3><p class="muted" style="font-size:12.5px">Runtime policy enforcement + continuous scanning. You define what each block/agent can do, when it can act, and what needs human approval.</p></div>
+      <div class="card" style="margin-top:0"><h3>👁 Splunk AI Agent Monitoring</h3><p class="muted" style="font-size:12.5px">Every execution traced and observable — the audit and forensics layer for human + agent action.</p></div>
+      <div class="card" style="margin-top:0"><h3>🔐 Inline RBAC</h3><p class="muted" style="font-size:12.5px">Least-privilege translated across product boundaries. Relevance never grants action — scope does.</p></div>
+    </div>
+  </section>
+
+  <!-- COMMERCIAL -->
+  <section class="panel" id="commercial">
+    <h1>Commercial model</h1>
+    <p class="lede">Confirmed chassis: three platform tiers (Essentials / Advantage / Premium), Cloud Control entitlement-included at the lower tiers, token packs a la carte. Studio's own line is open — here's how I'd price it.</p>
+    <div class="metric">The one value metric: <b>governed production action.</b> Free to build &amp; preview; you pay when a build <b>runs in production and acts, at scale, governed</b>. It's honest (price tracks value), defensible (ties to the moat), engine-agnostic (App Builder or BYO — you monetize the harness, not the model), and it never gates the craft loop.</div>
+    <table class="ptable">
+      <tr><th>Layer</th><th>What it covers</th><th>How it's charged</th></tr>
+      <tr><td><b>Free / included</b></td><td>Full compose, preview, deploy to your tenant, generous token allotment, capped running agents, read-scoped actions, basic governance</td><td>Bundled into Essentials/Advantage entitlement</td></tr>
+      <tr><td><b>Consumption</b></td><td>Generations + agent runtime inference beyond allotment; high-volume ambient hosting</td><td>Token packs (transparent COGS pass-through; committed bundles for predictability)</td></tr>
+      <tr><td><b>Paid Studio tier</b></td><td>Scale + <b>write-scope/action entitlements</b>, advanced audit/compliance, org-private marketplace, premium connectors, SLAs, RBAC depth</td><td>Advantage / Premium upsell — "build free, pay to run &amp; act at scale"</td></tr>
+      <tr><td><b>Marketplace</b></td><td>Paid third-party apps, agents, and blocks; certified listings</td><td>Rev-share take-rate</td></tr>
+    </table>
+    <div class="warn"><b>Watch-outs:</b> don't price the <i>existence</i> of action (chills tier-4 adoption) — price scale; offer committed bundles so variable token bills don't spook enterprises; the metric is only as good as the metering instrumentation.</div>
+  </section>
+
+  <!-- RATIONALE -->
+  <section class="panel" id="rationale">
+    <h1>Design rationale</h1>
+    <p class="lede">Why this redesign, and the PM thinking behind it.</p>
+
+    <div class="card">
+      <h2>The problem I'm solving</h2>
+      <p style="margin-top:6px">Today App Builder (prompt-to-app, Codex) and Agent Builder (describe-agent + runbooks + connectors + sandbox) are two distinct flows, plus a BYO coding-agent path. Cisco's own #1 stated design problem is making them feel like <b>one product, not two</b>. If they stay siloed, builders learn two mental models, blocks get rebuilt in each, and the seam leaks.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3>The thesis: composable building blocks</h3>
+        <p class="muted" style="font-size:13px;margin-top:5px">Make the <b>primitives</b> the product. Data, Skills, Actions, and Surfaces are built once and composed into either an app (renders a surface) or an agent (takes actions) — or both. Unification isn't a shared login bolted over two tools; it's a shared <i>substance</i>. Move between app and agent with zero rebuild.</p>
+      </div>
+      <div class="card">
+        <h3>Why it's strategically right</h3>
+        <ul class="muted" style="font-size:13px;margin-top:5px;padding-left:18px">
+          <li>Maps to the <b>read → act ladder</b>: apps lean read, agents lean act, same blocks underneath.</li>
+          <li>Knowledge <b>compounds</b> — encode a runbook once, every future build inherits it.</li>
+          <li>Governance attaches to <b>blocks</b>, so it's consistent across apps and agents.</li>
+          <li>The <b>BYO lane</b> reads/writes the same blocks — power users never fork the model.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Challenges this design has to keep honest about</h2>
+      <div class="grid3" style="margin-top:6px">
+        <div><h3>⚠ The seam, for real</h3><p class="muted" style="font-size:12.5px">"One block model" must hold under the hood — a composed agent and a hand-built BYO agent must emit identical artifacts, or the seam reappears.</p></div>
+        <div><h3>⚠ Block sprawl</h3><p class="muted" style="font-size:12.5px">A shared library only compounds if it's curated — versioning, ownership, and discovery of blocks become a real product surface (and a Foundations dependency).</p></div>
+        <div><h3>⚠ Memory &amp; context</h3><p class="muted" style="font-size:12.5px">Agents need durable memory beyond a build. Is that a Foundations primitive every block inherits, or DIY? Today it's a frontier — the design assumes it becomes a block type.</p></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>What changed vs. my v1 (Mini-Studio)</h2>
+      <p class="muted" style="margin-top:6px">v1 proved the prompt-to-app loop + BYO + commercial model. v2 adds the missing half — <b>Agent Builder</b> (runbooks→skills, sandbox, ambient/Canvas deploy, governance) — and reframes the whole thing around <b>shared blocks</b> so apps and agents are one product, matching Cisco's actual App Builder + Agent Builder design language.</p>
+    </div>
+  </section>
+
+  <div class="foot">
+    Concept prototype — fictional platform &amp; mock data. Designed by <b>Gaurav Mehta</b> for the Cloud Control Studio EPM role · scripted demo ·
+    <a href="https://www.linkedin.com/in/gamehta" target="_blank">LinkedIn</a> ·
+    <a href="../../index.html#role-showcases">Portfolio</a>
+    <br>Design cues from Cisco's App Builder &amp; Agent Builder; not affiliated with or endorsed by Cisco.
+  </div>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- data ---------- */
+const BLOCKS={
+  data:[
+    {id:'d1',nm:'Nexus fabric alerts',sub:'Data Fabric · federated',app:['Outage Triage'],agent:['Incident Triage Agent']},
+    {id:'d2',nm:'ThousandEyes paths',sub:'Data Fabric',app:['Outage Triage'],agent:['Incident Triage Agent']},
+    {id:'d3',nm:'Splunk logs & events',sub:'Connector',app:['Outage Triage','Compliance Board'],agent:['Incident Triage Agent','Compliance Agent']},
+    {id:'d4',nm:'Device config inventory',sub:'Data Fabric',app:['Compliance Board'],agent:['Compliance Agent']},
+    {id:'d5',nm:'Change requests',sub:'ServiceNow',app:['Change Status Board'],agent:['Change Approval Agent']},
+  ],
+  skill:[
+    {id:'s1',nm:'Failover triage runbook',sub:'Encoded SOP',app:[],agent:['Incident Triage Agent']},
+    {id:'s2',nm:'Compliance checklist',sub:'Encoded SOP',app:['Compliance Board'],agent:['Compliance Agent']},
+    {id:'s3',nm:'Change validation',sub:'Encoded SOP',app:[],agent:['Change Approval Agent']},
+  ],
+  action:[
+    {id:'a1',nm:'Restart interface',sub:'scoped · HITL',app:['Outage Triage'],agent:['Incident Triage Agent']},
+    {id:'a2',nm:'Open ServiceNow ticket',sub:'scoped',app:[],agent:['Compliance Agent','Incident Triage Agent']},
+    {id:'a3',nm:'Apply config change',sub:'scoped · HITL gate',app:[],agent:['Change Approval Agent']},
+  ],
+  surface:[
+    {id:'u1',nm:'Outage command card',sub:'Canvas + dashboard',app:['Outage Triage'],agent:['Incident Triage Agent']},
+    {id:'u2',nm:'Compliance report view',sub:'dashboard',app:['Compliance Board'],agent:[]},
+    {id:'u3',nm:'AI Assistant tool',sub:'assistant surface',app:[],agent:['Change Approval Agent']},
+  ]
+};
+
+const EXAMPLES=[
+  {q:'Help my NOC triage outages on the core fabric',key:'outage'},
+  {q:'Keep our device configs compliant with policy, every day',key:'compliance'},
+  {q:'Route config-change approvals through the AI Assistant',key:'change'}
+];
+
+const SCENARIOS={
+  outage:{
+    title:'Outage Triage', sub:'Composed from 6 shared blocks',
+    blocks:[['data','Nexus fabric alerts'],['data','ThousandEyes paths'],['data','Splunk logs'],['skill','Failover triage runbook'],['action','Restart interface'],['surface','Outage command card']],
+    app:{url:'apps.meridian.example/outage-triage',
+      kpis:[['Active alerts','7','bad'],['Sites degraded','2','warn'],['Mean health','94%','good'],['MTTR (24h)','22m','good']],
+      bars:[40,65,30,80,55,70,45],
+      rows:[['Leaf1 ⇄ Spine2','Link flap','crit'],['Edge-DC3','Latency +180ms','warn'],['Core-2','Nominal','ok']]},
+    agent:{name:'Incident Triage Agent',trigger:'On Nexus critical alert',scope:'Read fabric + Splunk · Restart interface (HITL)',
+      sandbox:[['m','▶ sandbox run — simulated Leaf1 link flap'],['a','agent: correlating Nexus + ThousandEyes + Splunk…'],['g','✓ root cause: optics degradation on Leaf1 Eth1/3'],['a','agent: proposes "restart interface Eth1/3"'],['g','⏸ awaiting human approval (HITL gate) — action not taken']]}
+  },
+  compliance:{
+    title:'Config Compliance', sub:'Composed from 5 shared blocks',
+    blocks:[['data','Device config inventory'],['data','Splunk events'],['skill','Compliance checklist'],['action','Open ServiceNow ticket'],['surface','Compliance report view']],
+    app:{url:'apps.meridian.example/compliance',
+      kpis:[['Devices','1,284','good'],['Out of policy','31','bad'],['Drift (7d)','+6','warn'],['Coverage','98%','good']],
+      bars:[90,88,84,86,80,78,82],
+      rows:[['core-fw-1','Weak cipher suite','crit'],['leaf-22','NTP misconfig','warn'],['edge-9','Compliant','ok']]},
+    agent:{name:'Ambient Compliance Agent',trigger:'Daily 02:00 + on config change',scope:'Read configs · Open ServiceNow ticket',
+      sandbox:[['m','▶ sandbox run — daily compliance sweep'],['a','agent: checking 1,284 devices vs checklist…'],['g','✓ 31 violations found, 1 critical (core-fw-1)'],['a','agent: opening ServiceNow ticket for critical'],['g','✓ ticket INC-44812 created · team notified']]}
+  },
+  change:{
+    title:'Change Approval', sub:'Composed from 4 shared blocks',
+    blocks:[['data','Change requests'],['skill','Change validation'],['action','Apply config change'],['surface','AI Assistant tool']],
+    app:{url:'apps.meridian.example/change-board',
+      kpis:[['Pending','9','warn'],['Approved (24h)','14','good'],['Rolled back','0','good'],['Avg cycle','37m','good']],
+      bars:[30,50,45,60,40,55,48],
+      rows:[['CHG-5521','Lab switch VLAN','pending'],['CHG-5519','Edge ACL update','ok'],['CHG-5510','Core MTU','ok']]},
+    agent:{name:'Change Approval Agent',trigger:'On "apply change" via AI Assistant',scope:'Validate change · Apply config (HITL gate)',
+      sandbox:[['m','▶ sandbox — "roll out config to lab switches"'],['a','agent: running change validation skill…'],['g','✓ passes pre-change checks (blast radius: 3 lab devices)'],['a','agent: routing for approval per policy'],['g','⛔ HITL gate — applies only once a human approves']]}
+  }
+};
+
+/* ---------- nav ---------- */
+function go(p){
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));
+  document.querySelectorAll('.panel').forEach(s=>s.classList.toggle('on',s.id===p));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>go(b.dataset.p)));
+
+/* ---------- toast ---------- */
+let tT;
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3200);}
+
+/* ---------- examples ---------- */
+const exWrap=document.getElementById('examples');
+EXAMPLES.forEach(e=>{const c=document.createElement('button');c.className='chip';c.textContent='“'+e.q+'”';c.onclick=()=>{document.getElementById('intentInput').value=e.q;runCompose(e.key);};exWrap.appendChild(c);});
+
+document.getElementById('composeBtn').onclick=()=>{
+  const v=document.getElementById('intentInput').value.toLowerCase();
+  let key='outage';
+  if(v.includes('compli')||v.includes('config')||v.includes('policy'))key='compliance';
+  else if(v.includes('change')||v.includes('approv')||v.includes('assistant'))key='change';
+  runCompose(key);
+};
+
+let currentScenario=null;
+const TRACE_STEPS=[
+  ['Parse intent','detected outputs: app + agent'],
+  ['Pull Data blocks','from Data Fabric — federated, governed'],
+  ['Attach Skills','encoded runbooks/SOPs as reusable skills'],
+  ['Wire Actions','scoped + RBAC + HITL gates applied inline'],
+  ['Generate Surface','dashboard card + AI Assistant tool'],
+  ['Born deployed','Cisco identity · registered · hosted ✓']
+];
+
+function runCompose(key){
+  const sc=SCENARIOS[key]; currentScenario=sc;
+  document.getElementById('composeArea').classList.remove('hide');
+  document.getElementById('outTitle').textContent=sc.title;
+  document.getElementById('outSub').textContent=sc.sub;
+  // trace
+  const tr=document.getElementById('trace'); tr.innerHTML='';
+  TRACE_STEPS.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='step';d.id='st'+i;
+    d.innerHTML='<span class="mk"></span><span><b>'+s[0]+'</b><div class="sub">'+s[1]+'</div></span>';
+    tr.appendChild(d);
+  });
+  // blocks
+  const bu=document.getElementById('blocksUsed'); bu.innerHTML='';
+  sc.blocks.forEach(b=>{const c=document.createElement('span');c.className='bchip '+b[0];c.textContent=b[1];bu.appendChild(c);});
+  // render outputs
+  renderApp(sc); renderAgent(sc); setOut('app');
+  // animate trace
+  let i=0;
+  (function step(){
+    if(i>0)document.getElementById('st'+(i-1)).classList.remove('run'),document.getElementById('st'+(i-1)).classList.add('act');
+    if(i<TRACE_STEPS.length){document.getElementById('st'+i).classList.add('run');i++;setTimeout(step,520);}
+  })();
+  document.getElementById('composeArea').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function renderApp(sc){
+  const a=sc.app;
+  let kp=a.kpis.map(k=>'<div class="kpi '+k[2]+'"><div class="v">'+k[1]+'</div><div class="l">'+k[0]+'</div></div>').join('');
+  let bars=a.bars.map(h=>'<div class="b" style="height:'+h+'%"></div>').join('');
+  let rows=a.rows.map(r=>{const cls=r[2]==='crit'?'dotbad':r[2]==='warn'?'dotwarn':r[2]==='pending'?'dotwarn':'dotok';const lbl=r[2]==='ok'?'OK':r[2].toUpperCase();return '<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td class="'+cls+'">●&nbsp;'+lbl+'</td></tr>';}).join('');
+  document.getElementById('outApp').innerHTML=
+   '<div class="preview"><div class="pv-bar"><span>◷</span><span class="url">'+a.url+'</span><span style="margin-left:auto" class="tag t-app">app · read-leaning</span></div>'+
+   '<div class="pv-body"><div class="kpis">'+kp+'</div><div class="bars">'+bars+'</div>'+
+   '<table class="tbl"><tr><th>Entity</th><th>Signal</th><th>Status</th></tr>'+rows+'</table></div></div>';
+}
+
+function renderAgent(sc){
+  const ag=sc.agent;
+  document.getElementById('outAgent').innerHTML=
+   '<div class="preview"><div class="pv-bar"><span>🤖</span><span>'+ag.name+'</span><span style="margin-left:auto" class="tag t-agent">agent · act-leaning</span></div>'+
+   '<div class="pv-body"><div class="agent-cfg">'+
+     '<div class="field"><label>Trigger</label><div class="val">'+ag.trigger+'</div></div>'+
+     '<div class="field"><label>Scope (governed)</label><div class="val">'+ag.scope+'</div></div></div>'+
+   '<div style="margin-top:12px;display:flex;gap:8px"><button class="btn sm" onclick="runSandbox()">▶ Test in sandbox</button><button class="btn ghost sm" onclick="toast(\'Deployed to AI Canvas ✓ — joins live investigations with the team\')">Deploy</button></div>'+
+   '<div class="sandbox" id="sandbox"><span class="muted" style="color:#6f8bb0">Click “Test in sandbox” — runs safely, no production actions taken.</span></div>'+
+   '<div class="deploy-targets"><div class="dt"><b>🖥 AI Canvas</b>Joins live multiplayer investigations; context persists across shifts.</div>'+
+   '<div class="dt"><b>🌙 Ambient</b>Runs continuously in the background; escalates when judgment is needed.</div></div>'+
+   '</div></div>';
+}
+function runSandbox(){
+  const sc=currentScenario; if(!sc)return;
+  const sb=document.getElementById('sandbox'); sb.innerHTML='';
+  sc.agent.sandbox.forEach((l,i)=>{setTimeout(()=>{const d=document.createElement('div');d.className='ln';d.style.opacity=1;d.innerHTML='<span class="sb-'+l[0]+'">'+l[1]+'</span>';sb.appendChild(d);},i*620);});
+}
+
+function setOut(o){
+  document.querySelectorAll('#outToggle button').forEach(b=>b.classList.toggle('on',b.dataset.o===o));
+  document.getElementById('outApp').classList.toggle('hide',o==='agent');
+  document.getElementById('outAgent').classList.toggle('hide',o==='app');
+}
+document.querySelectorAll('#outToggle button').forEach(b=>b.onclick=()=>setOut(b.dataset.o));
+
+/* ---------- library ---------- */
+const libMeta={data:['data','◆ Data','from the Data Fabric & connectors'],skill:['skill','✦ Skills','encoded runbooks / SOPs'],action:['action','⚡ Actions','governed write operations'],surface:['surface','▢ Surfaces','dashboards · Canvas · Assistant']};
+const blibEl=document.getElementById('blib');
+Object.keys(libMeta).forEach(t=>{
+  const m=libMeta[t];const col=document.createElement('div');col.className='bcol '+t;
+  let html='<h3>'+m[1]+'</h3><div class="muted" style="font-size:11px;margin:-4px 0 8px">'+m[2]+'</div>';
+  BLOCKS[t].forEach(b=>{
+    const uses=[...b.app.map(x=>'<span class="u-app">app: '+x+'</span>'),...b.agent.map(x=>'<span class="u-agent">agent: '+x+'</span>')].join(' · ')||'unused';
+    html+='<div class="blk"><div class="nm">'+b.nm+'</div><div class="muted" style="font-size:10.5px">'+b.sub+'</div><div class="use">used in: '+uses+'</div></div>';
+  });
+  col.innerHTML=html;blibEl.appendChild(col);
+});
+
+/* ---------- workspace ---------- */
+const WS=[
+  {t:'Outage Triage',type:'app',s:'Dashboard · 6 blocks',shared:'shares 5 blocks with Incident Triage Agent'},
+  {t:'Incident Triage Agent',type:'agent',s:'Canvas + ambient · 5 blocks',shared:'shares 5 blocks with Outage Triage'},
+  {t:'Compliance Board',type:'app',s:'Dashboard · 5 blocks',shared:'shares 3 blocks with Ambient Compliance Agent'},
+  {t:'Ambient Compliance Agent',type:'agent',s:'Ambient · daily · 4 blocks',shared:'shares 3 blocks with Compliance Board'},
+  {t:'Change Approval Agent',type:'agent',s:'AI Assistant tool · 4 blocks',shared:'shares 2 blocks with Change Status Board'}
+];
+document.getElementById('wsList').innerHTML=WS.map(w=>
+ '<div class="item"><div class="ico '+w.type+'">'+(w.type==='app'?'▢':'🤖')+'</div>'+
+ '<div class="meta"><div class="t">'+w.t+' <span class="tag '+(w.type==='app'?'t-app':'t-agent')+'">'+w.type+'</span></div>'+
+ '<div class="s">'+w.s+'</div></div><div class="shared">⟲ '+w.shared+'</div></div>').join('');
+
+/* ---------- BYO code ---------- */
+const CODE={
+spec:`{
+  "kind": "composition",
+  "name": "incident-triage",
+  "outputs": ["app", "agent"],
+  "blocks": {
+    "data":    ["nexus.alerts", "thousandeyes.paths", "splunk.logs"],
+    "skills":  ["runbook.failover-triage"],
+    "actions": [{ "id": "iface.restart", "scope": "lab+core",
+                  "gate": "human-approval" }],
+    "surface": ["canvas.outage-card"]
+  },
+  "deploy": { "born": true, "targets": ["canvas", "ambient"] }
+}`,
+cli:`# pull any composition built in the visual builder
+$ studio pull incident-triage > build.spec.json
+
+# edit blocks in your own editor / coding agent, then:
+$ studio validate build.spec.json     # governance + scope checks
+$ studio preview build.spec.json      # local render of the surface
+$ studio ship build.spec.json         # born deployed, governed
+
+# the same blocks the GUI used — no separate model`,
+mcp:`tools:
+  - studio.list_blocks        # browse the shared library
+  - studio.compose            # assemble app | agent | both
+  - studio.bind_action        # attach a governed action (scope required)
+  - studio.run_sandbox        # safe test, no prod side effects
+  - studio.ship               # born-deployed publish
+
+# exposed over MCP so a coding agent is a
+# first-class builder — same scopes, same audit`,
+agents:`# AGENTS.md  — contract for AI coding agents
+- Every action block REQUIRES an explicit scope + gate.
+- Read is free; write needs least-privilege scope.
+- Prefer reusing library blocks over creating new ones.
+- A composition must round-trip: GUI ⇄ spec, lossless.
+- Sandbox before ship. Never take prod action in build.`
+};
+const codeOut=document.getElementById('codeOut');
+function setCode(c){document.querySelectorAll('#ctabs button').forEach(b=>b.classList.toggle('on',b.dataset.c===c));codeOut.textContent=CODE[c];}
+document.querySelectorAll('#ctabs button').forEach(b=>b.onclick=()=>setCode(b.dataset.c));
+setCode('spec');
+
+/* ---------- marketplace ---------- */
+const MKT=[
+  ['🤖','Incident Triage Agent','Cisco · certified','agent','Correlates fabric + Splunk, proposes remediation with HITL.'],
+  ['▢','SP Failover Dashboard','Partner: NetBraid','app','Real-time failover readiness across edge sites.'],
+  ['✦','HIPAA Network Checklist','Partner: VeritasOps','block','Skill block — drop into any compliance app or agent.'],
+  ['🤖','Change Approval Agent','Cisco · certified','agent','Routes config changes through AI Assistant + policy gate.'],
+  ['◆','ServiceNow CMDB feed','Partner: Atlassian','block','Data block — shared by apps and agents alike.'],
+  ['▢','Capacity Heatmap','Partner: GridLens','app','Cross-domain capacity view, born deployed.']
+];
+document.getElementById('mkt').innerHTML=MKT.map(m=>
+ '<div class="card" style="margin-top:0"><div style="font-size:22px">'+m[0]+'</div>'+
+ '<h3 style="margin-top:6px">'+m[1]+' <span class="tag '+(m[3]==='app'?'t-app':m[3]==='agent'?'t-agent':'t-block')+'">'+m[3]+'</span></h3>'+
+ '<div class="muted" style="font-size:11.5px">'+m[2]+'</div>'+
+ '<p style="font-size:12.5px;margin:8px 0 10px">'+m[4]+'</p>'+
+ '<button class="btn sm" onclick="toast(\'Deployed ✓ — governed by AI Defense on arrival\')">One-click deploy</button></div>').join('');
+
+/* ---------- ladder ---------- */
+const RUNGS=[
+ ['l1','1','Operational view','Read-only synthesis — one screen across domains.','Low — zero blast radius. Most apps live here.'],
+ ['l2','2','Conversational / Q&A','Ask over your environment (often the AI Assistant).','Low — read only.'],
+ ['l3','3','Ambient agent','Watches continuously, escalates to a human.','Medium — escalates, does not act.'],
+ ['l4','4','Agentic action','Takes scoped action on production infrastructure.','High — AI Defense + RBAC + HITL gate on every action. This is the destination, and why governance must be a primitive.']
+];
+const ladEl=document.getElementById('ladder');
+RUNGS.forEach((r,i)=>{const d=document.createElement('div');d.className='rung'+(i===0?' on':'');d.innerHTML='<div class="lv '+r[0]+'">'+r[1]+'</div><div class="meta"><b>'+r[2]+'</b><div>'+r[3]+'</div></div>';d.onclick=()=>{document.querySelectorAll('.rung').forEach(x=>x.classList.remove('on'));d.classList.add('on');showRung(i);};ladEl.appendChild(d);});
+function showRung(i){const r=RUNGS[i];document.getElementById('rungDetail').innerHTML='<h3>Tier '+r[1]+' — '+r[2]+'</h3><p style="margin-top:4px">'+r[3]+'</p><div class="warn" style="margin-top:8px"><b>Governance engaged:</b> '+r[4]+'</div>';}
+showRung(0);
+</script>
+</body>
+</html>
