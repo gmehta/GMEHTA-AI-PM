@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic AI System — Reference Architecture</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --ink:#1d2530; --muted:#5b6675;
+    --line:#e3e7ee; --accent:#4456c4;
+    --blue:#dae8fc; --blue-b:#6c8ebf;
+    --orange:#ffe6cc; --orange-b:#d79b00;
+    --green:#d5e8d4; --green-b:#82b366;
+    --purple:#e1d5e7; --purple-b:#9673a6;
+    --yellow:#fff2cc; --yellow-b:#d6b656;
+    --amber:#fad7ac; --amber-b:#b46504;
+    --red:#f8cecc; --red-b:#b85450;
+    --grey:#f5f5f5; --grey-b:#666666;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;}
+  .wrap{max-width:1240px;margin:0 auto;padding:40px 24px 80px;}
+  header h1{font-size:30px;margin:0 0 6px;letter-spacing:-.01em;}
+  header p{margin:0;color:var(--muted);font-size:16px;max-width:780px;}
+  .diagram-card{background:var(--card);border:1px solid var(--line);border-radius:14px;
+    margin:28px 0 36px;padding:10px;box-shadow:0 1px 3px rgba(20,30,50,.06);overflow:hidden;}
+  .mxgraph{max-width:100%;}
+  .hint{font-size:13px;color:var(--muted);text-align:center;padding:8px 0 4px;}
+  h2{font-size:21px;margin:36px 0 4px;letter-spacing:-.01em;}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 18px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;}
+  .item{background:var(--card);border:1px solid var(--line);border-left-width:5px;
+    border-radius:10px;padding:14px 16px;}
+  .item h3{margin:0 0 4px;font-size:15px;}
+  .item .num{display:inline-block;min-width:22px;color:var(--muted);font-weight:600;}
+  .item p{margin:0;color:var(--muted);font-size:13.5px;}
+  .b-blue{border-left-color:var(--blue-b)} .b-orange{border-left-color:var(--orange-b)}
+  .b-green{border-left-color:var(--green-b)} .b-purple{border-left-color:var(--purple-b)}
+  .b-yellow{border-left-color:var(--yellow-b)} .b-amber{border-left-color:var(--amber-b)}
+  .b-red{border-left-color:var(--red-b)} .b-grey{border-left-color:var(--grey-b)}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:14px 0 0;font-size:13px;color:var(--muted);}
+  .legend span{display:inline-flex;align-items:center;gap:7px;}
+  .sw{width:16px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15);display:inline-block;}
+  footer{margin-top:48px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:18px;}
+
+  /* ---- Production AI : Five Pillars ---- */
+  .pillars-section{margin-top:64px;background:#e3e7ef;border-radius:16px;padding:34px 30px 30px;}
+  .pillars-section .ptitle{font-family:Georgia,"Times New Roman",serif;font-weight:800;
+    color:#1b2a5b;font-size:34px;text-align:center;margin:4px 0 8px;letter-spacing:-.01em;}
+  .pillars-section .pintro{text-align:center;color:#5b6675;font-size:15px;margin:0 0 26px;}
+  .pillars-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch;}
+  .pillar{position:relative;border-radius:6px;padding:22px 18px 26px;color:#fff;cursor:pointer;
+    min-height:300px;display:flex;flex-direction:column;align-items:center;text-align:center;
+    transition:transform .15s ease, box-shadow .15s ease, outline-color .15s ease;
+    outline:3px solid transparent;outline-offset:3px;}
+  .pillar:hover{transform:translateY(-4px);box-shadow:0 10px 24px rgba(20,30,50,.22);}
+  .pillar.active{outline-color:#f3b13c;box-shadow:0 10px 24px rgba(20,30,50,.28);}
+  .pillar .pnum{font-family:Georgia,"Times New Roman",serif;font-size:40px;font-weight:700;line-height:1;margin-bottom:12px;}
+  .pillar .prule{width:54px;height:2px;background:rgba(255,255,255,.5);margin:0 0 16px;}
+  .pillar .pname{font-size:18px;font-weight:700;margin:0 0 14px;}
+  .pillar .pdesc{font-size:13.5px;color:rgba(255,255,255,.82);margin:0;}
+  .pillar .pcue{margin-top:auto;padding-top:18px;font-size:11.5px;letter-spacing:.04em;
+    text-transform:uppercase;color:rgba(255,255,255,.6);}
+  .pillars-caption{text-align:center;font-style:italic;color:#5b6675;font-size:14px;margin:24px 0 0;}
+  /* detail panel */
+  .pillar-detail{margin-top:18px;background:#fff;border-radius:12px;border:1px solid var(--line);
+    padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease, opacity .25s ease, padding .3s ease;}
+  .pillar-detail.open{max-height:900px;opacity:1;padding:22px 24px;}
+  .pillar-detail .dhead{display:flex;align-items:center;gap:12px;margin:0 0 4px;}
+  .pillar-detail .dchip{width:34px;height:34px;border-radius:8px;color:#fff;font-family:Georgia,serif;
+    font-weight:700;display:flex;align-items:center;justify-content:center;flex:none;}
+  .pillar-detail h3{margin:0;font-size:19px;color:var(--ink);}
+  .pillar-detail .dtag{color:var(--muted);font-size:14px;margin:0 0 16px 46px;}
+  .pillar-detail ul{list-style:none;margin:0;padding:0;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px 18px;}
+  .pillar-detail li{position:relative;padding-left:18px;font-size:14px;color:#2b3442;line-height:1.5;}
+  .pillar-detail li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border-radius:2px;}
+  @media(max-width:880px){.pillars-row{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.pillars-row{grid-template-columns:1fr}}
+
+  /* ---- Production Challenges by layer ---- */
+  .chal-section{margin-top:58px;}
+  .chal-note{background:#fbf7ed;border:1px solid #ecdcb3;border-radius:10px;padding:12px 16px;
+    font-size:13.5px;color:#6a5a30;margin:0 0 20px;}
+  .chal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;}
+  .chal-card{cursor:pointer;background:var(--card);border:1px solid var(--line);border-top:4px solid var(--c,#888);
+    border-radius:10px;padding:14px 14px 12px;transition:transform .14s ease, box-shadow .14s ease;
+    outline:2px solid transparent;outline-offset:2px;}
+  .chal-card:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(20,30,50,.12);}
+  .chal-card.active{outline-color:var(--c,#888);box-shadow:0 8px 18px rgba(20,30,50,.16);}
+  .chal-card h3{margin:0 0 6px;font-size:14.5px;color:var(--ink);}
+  .chal-card .cmeta{font-size:12px;color:var(--muted);}
+  .chal-card .cbadge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.03em;
+    text-transform:uppercase;background:#eef1f9;color:#4456c4;border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:1px;}
+  .chal-detail{margin-top:16px;background:#fff;border-radius:12px;border:1px solid var(--line);
+    padding:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .35s ease, opacity .25s ease, padding .35s ease;}
+  .chal-detail.open{max-height:1600px;opacity:1;padding:20px 22px;}
+  .chal-detail .chead{display:flex;align-items:center;gap:11px;margin:0 0 14px;}
+  .chal-detail .cdot{width:14px;height:14px;border-radius:4px;flex:none;}
+  .chal-detail h3{margin:0;font-size:18px;color:var(--ink);}
+  .chal-detail table{width:100%;border-collapse:collapse;}
+  .chal-detail th,.chal-detail td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);
+    vertical-align:top;font-size:13.5px;line-height:1.5;}
+  .chal-detail th{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+  .chal-detail td.cname{font-weight:600;color:var(--ink);white-space:nowrap;}
+  .chal-detail td.cfix{color:#1f6f43;}
+  .chal-detail tr:last-child td{border-bottom:none;}
+  .chal-detail .newrow td.cname::after{content:"NEW";font-size:9px;font-weight:700;color:#b46504;
+    background:#fbeed2;border-radius:10px;padding:1px 6px;margin-left:8px;vertical-align:2px;}
+  @media(max-width:680px){.chal-detail td.cname{white-space:normal;}
+    .chal-detail table,.chal-detail thead,.chal-detail tbody,.chal-detail tr,.chal-detail th,.chal-detail td{display:block;}
+    .chal-detail thead{display:none;}
+    .chal-detail tr{border-bottom:2px solid var(--line);padding:8px 0;}
+    .chal-detail td{border:none;padding:3px 0;}}
+
+  /* ---- Clickable SVG architecture map ---- */
+  #archmap svg{width:100%;height:auto;display:block;}
+  .node{cursor:pointer;}
+  .node rect{transition:filter .12s ease, stroke-width .12s ease;}
+  .node:hover rect{filter:brightness(.95);stroke-width:3;}
+  .node .nlabel{height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;
+    text-align:center;padding:6px 9px;box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#222;}
+  .node .nlabel.top{justify-content:flex-start;padding-top:9px;}
+  .node .nlabel b{font-size:12.5px;line-height:1.2;}
+  .node .nlabel small{font-size:10.5px;color:#4a4a4a;line-height:1.3;margin-top:3px;}
+  .node .nlabel .cue{font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:#7a7a7a;margin-top:5px;}
+  .subnode, .subnode *{pointer-events:none;}
+  .subnode .nlabel b{font-size:11px;}
+  .subnode .nlabel small{font-size:9.5px;}
+  .rail .nlabel b{font-size:12px;}
+  .archmap-hint{}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Agentic AI System — Reference Architecture</h1>
+    <p>An end-to-end view of the layers in a production agentic AI system: the request flow down the
+    center, the shared services agents call into, and the cross-cutting layers that span the whole stack.</p>
+  </header>
+
+  <section class="pillars-section" style="margin-top:28px;">
+    <h2 class="ptitle">The Five Pillars of Production AI</h2>
+    <p class="pintro">What it takes to take an agentic system from a demo to something that survives in production.</p>
+    <div class="pillars-row" id="pillarsRow"></div>
+    <div class="pillar-detail" id="pillarDetail"></div>
+    <p class="pillars-caption">Each pillar enables the next. Skip one and the whole thing breaks in production. — <span style="font-style:normal">Click any pillar to see what falls under it.</span></p>
+  </section>
+
+  <div class="diagram-card">
+    <div id="archmap"></div>
+    <div class="hint">Click any box to jump to the challenges for that layer ↓</div>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw" style="background:var(--blue)"></i>Client</span>
+    <span><i class="sw" style="background:var(--orange)"></i>Guardrails</span>
+    <span><i class="sw" style="background:var(--green)"></i>Control plane &amp; agents</span>
+    <span><i class="sw" style="background:var(--purple)"></i>Shared services</span>
+    <span><i class="sw" style="background:var(--yellow)"></i>Human-in-the-loop</span>
+    <span><i class="sw" style="background:var(--amber)"></i>Observability</span>
+    <span><i class="sw" style="background:var(--red)"></i>Identity &amp; governance</span>
+  </div>
+
+  <section class="chal-section">
+    <h2>Production challenges by layer</h2>
+    <div class="chal-grid" id="chalGrid"></div>
+    <div class="chal-detail" id="chalDetail"></div>
+  </section>
+
+  <footer>
+    The architecture diagram is a clickable SVG — selecting a box opens the matching challenge card below it. The editable diagram source is <code>agentic-ai-architecture.drawio</code> (open in diagrams.net).
+  </footer>
+</div>
+
+<script>
+  /* NOTE: diagramXml below is an unused inline backup of the original layout.
+     The live, clickable diagram is the SVG built by the IIFE further down.
+     The editable source of record is agentic-ai-architecture.drawio */
+  var diagramXml = `<mxGraphModel dx="1200" dy="800" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1480" pageHeight="920" math="0" shadow="0">
+  <root>
+    <mxCell id="0" />
+    <mxCell id="1" parent="0" />
+    <mxCell id="title" value="Agentic AI System — Reference Architecture" style="text;html=1;fontSize=20;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1"><mxGeometry x="250" y="12" width="990" height="30" as="geometry" /></mxCell>
+    <mxCell id="obs" value="&lt;b&gt;11. Observability &amp;amp; Evaluation&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Tracing of every step / tool call · logging &amp;amp; metrics · cost &amp;amp; latency · online + offline evals · quality scoring · feedback loop&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;i&gt;Cross-cutting&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fad7ac;strokeColor=#b46504;fontSize=11;verticalAlign=top;spacingTop=10;" vertex="1" parent="1"><mxGeometry x="40" y="75" width="190" height="790" as="geometry" /></mxCell>
+    <mxCell id="iam" value="&lt;b&gt;12. Identity, Auth &amp;amp; Governance&lt;/b&gt;&lt;br&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;AuthN / AuthZ &amp;amp; scoped per-agent permissions · secrets &amp;amp; credential vault · rate limits &amp;amp; quotas · audit trail · data residency &amp;amp; compliance&lt;/font&gt;&lt;br&gt;&lt;br&gt;&lt;i&gt;Cross-cutting&lt;/i&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;verticalAlign=top;spacingTop=10;" vertex="1" parent="1"><mxGeometry x="1250" y="75" width="190" height="790" as="geometry" /></mxCell>
+    <mxCell id="ui" value="&lt;b&gt;1. User Interface / Client&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Collects inputs; renders live agent state, streamed tokens, progress, citations &amp;amp; approvals&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;" vertex="1" parent="1"><mxGeometry x="585" y="70" width="320" height="62" as="geometry" /></mxCell>
+    <mxCell id="inguard" value="&lt;b&gt;2. Input Guardrail Layer&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;PII / secrets scrub · prompt-injection &amp;amp; jailbreak detection · safety policy · input validation&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1"><mxGeometry x="585" y="148" width="320" height="58" as="geometry" /></mxCell>
+    <mxCell id="orch" value="&lt;b&gt;3. Orchestrator — Control Plane&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Decides &amp;amp; dispatches: interprets goal, plans &amp;amp; routes work, manages loops, retries &amp;amp; run state&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="430" y="226" width="630" height="150" as="geometry" /></mxCell>
+    <mxCell id="planner" value="&lt;b&gt;Planner / Reasoner&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Task decomposition, ReAct / reflect&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="450" y="296" width="190" height="62" as="geometry" /></mxCell>
+    <mxCell id="router" value="&lt;b&gt;Router / Dispatcher&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Picks agent/tool; parallel vs serial&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="650" y="296" width="190" height="62" as="geometry" /></mxCell>
+    <mxCell id="statemgr" value="&lt;b&gt;State / Context Mgr&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Working context, scratchpad, run state&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="850" y="296" width="190" height="62" as="geometry" /></mxCell>
+    <mxCell id="dataplane" value="&lt;b&gt;AGENTIC DATA PLANE — runtime&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#33506e&quot;&gt;Where the work actually happens: agents execute and call the model, memory, knowledge &amp;amp; tool services&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef4fb;strokeColor=#3b6fb5;dashed=1;dashPattern=8 4;fontSize=12;verticalAlign=top;spacingTop=8;fontColor=#1f3a5f;" vertex="1" parent="1"><mxGeometry x="270" y="404" width="970" height="282" as="geometry" /></mxCell>
+    <mxCell id="agents" value="&lt;b&gt;4. Workflow / Specialized Agents&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Goal-scoped workers; each runs a perceive → reason → act → observe loop&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;verticalAlign=top;spacingTop=6;" vertex="1" parent="1"><mxGeometry x="294" y="452" width="380" height="212" as="geometry" /></mxCell>
+    <mxCell id="agentA" value="Research&lt;br&gt;Agent" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="313" y="560" width="108" height="88" as="geometry" /></mxCell>
+    <mxCell id="agentB" value="Action /&lt;br&gt;Execution" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="430" y="560" width="108" height="88" as="geometry" /></mxCell>
+    <mxCell id="agentC" value="Critic /&lt;br&gt;Validation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eafaf1;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1"><mxGeometry x="547" y="560" width="108" height="88" as="geometry" /></mxCell>
+    <mxCell id="model" value="&lt;b&gt;5. Model Gateway / LLM&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Foundation models + routing, fallback, caching, prompt templating, token / cost control&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="700" y="452" width="255" height="98" as="geometry" /></mxCell>
+    <mxCell id="memory" value="&lt;b&gt;6. Memory&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Short-term / working, long-term &amp;amp; episodic memory, conversation history, profile&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="965" y="452" width="255" height="98" as="geometry" /></mxCell>
+    <mxCell id="rag" value="&lt;b&gt;7. Knowledge / RAG&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Vector DB + embeddings, semantic search, knowledge base, re-ranking &amp;amp; grounding&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="700" y="558" width="255" height="98" as="geometry" /></mxCell>
+    <mxCell id="tools" value="&lt;b&gt;8. Tools / Actions&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Tool registry + schemas, MCP servers, API / function connectors, code-exec sandbox&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1"><mxGeometry x="965" y="558" width="255" height="98" as="geometry" /></mxCell>
+    <mxCell id="hitl" value="&lt;b&gt;9. Human-in-the-Loop (HITL)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Approval gates for high-risk / irreversible actions, escalation, feedback capture&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;" vertex="1" parent="1"><mxGeometry x="430" y="716" width="320" height="58" as="geometry" /></mxCell>
+    <mxCell id="outguard" value="&lt;b&gt;10. Output Guardrail Layer&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Grounding / hallucination check · toxicity &amp;amp; policy filter · schema validation · redaction&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=12;" vertex="1" parent="1"><mxGeometry x="430" y="788" width="320" height="58" as="geometry" /></mxCell>
+    <mxCell id="ext" value="&lt;b&gt;External Systems &amp;amp; Data Sources&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#444444&quot;&gt;Enterprise apps, SaaS APIs, databases, web — read from &amp;amp; acted on via Tools&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=11;" vertex="1" parent="1"><mxGeometry x="900" y="716" width="320" height="58" as="geometry" /></mxCell>
+    <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#333333;endArrow=block;" edge="1" parent="1" source="ui" target="inguard"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#333333;endArrow=block;" edge="1" parent="1" source="inguard" target="orch"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e3" value="dispatch" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#333333;endArrow=block;" edge="1" parent="1" source="orch" target="agents"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#333333;endArrow=block;" edge="1" parent="1" source="agents" target="hitl"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#333333;endArrow=block;" edge="1" parent="1" source="hitl" target="outguard"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e6" value="response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#6c8ebf;endArrow=block;dashed=1;" edge="1" parent="1" source="outguard" target="ui"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;startArrow=block;endArrow=block;" edge="1" parent="1" source="agents" target="model"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;startArrow=block;endArrow=block;" edge="1" parent="1" source="agents" target="rag"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;startArrow=block;endArrow=block;" edge="1" parent="1" source="model" target="memory"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#9673a6;startArrow=block;endArrow=block;" edge="1" parent="1" source="rag" target="tools"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#666666;startArrow=block;endArrow=block;" edge="1" parent="1" source="tools" target="ext"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b46504;endArrow=open;dashed=1;" edge="1" parent="1" source="dataplane" target="obs"><mxGeometry relative="1" as="geometry" /></mxCell>
+    <mxCell id="e14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;strokeColor=#b85450;endArrow=open;dashed=1;" edge="1" parent="1" source="dataplane" target="iam"><mxGeometry relative="1" as="geometry" /></mxCell>
+  </root>
+</mxGraphModel>`;
+
+  /* ===== Clickable architecture map — each node opens its challenge card =====
+     `cat` must match a challenges[].cat string in the script below. */
+  (function(){
+    var W = 1480, H = 880;
+    var nodes = [
+      {x:40,y:75,w:190,h:790, fill:'#fad7ac', stroke:'#b46504', cls:'rail', valign:'top',
+        title:'11. Observability &amp; Evaluation', desc:'Tracing · metrics · cost &amp; latency · online + offline evals · feedback loop', cat:'Evaluation & Quality'},
+      {x:1250,y:75,w:190,h:790, fill:'#f8cecc', stroke:'#b85450', cls:'rail', valign:'top',
+        title:'12. Identity, Auth &amp; Governance', desc:'AuthN/Z · scoped permissions · secrets vault · rate limits · audit · compliance', cat:'Governance, Privacy & Responsible AI'},
+      {x:585,y:70,w:320,h:62, fill:'#dae8fc', stroke:'#6c8ebf',
+        title:'1. User Interface / Client', desc:'Collects inputs; renders live state, tokens, citations &amp; approvals', cat:'Human-in-the-Loop & UX'},
+      {x:585,y:148,w:320,h:58, fill:'#ffe6cc', stroke:'#d79b00',
+        title:'2. Input Guardrail Layer', desc:'PII scrub · injection &amp; jailbreak detection · input validation', cat:'Security & Permissions'},
+      {x:430,y:226,w:630,h:150, fill:'#d5e8d4', stroke:'#82b366', valign:'top',
+        title:'3. Orchestrator — Control Plane', desc:'Decides &amp; dispatches: plans &amp; routes work, manages loops, retries &amp; run state', cat:'Control Flow'},
+      {x:270,y:404,w:970,h:282, fill:'#eef4fb', stroke:'#3b6fb5', dash:true, valign:'top', titleColor:'#1f3a5f',
+        title:'AGENTIC DATA PLANE — runtime', desc:'Agents execute and call the model, memory, knowledge &amp; tool services', cat:'Data Plane'},
+      {x:294,y:452,w:380,h:212, fill:'#d5e8d4', stroke:'#82b366', valign:'top',
+        title:'4. Workflow / Specialized Agents', desc:'Goal-scoped workers; perceive → reason → act → observe', cat:'Multi-Agent Coordination'},
+      {x:700,y:452,w:255,h:98, fill:'#e1d5e7', stroke:'#9673a6',
+        title:'5. Model Gateway / LLM', desc:'Models + routing, fallback, caching, token/cost control', cat:'Nondeterminism'},
+      {x:965,y:452,w:255,h:98, fill:'#e1d5e7', stroke:'#9673a6',
+        title:'6. Memory', desc:'Working, long-term &amp; episodic memory, history, profile', cat:'State & Memory'},
+      {x:700,y:558,w:255,h:98, fill:'#e1d5e7', stroke:'#9673a6',
+        title:'7. Knowledge / RAG', desc:'Vector DB, semantic search, re-ranking &amp; grounding', cat:'State & Memory'},
+      {x:965,y:558,w:255,h:98, fill:'#e1d5e7', stroke:'#9673a6',
+        title:'8. Tools / Actions', desc:'Tool registry, MCP servers, API connectors, code-exec', cat:'Tools & Actions'},
+      {x:430,y:716,w:320,h:58, fill:'#fff2cc', stroke:'#d6b656',
+        title:'9. Human-in-the-Loop', desc:'Approval gates, escalation, feedback capture', cat:'Human-in-the-Loop & UX'},
+      {x:430,y:788,w:320,h:58, fill:'#ffe6cc', stroke:'#d79b00',
+        title:'10. Output Guardrail Layer', desc:'Grounding check · policy filter · schema validation · redaction', cat:'Security & Permissions'},
+      {x:900,y:716,w:320,h:58, fill:'#f5f5f5', stroke:'#666666',
+        title:'External Systems &amp; Data', desc:'Enterprise apps, SaaS APIs, DBs, web — via Tools', cat:'Infrastructure'}
+    ];
+    var subnodes = [
+      {x:450,y:296,w:190,h:62, title:'Planner / Reasoner', desc:'Task decomposition, ReAct'},
+      {x:650,y:296,w:190,h:62, title:'Router / Dispatcher', desc:'Picks agent / tool'},
+      {x:850,y:296,w:190,h:62, title:'State / Context Mgr', desc:'Working context, run state'},
+      {x:313,y:560,w:108,h:88, title:'Research', desc:'Agent'},
+      {x:430,y:560,w:108,h:88, title:'Action /', desc:'Execution'},
+      {x:547,y:560,w:108,h:88, title:'Critic /', desc:'Validation'}
+    ];
+    var edges = [
+      {pts:[[745,132],[745,148]]},
+      {pts:[[745,206],[745,226]]},
+      {pts:[[745,376],[745,414],[484,414],[484,452]], label:'dispatch'},
+      {pts:[[484,664],[484,690],[590,690],[590,716]]},
+      {pts:[[590,774],[590,788]]},
+      {pts:[[430,817],[250,817],[250,101],[585,101]], dash:true, blue:true, label:'response'},
+      {pts:[[674,500],[700,500]], both:true},
+      {pts:[[674,607],[700,607]], both:true},
+      {pts:[[955,500],[965,500]], both:true},
+      {pts:[[955,607],[965,607]], both:true},
+      {pts:[[1092,656],[1092,690],[1060,690],[1060,716]]},
+      {pts:[[270,520],[230,520]], dash:true},
+      {pts:[[1240,520],[1250,520]], dash:true}
+    ];
+
+    function labelHtml(n, isSub){
+      var tcolor = n.titleColor ? ' style="color:' + n.titleColor + '"' : '';
+      var cue = (!isSub && n.cat) ? '<div class="cue">click ›</div>' : '';
+      return '<div xmlns="http://www.w3.org/1999/xhtml" class="nlabel' + (n.valign==='top'?' top':'') + '">' +
+        '<b' + tcolor + '>' + n.title + '</b>' + (n.desc ? '<small>' + n.desc + '</small>' : '') + cue + '</div>';
+    }
+    function rect(n, extra){
+      var fill = n.fill || '#eafaf1', stroke = n.stroke || '#82b366';
+      return '<rect x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'" rx="7" ry="7" fill="'+fill+'" stroke="'+stroke+'" stroke-width="1.5"'+(n.dash?' stroke-dasharray="9 5"':'')+'/>'+
+        '<foreignObject x="'+n.x+'" y="'+n.y+'" width="'+n.w+'" height="'+n.h+'">'+labelHtml(n, extra==='sub')+'</foreignObject>';
+    }
+    function edgePath(e){
+      var d = 'M' + e.pts[0][0] + ',' + e.pts[0][1];
+      for (var i=1;i<e.pts.length;i++) d += ' L' + e.pts[i][0] + ',' + e.pts[i][1];
+      var col = e.blue ? '#6c8ebf' : '#555';
+      var mk = e.blue ? 'arrb' : 'arr';
+      var s = '<path d="'+d+'" fill="none" stroke="'+col+'" stroke-width="1.6"'+(e.dash?' stroke-dasharray="6 4"':'')+
+        ' marker-end="url(#'+mk+')"'+(e.both?' marker-start="url(#'+mk+')"':'')+'/>';
+      if (e.label){
+        var mid = e.pts[0]; var lx = mid[0]+6, ly = mid[1]-6;
+        s += '<text x="'+lx+'" y="'+ly+'" font-size="11" fill="#666" font-family="sans-serif">'+e.label+'</text>';
+      }
+      return s;
+    }
+
+    var svg = '<svg viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Agentic AI architecture, clickable">';
+    svg += '<defs>'+
+      '<marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 z" fill="#555"/></marker>'+
+      '<marker id="arrb" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L7,3 L0,6 z" fill="#6c8ebf"/></marker>'+
+      '</defs>';
+    svg += '<text x="745" y="34" text-anchor="middle" font-size="22" font-weight="700" font-family="sans-serif" fill="#1d2530">Agentic AI System — Reference Architecture</text>';
+    edges.forEach(function(e){ svg += edgePath(e); });
+    nodes.forEach(function(n, i){
+      svg += '<g class="node '+(n.cls||'')+'" data-cat="'+(n.cat||'')+'" tabindex="0" role="button" aria-label="'+n.title.replace(/&amp;/g,'and')+'">'+rect(n)+'</g>';
+    });
+    subnodes.forEach(function(n){ svg += '<g class="subnode">'+rect(n,'sub')+'</g>'; });
+    svg += '</svg>';
+
+    var host = document.getElementById('archmap');
+    host.innerHTML = svg;
+    host.querySelectorAll('.node').forEach(function(g){
+      var cat = g.getAttribute('data-cat');
+      if(!cat) return;
+      function go(){ if (window.openChallenge) window.openChallenge(cat); }
+      g.addEventListener('click', go);
+      g.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+    });
+  })();
+</script>
+
+<script>
+  /* ============================================================
+     FIVE PILLARS OF PRODUCTION AI  —  edit the `pillars` array
+     below to change titles, taglines, colors, or the bullet
+     items shown when a pillar is clicked.
+     ============================================================ */
+  var pillars = [
+    { num:"01", color:"#27808e", name:"Evaluation", tag:"Define success before code",
+      items:["Golden datasets & eval sets","LLM-as-judge + rubric scoring","Task success / accuracy metrics","Regression tests on prompt & model changes","Online A/B tests","Quality gates before ship"] },
+    { num:"02", color:"#1b2a5b", name:"Observability", tag:"See everything, always",
+      items:["End-to-end tracing (steps, tool calls, tokens)","Structured logging & events","Latency, cost & token dashboards","Failure-mode & error tracking","Drift & anomaly detection","Alerting & on-call"] },
+    { num:"03", color:"#383d45", name:"Data Foundation", tag:"Question + tracking data",
+      items:["Instrumentation & data collection","Feedback capture (ratings, edits, corrections)","Labeling & annotation pipelines","Vector store / knowledge base mgmt","Data quality, lineage & versioning","Privacy, retention & PII handling"] },
+    { num:"04", color:"#27808e", name:"Orchestration", tag:"Patterns that scale",
+      items:["Agent & workflow routing","Planning, retries & error recovery","Tool / MCP integration patterns","State & context management","Parallel vs sequential execution","Caching, rate limits & fallbacks"] },
+    { num:"05", color:"#1b2a5b", name:"Governance", tag:"What keeps you in production",
+      items:["Input / output guardrails","Access control & scoped permissions","Audit trails & compliance","Policy, approvals & HITL gates","Model / version risk management","Responsible AI & bias monitoring"] }
+  ];
+
+  (function(){
+    var row = document.getElementById('pillarsRow');
+    var detail = document.getElementById('pillarDetail');
+    var activeIdx = null;
+
+    pillars.forEach(function(p, i){
+      var card = document.createElement('div');
+      card.className = 'pillar';
+      card.style.background = p.color;
+      card.setAttribute('role','button');
+      card.setAttribute('tabindex','0');
+      card.setAttribute('aria-label', p.name + ' — ' + p.tag);
+      card.innerHTML =
+        '<div class="pnum">' + p.num + '</div>' +
+        '<div class="prule"></div>' +
+        '<div class="pname">' + p.name + '</div>' +
+        '<p class="pdesc">' + p.tag + '</p>' +
+        '<div class="pcue">Click to expand ▾</div>';
+      card.addEventListener('click', function(){ toggle(i, card); });
+      card.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(i, card); }
+      });
+      row.appendChild(card);
+    });
+
+    function toggle(i){
+      var cards = row.querySelectorAll('.pillar');
+      if (activeIdx === i){ // collapse
+        activeIdx = null;
+        detail.className = 'pillar-detail';
+        cards.forEach(function(c){ c.classList.remove('active'); });
+        return;
+      }
+      activeIdx = i;
+      cards.forEach(function(c, idx){ c.classList.toggle('active', idx === i); });
+      var p = pillars[i];
+      detail.innerHTML =
+        '<div class="dhead"><span class="dchip" style="background:' + p.color + '">' + p.num + '</span>' +
+        '<h3>' + p.name + '</h3></div>' +
+        '<p class="dtag">' + p.tag + '</p>' +
+        '<ul>' + p.items.map(function(it){
+          return '<li style="--dot:' + p.color + '">' + it + '</li>';
+        }).join('') + '</ul>';
+      // colored bullet squares
+      detail.querySelectorAll('li').forEach(function(li){
+        li.style.setProperty('list-style','none');
+      });
+      detail.querySelectorAll('li::before');
+      var st = document.getElementById('pillarDot');
+      if(!st){ st = document.createElement('style'); st.id='pillarDot'; document.head.appendChild(st); }
+      st.textContent = '.pillar-detail li::before{background:' + p.color + ';}';
+      detail.className = 'pillar-detail open';
+      detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  })();
+</script>
+
+<script>
+  /* ============================================================
+     PRODUCTION CHALLENGES BY LAYER
+     - `doc:true`  items come straight from Gaurav's challenge doc.
+     - items with `isNew:true` and cards with `suggested:true`
+       are gaps recommended on review — prune or keep as you like.
+     - Edit the `challenges` array to change anything.
+     ============================================================ */
+  var challenges = [
+    { cat:"Data Plane", color:"#3b6fb5", note:"Maps to the Agentic Data Plane container.",
+      rows:[
+        ["High Write Concurrency","Agents constantly saving state overwhelm relational databases.","Distributed databases or event-sourcing architectures."],
+        ["Context Synchronization","Sub-agents lack shared context of the current workflow.","Centralized shared memory layer like a knowledge graph."],
+        ["Mixed Workload Friction","Agents need vector, graph and transactional queries at once.","Adopt multi-model databases to handle varied workloads."],
+        ["Stale State & Race Conditions","Async agents read and write contradictory state data.","Row-level locking or optimistic concurrency control."],
+        ["Payload Bloat","Raw tool outputs bloat the message broker and state DB.","Compress raw data into dense JSON before saving."],
+        ["Schema Incompatibility","Sub-agents output formats the database cannot parse.","Strict schema-validation middleware at the data boundary."],
+        ["Context Drift","Crucial early instructions get buried under newer tool logs.","Tier memory into active working instructions + searchable episodic logs."]
+      ]},
+    { cat:"Security & Permissions", color:"#b85450", note:"Maps to Guardrails + Identity, Auth & Governance.",
+      rows:[
+        ["Indirect Prompt Injection","External data hijacks the sub-agent's instructions.","Sandbox sub-agents and keep a human-in-the-loop."],
+        ["Privilege Escalation","A compromised sub-agent passes payloads to one with higher access.","Enforce least privilege and strict network rules."],
+        ["Memory Poisoning","Long-term memory accumulates false or malicious facts that resurface later.","Validate writes to memory, track provenance, periodically review.",true],
+        ["Secret / Credential Exposure","Tokens & keys leak through prompts, logs or tool calls.","Central secrets vault, short-lived scoped credentials, redact logs.",true]
+      ]},
+    { cat:"Control Flow", color:"#82b366", note:"Maps to the Orchestrator (control plane).",
+      rows:[
+        ["Infinite Loops & Tool Traps","Agent gets stuck repeatedly calling tools with errors.","Hard iteration limits and timeouts."],
+        ["Task Decomposition Failure","Coordinator breaks down complex tasks poorly.","Structured prompts and 'Critic' agents to review plans."],
+        ["Cascading Hallucinations","One sub-agent's hallucination poisons the downstream workflow.","Step-by-step verification and citations."]
+      ]},
+    { cat:"State & Memory", color:"#9673a6", note:"Maps to Memory + Knowledge / RAG.",
+      rows:[
+        ["Context Window Exhaustion","Massive tool outputs blow out the coordinator's token limit.","Summarize tool outputs before returning them."],
+        ["Retrieval Noise","RAG returns irrelevant internal data that confuses the agent.","Semantic filtering, hybrid search and re-ranking."],
+        ["'Lost in the Middle'","Agent forgets core instructions as the context window grows.","Pin core instructions to the end of the prompt."]
+      ]},
+    { cat:"Nondeterminism", color:"#5e7fb0", note:"Maps to the Model Gateway / LLM layer.",
+      rows:[
+        ["Model Drift","Silent updates to the underlying model break existing prompts.","Pin model versions and run daily regression tests."],
+        ["Schema Adherence Failures","Model fails to return strictly formatted JSON for tool calls.","Constrained decoding and fast-fail retry loops."]
+      ]},
+    { cat:"Infrastructure", color:"#b46504", note:"Maps to Observability/Ops + deployment.",
+      rows:[
+        ["Mid-Flight Updates","Deploying code changes while async agent tasks are running.","Event-driven architectures and versioned agents."],
+        ["Latency & UX Bottlenecks","Multi-step agent loops take too long to resolve for users.","Stream reasoning steps to the UI; use smaller, faster models."],
+        ["Cost Overruns","Agents stuck in loops burn through token budgets rapidly.","Hard spend caps and strict monitoring."]
+      ]},
+    { cat:"Evaluation & Quality", color:"#2e8b8b", suggested:true, note:"Suggested addition — pillar #1, but no challenge rows in the doc.",
+      rows:[
+        ["No ground truth / coverage gaps","Hard to define 'correct' for open-ended output; offline evals miss real cases.","Golden datasets + LLM-as-judge with human spot-checks; grow evals from prod failures.",true],
+        ["Eval–production mismatch","Agent passes offline evals but fails on live traffic.","Online / shadow evals on sampled production runs.",true],
+        ["Unreliable LLM-as-judge","The judge model is itself inconsistent or biased.","Rubric scoring, ensemble judges, calibrate against human labels.",true]
+      ]},
+    { cat:"Tools & Actions", color:"#8a6d3b", suggested:true, note:"Suggested addition — tool-use failure modes beyond loops/schema.",
+      rows:[
+        ["Wrong-tool selection","Agent picks the wrong tool or wrong parameters.","Clear tool descriptions, few-shot examples, tool-use evals.",true],
+        ["Unsafe / irreversible actions","Agent executes destructive actions (delete, send, pay).","Risk-tiered HITL gates, dry-run/confirm, scoped permissions.",true],
+        ["Flaky / failing tools","External APIs error, time out or rate-limit.","Retries with backoff, circuit breakers, graceful degradation.",true]
+      ]},
+    { cat:"Human-in-the-Loop & UX", color:"#d6a417", suggested:true, note:"Suggested addition — HITL design failure modes.",
+      rows:[
+        ["Approval fatigue","Too many confirmations; users rubber-stamp without reading.","Gate only high-impact / irreversible actions by risk tier.",true],
+        ["Trust miscalibration","Users over- or under-trust agent output.","Surface reasoning, confidence and citations; make uncertainty visible.",true]
+      ]},
+    { cat:"Multi-Agent Coordination", color:"#4a6a4a", suggested:true, note:"Suggested addition — coordination beyond task decomposition.",
+      rows:[
+        ["Conflicting sub-goals / deadlock","Agents work at cross purposes or wait on each other.","Clear ownership, orchestrator arbitration, timeouts.",true],
+        ["Handoff ambiguity","Work falls between agents; nobody owns it.","Explicit handoff contracts/schemas; one accountable coordinator.",true],
+        ["Communication overhead","Inter-agent chatter inflates cost and latency.","Minimize hops; prefer shared memory over message passing.",true]
+      ]},
+    { cat:"Governance, Privacy & Responsible AI", color:"#a0522d", suggested:true, note:"Suggested addition — compliance & RAI dimension.",
+      rows:[
+        ["PII / data egress","Sensitive data leaks into prompts, logs or outputs.","Input/output PII scrubbing, DLP, redaction.",true],
+        ["Auditability & compliance","Can't prove what the agent did and why.","Immutable audit trails, decision logs, data-residency controls.",true],
+        ["Bias & fairness","Outputs systematically disadvantage some groups.","Bias evals, monitoring, diverse test sets.",true]
+      ]}
+  ];
+
+  (function(){
+    var grid = document.getElementById('chalGrid');
+    var detail = document.getElementById('chalDetail');
+    var activeIdx = null;
+
+    challenges.forEach(function(c, i){
+      var card = document.createElement('div');
+      card.className = 'chal-card';
+      card.style.setProperty('--c', c.color);
+      card.setAttribute('role','button');
+      card.setAttribute('tabindex','0');
+      var n = c.rows.length;
+      card.innerHTML = '<h3>' + c.cat + (c.suggested ? '<span class="cbadge">suggested</span>' : '') + '</h3>' +
+        '<div class="cmeta">' + n + (n===1?' challenge':' challenges') + ' · click to view</div>';
+      card.addEventListener('click', function(){ toggle(i); });
+      card.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(i); } });
+      grid.appendChild(card);
+    });
+
+    function toggle(i){
+      var cards = grid.querySelectorAll('.chal-card');
+      if (activeIdx === i){
+        activeIdx = null;
+        detail.className = 'chal-detail';
+        cards.forEach(function(c){ c.classList.remove('active'); });
+        return;
+      }
+      activeIdx = i;
+      cards.forEach(function(c, idx){ c.classList.toggle('active', idx===i); });
+      var c = challenges[i];
+      var body = c.rows.map(function(r){
+        return '<tr' + (r[3] ? ' class="newrow"' : '') + '>' +
+          '<td class="cname">' + r[0] + '</td>' +
+          '<td>' + r[1] + '</td>' +
+          '<td class="cfix">' + r[2] + '</td></tr>';
+      }).join('');
+      detail.innerHTML =
+        '<div class="chead"><span class="cdot" style="background:' + c.color + '"></span>' +
+        '<h3>' + c.cat + '</h3></div>' +
+        '<div style="color:var(--muted);font-size:13px;margin:-8px 0 14px 25px;">' + c.note + '</div>' +
+        '<table><thead><tr><th style="width:22%">Challenge</th><th style="width:40%">What goes wrong</th>' +
+        '<th style="width:38%">Mitigation</th></tr></thead><tbody>' + body + '</tbody></table>';
+      detail.className = 'chal-detail open';
+      detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+
+    // Called by the clickable architecture diagram above.
+    window.openChallenge = function(name){
+      for (var i=0;i<challenges.length;i++){
+        if (challenges[i].cat === name){
+          if (activeIdx !== i) toggle(i);
+          else detail.scrollIntoView({behavior:'smooth', block:'nearest'});
+          return;
+        }
+      }
+    };
+  })();
+</script>
+</body>
+</html>
