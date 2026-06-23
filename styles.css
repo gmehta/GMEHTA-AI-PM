@@ -457,6 +457,110 @@ img, svg { display: block; }
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* ─── Thinking ──────────────────────────────────────────────────────────── */
+.thinking {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+}
+
+.thinking-header {
+  margin-bottom: 40px;
+}
+
+.thinking-pair {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.thinking-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  padding: 28px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  transition: transform .22s var(--ease-out), box-shadow .22s var(--ease-out), border-color .22s;
+}
+
+.thinking-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.thinking-card--essay {
+  border-color: #FCD34D;
+  background: linear-gradient(160deg, #fffef8 0%, #FFFBEB 100%);
+}
+
+.thinking-card--essay:hover {
+  border-color: #F59E0B;
+  box-shadow: 0 12px 40px rgba(245,158,11,.10), 0 4px 12px rgba(245,158,11,.06);
+}
+
+.thinking-card--arch {
+  border-color: #DDD6FE;
+  background: linear-gradient(160deg, #fefeff 0%, var(--purple-bg) 100%);
+}
+
+.thinking-card--arch:hover {
+  border-color: var(--purple);
+  box-shadow: 0 12px 40px rgba(124,58,237,.10), 0 4px 12px rgba(124,58,237,.06);
+}
+
+.thinking-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.thinking-external {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-light);
+  transition: color .15s, transform .15s;
+}
+
+.thinking-card:hover .thinking-external {
+  color: #B45309;
+  transform: translate(2px, -2px);
+}
+
+.thinking-card-title {
+  font-size: clamp(18px, 2.2vw, 22px);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.25;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.thinking-card-desc {
+  flex: 1;
+  font-size: 15px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin-bottom: 24px;
+}
+
+.thinking-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent);
+  transition: gap .15s var(--ease-out), color .15s;
+}
+
+.thinking-card--essay .thinking-card-cta { color: #B45309; }
+.thinking-card--arch .thinking-card-cta { color: var(--purple); }
+
+.thinking-card:hover .thinking-card-cta { gap: 10px; }
+
 /* ─── Role showcases ────────────────────────────────────────────────────── */
 .role-showcases {
   background: var(--bg-subtle);
@@ -687,7 +791,8 @@ img, svg { display: block; }
   .projects-grid,
   .projects-grid--flagship,
   .projects-grid--agents,
-  .projects-grid--showcase { grid-template-columns: repeat(2, 1fr); }
+  .projects-grid--showcase,
+  .thinking-pair { grid-template-columns: repeat(2, 1fr); }
   .about-grid { grid-template-columns: 1fr; gap: 48px; }
 }
 
@@ -696,7 +801,8 @@ img, svg { display: block; }
   .nav-links, .nav-inner > .btn { display: none; }
   .nav-toggle { display: flex; }
   .projects-grid,
-  .projects-grid--showcase { grid-template-columns: 1fr; }
+  .projects-grid--showcase,
+  .thinking-pair { grid-template-columns: 1fr; }
   .hero-stats { gap: 16px; }
   .contact-links { flex-direction: column; align-items: stretch; }
   .contact-btn { min-width: unset; width: 100%; }
