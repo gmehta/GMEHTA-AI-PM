@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloud Control · Studio (Unified Concept) — Gaurav Mehta</title>
+<style>
+:root{
+  --bg:#0a0e17; --panel:#0b1220; --bar:#0a101e; --card:#121a29; --line:#222c3e; --line2:#2c3850;
+  --tx:#d7dee9; --mut:#8893a6; --dim:#6b7689;
+  --blue:#2f80ed; --blue2:#1f6fe0; --cyan:#33c2dd; --teal:#1fb6a8; --amber:#e0a93a; --purple:#9b7be8;
+  --data:#33c2dd; --skill:#7fa8ff; --action:#e0a93a; --surface:#b58cf0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--tx);font-size:13.5px;line-height:1.5}
+button{font-family:inherit;cursor:pointer}
+
+/* top bar */
+.topbar{height:48px;background:var(--bar);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 14px;position:sticky;top:40px;z-index:30}
+.cisco{font-weight:800;font-size:15px;color:#e9eef5;letter-spacing:.5px}
+.cc{font-size:13px;color:#cfd8e6;margin-left:2px}
+.tenant{color:#aeb9c9;font-size:12.5px;margin-left:10px;padding:4px 9px;border-radius:6px}
+.apptabs{display:flex;gap:2px;margin-left:14px}
+.apptab{color:#9aa6b8;font-size:12.5px;padding:6px 11px;border-radius:7px}
+.apptab.on{background:#16243c;color:#eaf1fb;border:1px solid #27406b;display:flex;align-items:center;gap:6px}
+.apptab .d{width:7px;height:7px;border-radius:50%;background:#33c2dd}
+.right{margin-left:auto;display:flex;align-items:center;gap:14px;color:#aeb9c9;font-size:12.5px}
+.right span:hover{color:#fff;cursor:pointer}
+.avatar{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#2f80ed,#33c2dd)}
+.pmtoggle{background:#13203a;border:1px solid #27406b;color:#9fc3ff;border-radius:20px;padding:4px 11px;font-size:11.5px;font-weight:700}
+.pmtoggle.on{background:#2f80ed;color:#fff;border-color:#2f80ed}
+
+/* hero ribbon */
+.ribbon{display:flex;align-items:center;gap:4px;background:#0b1322;border-bottom:1px solid var(--line);padding:8px 16px;overflow-x:auto}
+.rstep{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:8px;color:#7f8a9c;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+.rstep:hover{background:#121a2a;color:#cfd8e6}
+.rstep.on{background:#16243c;color:#eaf1fb}
+.rstep .rn{width:18px;height:18px;border-radius:50%;border:1.5px solid #34425c;display:flex;align-items:center;justify-content:center;font-size:10px;color:#8893a6}
+.rstep.on .rn{background:var(--blue);border-color:var(--blue);color:#fff}
+.rstep.done .rn{background:var(--teal);border-color:var(--teal);color:#04211e}
+.rsep{color:#34425c;font-size:13px}
+
+.layout{display:flex;min-height:calc(100vh - 88px)}
+.sidebar{width:200px;background:var(--panel);border-right:1px solid var(--line);padding:14px 10px;flex:none}
+.sbh{color:#e9eef5;font-weight:800;font-size:15px;padding:6px 8px 12px;letter-spacing:.3px}
+.snav a{display:flex;align-items:center;gap:10px;color:#9aa6b8;padding:9px 10px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer}
+.snav a:hover{background:#121a2a;color:#cfd8e6}
+.snav a.on{background:#16243c;color:#7fb2ff}
+.snav .ic{width:18px;text-align:center}
+.main{flex:1;padding:22px 26px 70px;min-width:0}
+.view{display:none}.view.on{display:block}
+
+.h1{font-size:21px;font-weight:700;color:#eaf1fb}
+.sub{color:#8893a6;font-size:12.5px;margin-top:3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700}
+.btn:hover{background:var(--blue2)}
+.btn.sec{background:#16243c;color:#cfe0ff;border:1px solid #27406b}
+.btn.sm{padding:6px 12px;font-size:12px}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:#aeb9c9}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.muted{color:#8893a6}
+
+/* assistant */
+.assistant-wrap{max-width:760px}
+.bubble{background:#0e1626;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px}
+.bubble.me{background:#13203a;border-color:#27406b}
+.ai-row{display:flex;gap:10px;align-items:flex-start;margin-top:12px}
+.ai-ic{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2f80ed,#33c2dd);flex:none;display:flex;align-items:center;justify-content:center;font-size:13px}
+.intent{display:flex;gap:10px;margin-top:14px}
+.intent input{flex:1;background:#0e1626;border:1px solid var(--line2);border-radius:10px;padding:12px 14px;color:var(--tx);font-size:13.5px}
+.intent input:focus{outline:none;border-color:var(--blue)}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+.chip{background:#0e1626;border:1px solid var(--line);color:#aeb9c9;border-radius:18px;padding:6px 11px;font-size:11.5px;font-weight:600;cursor:pointer}
+.chip:hover{border-color:var(--blue);color:#cfe0ff}
+
+/* block chips */
+.blocks{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+.bchip{display:inline-flex;align-items:center;gap:6px;border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:700;border:1px solid}
+.bchip.data{color:var(--data);border-color:#1d4a55;background:#0c2027}
+.bchip.skill{color:var(--skill);border-color:#274068;background:#0e1a2e}
+.bchip.action{color:var(--action);border-color:#5a4615;background:#241d08}
+.bchip.surface{color:var(--surface);border-color:#3f2f63;background:#19112b}
+.btype{font-size:9px;opacity:.7;text-transform:uppercase;letter-spacing:.5px}
+
+.shiprow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+
+/* preview */
+.preview{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-top:12px;background:#0c1320}
+.pvbar{display:flex;align-items:center;gap:8px;background:#0e1626;border-bottom:1px solid var(--line);padding:8px 12px;font-size:11.5px;color:#8893a6}
+.pvbody{padding:14px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:#0e1626;border:1px solid var(--line);border-radius:9px;padding:10px}
+.kpi .v{font-size:19px;font-weight:800}.kpi .l{font-size:10.5px;color:#8893a6}
+.kpi.bad .v{color:#e0708a}.kpi.warn .v{color:#e0a93a}.kpi.good .v{color:#1fc7b6}
+.bars{display:flex;align-items:flex-end;gap:7px;height:80px;margin-top:12px;background:#0e1626;border:1px solid var(--line);border-radius:9px;padding:10px}
+.bars .b{flex:1;background:linear-gradient(#33c2dd,#2f80ed);border-radius:3px 3px 0 0;min-height:6px}
+
+/* agent builder bits */
+.seg{display:inline-flex;background:#0e1626;border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+.seg button{border:none;background:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;color:#8893a6}
+.seg button.on{background:var(--blue);color:#fff}
+.ladder-note{font-size:11.5px;color:#8893a6;margin-top:8px}
+.gate{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid #1a2333}
+.ck{width:18px;height:18px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:#10243a;color:#7fb2ff}
+.ck.ok{background:#103a33;color:#1fc7b6}
+
+/* canvas */
+.cv-grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+@media(max-width:980px){.cv-grid{grid-template-columns:1fr}}
+.panelcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.panelcard h4{font-size:13px;color:#eaf1fb;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.tagx{font-size:10px;color:#8893a6;background:#16202f;border:1px solid #26324a;border-radius:5px;padding:2px 7px;font-weight:700}
+.approval{background:#1c1606;border:1px solid #5a4615;border-radius:10px;padding:12px;margin-top:8px}
+.approval .at{color:#e0a93a;font-weight:700;font-size:12.5px}
+.approval .ad{color:#cdb98a;font-size:11.5px;margin:5px 0 10px}
+.feed{font-size:12px;color:#aeb9c9}
+.feed .ln{padding:5px 0;border-bottom:1px solid #1a2333}
+.feed .t{color:#6b7689;font-size:10.5px}
+
+/* library */
+.libgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:980px){.libgrid{grid-template-columns:1fr 1fr}}
+.libcol h4{font-size:12.5px;padding:8px 10px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.libcol.data h4{background:#0c2027;color:var(--data)}
+.libcol.skill h4{background:#0e1a2e;color:var(--skill)}
+.libcol.action h4{background:#241d08;color:var(--action)}
+.libcol.surface h4{background:#19112b;color:var(--surface)}
+.blk{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:10px;margin-bottom:8px}
+.blk .nm{font-weight:700;color:#eaf1fb;font-size:12px}
+.blk .meta{font-size:10px;color:#6b7689;margin-top:2px}
+.blk .use{font-size:10px;margin-top:6px;display:flex;gap:4px;flex-wrap:wrap}
+.u{border-radius:5px;padding:1px 6px;font-weight:700;font-size:9.5px}
+.u.app{background:#0e1a2e;color:#7fa8ff;border:1px solid #274068}
+.u.agent{background:#241d08;color:#e0a93a;border:1px solid #5a4615}
+.u.canvas{background:#0c2027;color:#33c2dd;border:1px solid #1d4a55}
+.u.assist{background:#19112b;color:#b58cf0;border:1px solid #3f2f63}
+.govbadge{font-size:9px;color:#e0a93a;border:1px solid #5a4615;border-radius:5px;padding:1px 5px;font-weight:700;margin-left:4px}
+
+/* pm lens */
+.pm-note{display:none;border-left:3px solid #7fb2ff;background:#0f1b30;border-radius:0 8px 8px 0;padding:9px 12px;margin:12px 0;font-size:11.5px;color:#bcd2f0}
+.pm-note b{color:#9fc3ff}
+body.pm-on .pm-note{display:block}
+
+.foot{color:#5d6678;font-size:11.5px;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+.foot a{color:#5e9bf0;text-decoration:none}
+.portfolio-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 18px;background:#050810;border-bottom:1px solid var(--line);font-size:13px;position:sticky;top:0;z-index:40}
+.portfolio-bar a{color:#8893a6;text-decoration:none;font-weight:600}
+.portfolio-bar a:hover{color:#fff}
+.portfolio-bar span{color:#6b7689;font-size:12px}
+.ribbon{position:sticky;top:88px;z-index:29}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#13203a;border:1px solid #2f80ed;color:#eaf1fb;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.3s;z-index:80;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+
+<div class="portfolio-bar">
+  <a href="../../index.html#role-showcases">← Portfolio</a>
+  <span>Cloud Control Studio — unified concept · Gaurav Mehta</span>
+</div>
+
+<div class="topbar">
+  <span class="cisco">cisco</span><span class="cc">Cloud Control</span>
+  <span class="tenant">Wayne Enterprise ▾</span>
+  <div class="apptabs">
+    <span class="apptab">Home</span><span class="apptab">Meraki</span>
+    <span class="apptab on"><span class="d"></span>Studio</span><span class="apptab">+2</span>
+  </div>
+  <div class="right">
+    <button class="pmtoggle" id="pmBtn">◍ PM Lens</button>
+    <span>◔</span><span class="avatar"></span>
+  </div>
+</div>
+
+<!-- hero ribbon -->
+<div class="ribbon" id="ribbon">
+  <div class="rstep on" data-go="assistant" data-step="0"><span class="rn">1</span> Intent · Assistant</div><span class="rsep">›</span>
+  <div class="rstep" data-go="library" data-step="1"><span class="rn">2</span> Compose · shared blocks</div><span class="rsep">›</span>
+  <div class="rstep" data-go="appbuilder" data-step="2"><span class="rn">3</span> Ship · App + Agent</div><span class="rsep">›</span>
+  <div class="rstep" data-go="canvas" data-step="3"><span class="rn">4</span> Run &amp; govern · Canvas</div><span class="rsep">›</span>
+  <div class="rstep" data-go="library" data-step="4"><span class="rn">5</span> Reuse · Block Library</div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sbh">▦ Studio</div>
+    <nav class="snav">
+      <a data-go="assistant" class="on"><span class="ic">✦</span>Assistant</a>
+      <a data-go="canvas"><span class="ic">▦</span>Canvas</a>
+      <a data-go="appbuilder"><span class="ic">▢</span>App Builder</a>
+      <a data-go="agentbuilder"><span class="ic">◉</span>Agent Builder</a>
+      <a data-go="library"><span class="ic">⬢</span>Block Library</a>
+      <a data-go="marketplace"><span class="ic">◇</span>Marketplace</a>
+    </nav>
+    <div class="pm-note" style="margin-top:14px"><b>PM thesis.</b> One Studio, four surfaces — Assistant, Canvas, App Builder, Agent Builder — held together by <b>one shared Block Library</b>. Each surface is a projection of the same Data / Skills / Actions / Surfaces blocks. <i>Build once, surface everywhere.</i></div>
+  </aside>
+
+  <main class="main">
+
+  <!-- ========== ASSISTANT (intent) ========== -->
+  <section class="view on" id="assistant">
+    <div class="h1">Assistant</div>
+    <div class="sub">The universal entry. Describe intent in plain language — Studio assembles it from your shared blocks, then you choose how to surface it.</div>
+    <div class="pm-note"><b>Why Assistant is the front door:</b> one natural-language entry that can query, compose, or launch any surface. The same intent can become an app view, an agent, or an Assistant skill — because they're all the same blocks underneath.</div>
+
+    <div class="assistant-wrap">
+      <div class="intent"><input id="intentIn" value="Help my NOC handle outages on the core fabric"><button class="btn" id="askBtn">Assemble</button></div>
+      <div class="chips" id="intentChips"></div>
+      <div id="asstThread"></div>
+    </div>
+  </section>
+
+  <!-- ========== APP BUILDER ========== -->
+  <section class="view" id="appbuilder">
+    <div class="h1">App Builder <span class="tagx" style="vertical-align:middle">surface · read</span></div>
+    <div class="sub">Compose blocks into a view. Born deployed into Cloud Control &amp; Canvas.</div>
+    <div class="pm-note"><b>App = a projection of blocks that renders a surface.</b> Note it reuses the <i>same</i> Data blocks the Agent uses — that's the unification, made literal in the Block Library.</div>
+    <div class="card" style="margin-top:14px">
+      <div class="muted" style="font-size:12px;margin-bottom:6px">Blocks in this app</div>
+      <div class="blocks">
+        <span class="bchip data"><span class="btype">data</span>Meraki</span>
+        <span class="bchip data"><span class="btype">data</span>ThousandEyes</span>
+        <span class="bchip data"><span class="btype">data</span>Splunk</span>
+        <span class="bchip surface"><span class="btype">surface</span>Outage Command view</span>
+      </div>
+      <div class="preview">
+        <div class="pvbar">◷ apps.cloudcontrol/outage-command <span style="margin-left:auto" class="tagx">read-only</span></div>
+        <div class="pvbody">
+          <div class="kpis">
+            <div class="kpi bad"><div class="v">7</div><div class="l">Active alerts</div></div>
+            <div class="kpi warn"><div class="v">2</div><div class="l">Sites degraded</div></div>
+            <div class="kpi good"><div class="v">94%</div><div class="l">Mean health</div></div>
+            <div class="kpi good"><div class="v">22m</div><div class="l">MTTR (24h)</div></div>
+          </div>
+          <div class="bars"><div class="b" style="height:40%"></div><div class="b" style="height:65%"></div><div class="b" style="height:30%"></div><div class="b" style="height:80%"></div><div class="b" style="height:55%"></div><div class="b" style="height:70%"></div><div class="b" style="height:45%"></div></div>
+        </div>
+      </div>
+      <div class="shiprow"><button class="btn" onclick="ship('app')">🚀 Ship app (born deployed)</button><button class="btn sec" data-go="agentbuilder">Build the Agent →</button></div>
+    </div>
+  </section>
+
+  <!-- ========== AGENT BUILDER ========== -->
+  <section class="view" id="agentbuilder">
+    <div class="h1">Agent Builder <span class="tagx" style="vertical-align:middle">actor · act</span></div>
+    <div class="sub">Compose blocks into an agent. Instruction-driven, governed, born deployed.</div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="muted" style="font-size:12px;margin-bottom:6px">Blocks in this agent (same library)</div>
+      <div class="blocks">
+        <span class="bchip data"><span class="btype">data</span>Meraki</span>
+        <span class="bchip data"><span class="btype">data</span>ThousandEyes</span>
+        <span class="bchip data"><span class="btype">data</span>Splunk</span>
+        <span class="bchip skill"><span class="btype">skill</span>Incident Triage Runbook</span>
+        <span class="bchip skill"><span class="btype">skill</span>Ownership Matrix</span>
+        <span class="bchip action"><span class="btype">action</span>Restart interface · HITL</span>
+        <span class="bchip action"><span class="btype">action</span>Open ServiceNow ticket</span>
+      </div>
+
+      <div class="pm-note"><b>Edge #1 — Actions are a first-class, governed block.</b> In Cisco's current UI, "do not make changes" is a sentence in the prompt. Here, a write-action is its own block with an explicit <b>scope + HITL gate</b> — so governance binds to the operation, not the instruction.</div>
+
+      <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">Autonomy — read→act ladder</div>
+        <div class="seg" id="ladder">
+          <button data-l="detect">Detect</button>
+          <button data-l="recommend" class="on">Recommend</button>
+          <button data-l="act">Act (gated)</button>
+        </div>
+        <div class="ladder-note" id="ladderNote">Recommend: the agent proposes remediation; a human approves any action in Canvas.</div>
+      </div>
+
+      <div class="pm-note"><b>Edge #2 — an eval gate before deploy.</b> Acting agents must pass evals (golden datasets, sandbox, regression) — the alpha's hardest reliability problem, and invisible in the current product.</div>
+
+      <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:6px">Pre-deploy</div>
+        <div id="agentChecks"></div>
+      </div>
+
+      <div class="shiprow"><button class="btn sec" id="evalBtn">Run evals</button><button class="btn hide" id="agentDeployBtn">🚀 Deploy agent</button></div>
+    </div>
+  </section>
+
+  <!-- ========== CANVAS (run + govern) ========== -->
+  <section class="view" id="canvas">
+    <div class="h1">AI Canvas <span class="tagx" style="vertical-align:middle">operate</span></div>
+    <div class="sub">Where apps &amp; agents run and humans + agents collaborate. Deployed compositions surface here; the Assistant lives here too.</div>
+    <div class="pm-note"><b>Canvas = the run/operate face of the same blocks.</b> What you built in App/Agent Builder shows up here live. <b>Edge #3 — the approvals queue:</b> governed Actions pause here for human sign-off (HITL), with full audit.</div>
+
+    <div class="cv-grid" style="margin-top:14px">
+      <div>
+        <div class="panelcard" id="cvApp"><h4>▢ Outage Command <span class="tagx">app</span></h4><div class="muted" style="font-size:12px">Live view — 7 active alerts, 2 sites degraded. (Shipped from App Builder.)</div></div>
+        <div class="panelcard" id="cvAgent"><h4>◉ Incident Triage Agent <span class="tagx">agent · ambient</span></h4>
+          <div class="feed">
+            <div class="ln">agent: correlated Nexus + ThousandEyes + Splunk → root cause: optics degradation Leaf1 Eth1/3 <span class="t">just now</span></div>
+            <div class="ln">agent: proposes <b>Restart interface Eth1/3</b> — needs approval <span class="t">just now</span></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="panelcard">
+          <h4>⛨ Approvals queue <span class="tagx">HITL</span></h4>
+          <div class="approval" id="appr">
+            <div class="at">Incident Triage Agent → Restart interface Eth1/3</div>
+            <div class="ad">Scope: core fabric · Action block: Restart interface · gate: human approval required · reversible</div>
+            <div class="row"><button class="btn sm" id="approveBtn">Approve &amp; execute</button><button class="btn sm ghost" id="denyBtn">Deny</button></div>
+          </div>
+        </div>
+        <div class="panelcard"><h4>✦ Assistant</h4><div class="muted" style="font-size:12px">"Why is Leaf1 degraded?" — answers over the same blocks, in context.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== BLOCK LIBRARY ========== -->
+  <section class="view" id="library">
+    <div class="h1">Block Library <span class="tagx" style="vertical-align:middle">the shared substance</span></div>
+    <div class="sub">Build a block once; reuse it across every surface. The "used in" tags prove the unification — the same blocks power the app, the agent, Canvas, and the Assistant.</div>
+    <div class="pm-note"><b>This is the whole thesis in one screen.</b> Studio is small because the Library is shared. Notice Data blocks are reused most (everything needs them); Actions carry governance badges; Surfaces are the most bespoke. <i>The Library is the moat — apps and agents are just compositions.</i></div>
+    <div class="libgrid" id="libgrid" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ========== MARKETPLACE ========== -->
+  <section class="view" id="marketplace">
+    <div class="h1">Marketplace</div>
+    <div class="sub">Certified Cisco + partner blocks, agents, and apps — deploy in one click, governed on arrival.</div>
+    <div class="pm-note"><b>Skills travel; agents are turnkey.</b> Publishing reusable <i>blocks</i> (esp. skills) compounds the Library; a purchased skill runs inside the buyer's own governed agent — sidestepping the "trust a stranger's agent" barrier.</div>
+    <div class="libgrid" style="margin-top:14px;grid-template-columns:repeat(3,1fr)" id="mkt"></div>
+  </section>
+
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let tT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3000);}
+$('pmBtn').onclick=()=>{document.body.classList.toggle('pm-on');$('pmBtn').classList.toggle('on',document.body.classList.contains('pm-on'));};
+
+/* router */
+function go(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id===v));
+  document.querySelectorAll('.snav a').forEach(a=>a.classList.toggle('on',a.dataset.go===v));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>go(el.dataset.go)));
+
+/* ribbon */
+function setStep(n){document.querySelectorAll('.rstep').forEach(r=>{const s=+r.dataset.step;r.classList.toggle('on',s===n);r.classList.toggle('done',s<n);});}
+document.querySelectorAll('.rstep').forEach(r=>r.addEventListener('click',()=>{setStep(+r.dataset.step);go(r.dataset.go);}));
+
+/* assistant flow */
+const CHIPS=['Help my NOC handle outages on the core fabric','Keep configs compliant daily','Watch SLA breaches'];
+$('intentChips').innerHTML=CHIPS.map(c=>`<span class="chip">${c}</span>`).join('');
+document.querySelectorAll('#intentChips .chip').forEach(c=>c.onclick=()=>{$('intentIn').value=c.textContent;});
+$('askBtn').onclick=()=>{
+  const q=$('intentIn').value;
+  $('asstThread').innerHTML=`
+    <div class="bubble me">${q}</div>
+    <div class="ai-row"><div class="ai-ic">✦</div><div class="bubble" style="flex:1">
+      I can assemble this from your shared blocks:
+      <div class="blocks">
+        <span class="bchip data"><span class="btype">data</span>Meraki</span>
+        <span class="bchip data"><span class="btype">data</span>ThousandEyes</span>
+        <span class="bchip data"><span class="btype">data</span>Splunk</span>
+        <span class="bchip skill"><span class="btype">skill</span>Incident Triage Runbook</span>
+        <span class="bchip action"><span class="btype">action</span>Restart interface · HITL</span>
+        <span class="bchip surface"><span class="btype">surface</span>Outage Command view</span>
+      </div>
+      <div class="pm-note"><b>One intent → many surfaces.</b> The same blocks can become a read-only <b>app view</b>, an acting <b>agent</b>, or a skill I expose right here in chat. You choose.</div>
+      <div class="shiprow">
+        <button class="btn sm" data-go="appbuilder">Surface as App →</button>
+        <button class="btn sm" data-go="agentbuilder">Surface as Agent →</button>
+        <button class="btn sm ghost" onclick="toast('Exposed as an Assistant skill in this chat')">Use here as Assistant skill</button>
+      </div>
+    </div></div>`;
+  $('asstThread').querySelectorAll('[data-go]').forEach(el=>el.addEventListener('click',()=>{setStep(2);go(el.dataset.go);}));
+  setStep(1);
+  toast('Assembled from shared blocks — choose how to surface it');
+};
+
+/* ship app */
+function ship(kind){
+  if(kind==='app'){toast('🚀 Outage Command app — born deployed to Cloud Control & Canvas');setStep(3);go('canvas');}
+}
+
+/* agent builder: ladder */
+const LADNOTE={
+  detect:'Detect: the agent only observes and surfaces findings. No recommendations, no actions.',
+  recommend:'Recommend: the agent proposes remediation; a human approves any action in Canvas.',
+  act:'Act (gated): the agent can execute, but every write goes through a scoped Action block + HITL approval. Requires passing evals.'
+};
+document.querySelectorAll('#ladder button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('#ladder button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  $('ladderNote').textContent=LADNOTE[b.dataset.l];
+});
+
+/* agent builder: evals */
+const ECHECKS=[['Golden-dataset evals','142 cases · 96% pass · 0 unsafe actions'],['Sandbox dry-run','simulated Leaf1 flap → correct root cause, no prod side-effects'],['Scope & governance','read scopes + 1 gated write (Restart interface, HITL)'],['Observability','Splunk agent monitoring + audit wired']];
+$('evalBtn').onclick=()=>{
+  const box=$('agentChecks');box.innerHTML='';
+  ECHECKS.forEach((c,i)=>{const r=document.createElement('div');r.className='gate';r.innerHTML=`<span class="ck" id="g${i}">…</span><div><div style="font-size:12.5px;color:#cfd8e6;font-weight:600">${c[0]}</div><div style="font-size:11.5px;color:#8893a6">${c[1]}</div></div>`;box.appendChild(r);});
+  let i=0;(function run(){if(i<ECHECKS.length){$('g'+i).className='ck ok';$('g'+i).textContent='✓';i++;setTimeout(run,430);}else{$('agentDeployBtn').classList.remove('hide');$('evalBtn').classList.add('hide');toast('Evals passed — agent ready to deploy');}})();
+};
+$('agentDeployBtn').onclick=()=>{toast('🚀 Incident Triage Agent — born deployed, governed, now running in Canvas');setStep(3);go('canvas');};
+
+/* canvas approvals */
+$('approveBtn').onclick=()=>{$('appr').innerHTML='<div class="at" style="color:#1fc7b6">✓ Approved & executed</div><div class="ad">Restart interface Eth1/3 completed · logged to append-only audit · agent resumed</div>';toast('Action approved, executed, and audited');setStep(4);};
+$('denyBtn').onclick=()=>{$('appr').innerHTML='<div class="at" style="color:#e0708a">✕ Denied</div><div class="ad">Action blocked · agent notified · escalation logged</div>';toast('Action denied — agent stays read-only');setStep(4);};
+
+/* block library */
+const LIB={
+  data:[['Meraki','MCP connector',['app','agent','canvas']],['ThousandEyes','MCP connector',['app','agent']],['Splunk','data + monitoring',['app','agent','canvas']],['Catalyst SD-WAN','MCP connector',['agent']],['ServiceNow ITSM','MCP connector',['agent']]],
+  skill:[['Incident Triage Runbook','encoded SOP',['agent']],['Ownership Matrix','encoded SOP',['agent']]],
+  action:[['Restart interface','scoped · HITL',['agent','canvas'],true],['Open ServiceNow ticket','scoped',['agent'],true]],
+  surface:[['Outage Command view','dashboard',['app','canvas']],['Investigation card','Canvas',['canvas']],['Assistant tool','chat',['assist']]]
+};
+const LMETA={data:['data','⬢ Connectors / Data'],skill:['skill','✧ Skills'],action:['action','⚡ Actions'],surface:['surface','▢ Surfaces']};
+const ULAB={app:'app',agent:'agent',canvas:'canvas',assist:'assistant'};
+$('libgrid').innerHTML=Object.keys(LMETA).map(t=>{
+  const m=LMETA[t];
+  const blks=LIB[t].map(b=>{
+    const uses=b[2].map(u=>`<span class="u ${u}">${ULAB[u]}</span>`).join('');
+    const gov=b[3]?'<span class="govbadge">governed</span>':'';
+    return `<div class="blk"><div class="nm">${b[0]}${gov}</div><div class="meta">${b[1]}</div><div class="use">${uses}</div></div>`;
+  }).join('');
+  return `<div class="libcol ${t}"><h4>${m[1]}</h4>${blks}</div>`;
+}).join('');
+
+/* marketplace */
+const MKT=[['◉','Change Window Guardian','Cisco · certified','agent'],['✧','HIPAA Network Checklist','VeritasOps','skill'],['⬢','ServiceNow CMDB feed','partner','data'],['◉','SLA Breach Watchdog','Cisco','agent'],['✧','SP Failover Triage','NetBraid','skill'],['▢','Capacity Heatmap','GridLens','app']];
+$('mkt').innerHTML=MKT.map(m=>`<div class="blk"><div style="font-size:20px">${m[0]}</div><div class="nm" style="margin-top:6px">${m[1]} <span class="tagx">${m[3]}</span></div><div class="meta">${m[2]}</div><div style="margin-top:10px"><button class="btn sm" onclick="toast('Deployed — governed by AI Defense on arrival')">One-click deploy</button></div></div>`).join('');
+</script>
+</body>
+</html>
