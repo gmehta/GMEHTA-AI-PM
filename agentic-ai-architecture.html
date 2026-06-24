@@ -109,6 +109,56 @@
   .chal-detail tr:last-child td{border-bottom:none;}
   .chal-detail .newrow td.cname::after{content:"NEW";font-size:9px;font-weight:700;color:#b46504;
     background:#fbeed2;border-radius:10px;padding:1px 6px;margin-left:8px;vertical-align:2px;}
+  .chal-note a{color:#4456c4;font-weight:600;text-decoration:none;}
+  .chal-note a:hover{text-decoration:underline;}
+
+  /* ---- Production patterns (solutions to challenges) ---- */
+  .patterns-section{margin-top:58px;padding-top:8px;border-top:2px solid var(--line);}
+  .patterns-section .pkick{color:#c9a020;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;font-size:12px;}
+  .patterns-intro{background:#fbf7ed;border:1px solid #ecdcb3;border-radius:10px;padding:14px 16px;
+    font-size:13.5px;color:#6a5a30;margin:16px 0 22px;}
+  .patterns-intro b{color:var(--ink);}
+  .patterns-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:820px){.patterns-grid{grid-template-columns:1fr}}
+  .pat{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;
+    box-shadow:0 1px 3px rgba(20,30,50,.04);}
+  .pat .head{padding:18px 20px 0;cursor:pointer;}
+  .pat .num{font-size:12px;font-weight:800;color:#c9a020;letter-spacing:.5px;}
+  .pat h3{font-size:19px;letter-spacing:-.2px;margin:3px 0 2px;color:var(--ink);}
+  .pat .one{color:var(--muted);font-size:13.5px;}
+  .pat .viz{padding:16px 20px 6px;}
+  .pat .detail{max-height:0;overflow:hidden;transition:max-height .35s ease;padding:0 20px;}
+  .pat.open .detail{max-height:720px;padding-bottom:16px;}
+  .pat .toggle{display:inline-block;margin:8px 20px 16px;font-size:11.5px;font-weight:800;letter-spacing:.5px;
+    color:#c9a020;cursor:pointer;user-select:none;}
+  .pat .detail h4{font-size:12.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:12px 0 3px;}
+  .pat .detail p{font-size:14px;color:#2b3442;}
+  .pat .maps{display:inline-block;font-size:11.5px;font-weight:700;background:#fff7db;color:#9a7b12;
+    border:1px solid #f0e2a8;border-radius:20px;padding:3px 10px;margin-top:8px;}
+  .flow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;}
+  .hex{width:92px;height:80px;background:#f3cf4b;clip-path:polygon(25% 2%,75% 2%,100% 50%,75% 98%,25% 98%,0 50%);
+    display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px;font-weight:700;
+    color:#3a2f00;padding:0 6px;flex:none;}
+  .parr{color:#82b366;font-size:20px;font-weight:800;flex:none;}
+  .parr.k{color:#b85450;}
+  .plbl{font-size:11px;color:var(--muted);text-align:center;}
+  .ppill{padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;color:#fff;text-align:center;flex:none;}
+  .ppill.g{background:#82b366}.ppill.r{background:#b85450}.ppill.y{background:#b46504}
+  .state-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
+  .pt{font-size:10.5px;color:var(--muted);background:#f7f8fa;border:1px solid var(--line);border-radius:20px;padding:2px 8px;}
+  .pbox{background:#fde9d9;border:1px solid #f3c69e;border-radius:10px;padding:9px 12px;font-size:11.5px;
+    font-weight:700;color:#9a5a1f;flex:none;display:flex;align-items:center;gap:6px;}
+  .pgate{background:#fbe0e0;border:1px solid #f0bcbc;border-radius:12px;padding:12px 14px;font-size:11.5px;
+    color:#a23a3a;flex:none;text-align:left;}
+  .pgate b{display:block;color:#7a2222;margin-bottom:4px;font-size:11px;letter-spacing:.4px;}
+  .pcode{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#1f2630;color:#cfe0f0;
+    border-radius:8px;padding:7px 10px;font-size:11px;flex:none;}
+  .pmatrix{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto auto auto;gap:8px;
+    align-items:center;max-width:520px;margin:4px auto;}
+  .qaxis{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;text-align:center;}
+  .quad{background:#f3cf4b;border-radius:10px;padding:11px;text-align:center;}
+  .quad .qn{font-weight:800;font-size:12.5px}.quad .qd{font-size:10.5px;color:#6a5a14;margin-top:2px}
+
   @media(max-width:680px){.chal-detail td.cname{white-space:normal;}
     .chal-detail table,.chal-detail thead,.chal-detail tbody,.chal-detail tr,.chal-detail th,.chal-detail td{display:block;}
     .chal-detail thead{display:none;}
@@ -167,12 +217,164 @@
 
   <section class="chal-section">
     <h2>Production challenges by layer</h2>
+    <p class="chal-note">What goes wrong at each layer in production. Each challenge has proven patterns that address it — see <a href="#patterns">Production Patterns ↓</a> below.</p>
     <div class="chal-grid" id="chalGrid"></div>
     <div class="chal-detail" id="chalDetail"></div>
   </section>
 
+  <section class="patterns-section" id="patterns">
+    <div class="pkick">Solutions</div>
+    <h2>Production patterns</h2>
+    <p class="sub">The architecture shows the layers; the challenge cards above show what breaks in production. These are the proven patterns that solve them — the techniques that take an agentic system from demo to something that survives real traffic, real failures, and real money on the line.</p>
+
+    <div class="patterns-intro">
+      <b>How to read this:</b> each pattern below maps to one or more challenge categories above. Click any card to expand. Look for <span style="color:var(--muted)">Maps to</span> to see which challenge layer each pattern addresses.
+    </div>
+
+    <div class="patterns-grid">
+      <div class="pat" id="p1">
+        <div class="head">
+          <div class="num">PATTERN 01</div>
+          <h3>Compensation (Saga)</h3>
+          <div class="one">Roll back cleanly when a step fails mid-workflow.</div>
+        </div>
+        <div class="viz">
+          <div class="flow">
+            <div class="hex">Research<br>Agent</div><span class="parr">→</span>
+            <div class="hex">Analysis<br>Agent</div><span class="parr">→</span>
+            <div class="hex">Execution<br>Agent</div>
+          </div>
+          <div class="flow" style="margin-top:8px"><span class="parr k">⟲</span> <span class="plbl" style="color:#b85450">if Execution fails → compensate Analysis, then Research (reverse order)</span></div>
+        </div>
+        <span class="toggle" data-x="p1">CLICK TO EXPAND ▾</span>
+        <div class="detail">
+          <h4>Problem</h4>
+          <p>Agentic workflows take real-world actions across steps. If step 3 fails, steps 1–2 may have already changed state (placed an order, written a record). You can't just retry — you need to <i>undo</i>.</p>
+          <h4>Pattern</h4>
+          <p>Every forward step defines a <b>compensating action</b> that reverses it. On failure, execute the compensations in reverse order — a distributed-transaction "saga." There's no global rollback in agent land, so you engineer one explicitly.</p>
+          <h4>When to use</h4>
+          <p>Multi-step workflows with side effects that must stay consistent (payments, provisioning, config changes).</p>
+          <span class="maps">Maps to: Control Flow · State &amp; Memory challenges</span>
+        </div>
+      </div>
+
+      <div class="pat" id="p2">
+        <div class="head">
+          <div class="num">PATTERN 02</div>
+          <h3>Circuit Breaker</h3>
+          <div class="one">Fail fast, recover gracefully — protect the system from a failing dependency.</div>
+        </div>
+        <div class="viz">
+          <div class="state-row">
+            <span class="ppill g">CLOSED<br><span style="font-weight:500;font-size:10px">normal</span></span>
+            <span class="pt">5 failures →</span>
+            <span class="ppill r">OPEN<br><span style="font-weight:500;font-size:10px">fail instantly</span></span>
+          </div>
+          <div class="state-row" style="margin-top:8px">
+            <span class="pt">← success</span>
+            <span class="ppill y">HALF-OPEN<br><span style="font-weight:500;font-size:10px">test recovery</span></span>
+            <span class="pt">after 60s ↑ · if fails → OPEN</span>
+          </div>
+        </div>
+        <span class="toggle" data-x="p2">CLICK TO EXPAND ▾</span>
+        <div class="detail">
+          <h4>Problem</h4>
+          <p>When a downstream agent/tool/model is failing, naive retries pile on load, blow up latency and cost, and cascade the failure upstream.</p>
+          <h4>Pattern</h4>
+          <p>A state machine wraps the call. <b>Closed</b>: calls flow, failures counted. After a threshold → <b>Open</b>: calls fail immediately (no load on the broken dependency). After a cooldown → <b>Half-Open</b>: a few probe calls; success closes the circuit, failure re-opens it.</p>
+          <h4>When to use</h4>
+          <p>Any call to a flaky model, tool, or peer agent — especially anything metered or rate-limited.</p>
+          <span class="maps">Maps to: Infrastructure · Nondeterminism · Tools &amp; Actions challenges</span>
+        </div>
+      </div>
+
+      <div class="pat" id="p3">
+        <div class="head">
+          <div class="num">PATTERN 03</div>
+          <h3>Data Contracts</h3>
+          <div class="one">Validate every handoff between agents — don't trust, verify.</div>
+        </div>
+        <div class="viz">
+          <div class="flow">
+            <div class="hex">Research<br>Agent</div><span class="parr" style="color:var(--ink)">→</span>
+            <div class="pgate"><b>CONTRACT ✓</b>confidence &gt; 0.7<br>sources.length &gt; 0<br>schema matches</div>
+            <span class="parr" style="color:var(--ink)">→</span><div class="hex">Analysis<br>Agent</div>
+          </div>
+          <div class="flow" style="margin-top:8px"><span class="pcode">{ findings, confidence, sources }</span></div>
+        </div>
+        <span class="toggle" data-x="p3">CLICK TO EXPAND ▾</span>
+        <div class="detail">
+          <h4>Problem</h4>
+          <p>One agent's output is the next agent's input. Without a checked boundary, low-confidence or malformed output silently corrupts everything downstream — and you find out three steps later.</p>
+          <h4>Pattern</h4>
+          <p>Define an explicit <b>schema + validation rules</b> at each handoff (typed fields, confidence thresholds, required evidence). Reject or route to remediation if the contract isn't met. Makes agents composable and failures local instead of silent.</p>
+          <h4>When to use</h4>
+          <p>Every multi-agent boundary — and it's how you make agents safe <i>callers</i> of each other (the agent-as-user principle).</p>
+          <span class="maps">Maps to: Multi-Agent Coordination · Data Plane · Evaluation challenges</span>
+        </div>
+      </div>
+
+      <div class="pat" id="p4">
+        <div class="head">
+          <div class="num">PATTERN 04</div>
+          <h3>Immutable State Snapshots</h3>
+          <div class="one">Pass versioned, read-only state — never a shared mutable blob.</div>
+        </div>
+        <div class="viz">
+          <div class="flow">
+            <div class="hex">Agent A</div><span class="parr" style="color:var(--ink)">→</span>
+            <div class="pbox">📦 state v1 🔒</div><span class="parr" style="color:var(--ink)">→</span>
+            <div class="hex">Agent B</div><span class="parr" style="color:var(--ink)">→</span>
+            <div class="pbox">📦 state v2 🔒</div><span class="parr" style="color:var(--ink)">→</span>
+            <div class="hex">Agent C</div>
+          </div>
+          <div class="plbl" style="margin-top:8px">append-only log for audit / replay · never shared for read+write</div>
+        </div>
+        <span class="toggle" data-x="p4">CLICK TO EXPAND ▾</span>
+        <div class="detail">
+          <h4>Problem</h4>
+          <p>If agents share one mutable state object, you get race conditions, clobbered writes, and no way to reconstruct "what did the agent see when it decided X?"</p>
+          <h4>Pattern</h4>
+          <p>Each step produces a new <b>immutable, versioned snapshot</b> of state (v1 → v2 → …). Agents read the snapshot they're given and emit a new one. Snapshots are logged to <b>append-only</b> storage for audit and replay — but never shared for concurrent read/write.</p>
+          <h4>When to use</h4>
+          <p>Any multi-agent pipeline where you need reproducibility, debuggability, and a clean audit trail (i.e., regulated/production).</p>
+          <span class="maps">Maps to: State &amp; Memory · Governance challenges</span>
+        </div>
+      </div>
+
+      <div class="pat" id="p5" style="grid-column:1 / -1">
+        <div class="head">
+          <div class="num">PATTERN 05</div>
+          <h3>Orchestration vs. Choreography — the decision matrix</h3>
+          <div class="one">Pick the coordination model by agent autonomy × workflow complexity.</div>
+        </div>
+        <div class="viz">
+          <div class="pmatrix">
+            <div class="qaxis" style="grid-row:1/3;writing-mode:vertical-rl;transform:rotate(180deg)">Autonomy →</div>
+            <div class="quad"><div class="qn">Choreography</div><div class="qd">high autonomy · simple — event-driven microservices</div></div>
+            <div class="quad"><div class="qn">Hybrid</div><div class="qd">high autonomy · complex — distributed transactions</div></div>
+            <div class="quad"><div class="qn">Simple Orchestration</div><div class="qd">low autonomy · simple — linear workflows</div></div>
+            <div class="quad"><div class="qn">Full Orchestration</div><div class="qd">low autonomy · complex — enterprise workflows</div></div>
+            <div></div>
+            <div class="qaxis" style="grid-column:2/4">Workflow complexity →</div>
+          </div>
+        </div>
+        <span class="toggle" data-x="p5">CLICK TO EXPAND ▾</span>
+        <div class="detail">
+          <h4>The trade-off</h4>
+          <p><b>Orchestration</b> = a central controller directs every step (predictable, auditable, but a bottleneck). <b>Choreography</b> = agents react to events autonomously (scalable, resilient, but harder to reason about and govern).</p>
+          <h4>How to choose</h4>
+          <p><b>Simple Orchestration</b> (low autonomy, simple): linear workflows — a controller runs steps in order. <b>Choreography</b> (high autonomy, simple): event-driven, loosely-coupled agents. <b>Full Orchestration</b> (low autonomy, complex): enterprise workflows needing tight control and audit. <b>Hybrid</b> (high autonomy, complex): orchestrated at the seams, choreographed within — distributed transactions.</p>
+          <h4>Rule of thumb</h4>
+          <p>The more an action can hurt (writes on production), the more you bias toward orchestration + human-in-the-loop; the more it's read/parallel/scale, the more choreography pays off.</p>
+          <span class="maps">Maps to: Orchestration pillar · Multi-Agent Coordination challenges</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <footer>
-    The architecture diagram is a clickable SVG — selecting a box opens the matching challenge card below it. The editable diagram source is <code>agentic-ai-architecture.drawio</code> (open in diagrams.net).
+    The architecture diagram is a clickable SVG — selecting a box opens the matching challenge card. Challenge cards link to production patterns below. Editable diagram source: <code>agentic-ai-architecture.drawio</code> (diagrams.net). Patterns are widely-used industry techniques, illustrated here in original form.
   </footer>
 </div>
 
@@ -542,6 +744,17 @@
       }
     };
   })();
+</script>
+
+<script>
+  document.querySelectorAll('.pat .head, .pat .toggle').forEach(function(el){
+    el.addEventListener('click', function(){
+      var card = el.closest('.pat');
+      card.classList.toggle('open');
+      var t = card.querySelector('.toggle');
+      if (t) t.textContent = card.classList.contains('open') ? 'CLICK TO COLLAPSE ▴' : 'CLICK TO EXPAND ▾';
+    });
+  });
 </script>
 </body>
 </html>
