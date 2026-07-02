@@ -379,6 +379,20 @@ svg{width:100%;height:auto;display:block;min-width:860px}
 
 <div class="note"><b>Say it as:</b> "I'd anchor on the business number — 6-week, 10-person, 6-system builds compressed to a 30-minute assembly a single operator approves. Then quality per-agent, trajectory for the path, and the HITL override / edit-delta trend, because that's how I earn the right to remove the human — plus cost and safety as first-class. Aggregate accuracy alone hides which agent broke and whether we're getting more autonomous."</div>
 </div>
+
+<div class="card">
+<h2>Debugging playbook — "the platform stopped, where do you look?"</h2>
+<p class="sub">Triage first: define the failure — <b>down</b> (runs not completing), <b>degraded</b> (slow / erroring), or <b>silently wrong</b> (completes but garbage). The metric order forks from there.</p>
+<table style="font-size:11.5px">
+<tr><th>Order</th><th>Look at</th><th>Question it answers</th></tr>
+<tr><td class="k">1st · localize</td><td>Operational telemetry — success / completion rate, error rate, latency, <b>segmented per agent / step / tool</b></td><td>Is it down, and where? Blast radius (all runs vs one agent / tenant / model version) + the failing stage</td></tr>
+<tr><td class="k">2nd · dependency &amp; guardrails</td><td>Tool / dependency health + <b>circuit-breaker state</b>; guardrail-trip &amp; budget monitors</td><td>Did a downstream (model gateway, CDP, Marketo) fail and open a breaker? Or is a guardrail auto-pausing us (cost ceiling, rate limit)? — the usual root cause</td></tr>
+<tr><td class="k">3rd · why exactly</td><td>Trajectory trace of a failing run (by stable trace_id) + drift / version signals</td><td>Pinpoint the erroring span; correlate incident start with <b>what changed</b> — model version, config deploy, tool / API version, data freshness</td></tr>
+</table>
+<h3>If it's "completing but wrong" (silent failure) — reorder</h3>
+<p style="font-size:12.5px;margin:0 0 6px">Go straight to <b>eval / quality</b> (defect-escape, per-step scores), a <b>HITL override-rate spike</b> (humans suddenly rejecting everything = quality broke), and <b>drift</b> (input drift vs golden, or a model-version swap). Usually a model or upstream-data change, not an outage.</p>
+<div class="note"><b>Say it as:</b> "First I localize with operational metrics — success rate and errors per agent and tool — to find the blast radius and the failing stage. Second I check dependency health and circuit-breaker state, plus whether a guardrail is auto-pausing us, since that's the usual cause. Then I follow one failing run's trace to the exact span and correlate against what changed. If it's completing but wrong, I pivot to eval scores, the override-rate spike, and drift." The order — <b>localize → dependency / guardrails → trace + what-changed</b> — is what signals you've operated a system, not just drawn the dashboard.</div>
+</div>
 </section>
 
 <!-- ========== GUARDRAILS ========== -->
