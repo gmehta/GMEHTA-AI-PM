@@ -48,10 +48,12 @@ table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px}
 th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
 td.k{font-weight:700;color:var(--acdk);white-space:nowrap}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-@media(max-width:820px){.grid3,.grid5{grid-template-columns:1fr 1fr}}
-@media(max-width:520px){.grid3,.grid5{grid-template-columns:1fr}}
+@media(max-width:820px){.grid3,.grid4,.grid5{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.grid2,.grid3,.grid4,.grid5{grid-template-columns:1fr}}
 .feat{border:1px solid var(--line);border-radius:12px;padding:13px 15px;background:#fff}
 .feat h4{margin:0 0 5px;font-size:13px;color:var(--acdk)}
 .feat p{margin:0;font-size:12px;color:var(--muted)}
@@ -238,6 +240,39 @@ svg{width:100%;height:auto;display:block;min-width:860px}
     <tr><td class="k">Lineage / provenance</td><td>SOT clause → brief → audience → experiment → campaign → creative</td><td>metadata / lineage graph</td><td>end-to-end traceability</td></tr>
   </table>
   <p class="note"><b>The differentiator:</b> lineage + the reasoning plane. Answering "which SOT line produced this live campaign, and why did the agent choose it?" is what makes the system enterprise/audit-grade — and the HITL <b>edit-deltas</b> are the highest-signal data for deciding when a task class has earned more autonomy.</p>
+</div>
+
+<div class="card">
+  <h2>Eval strategy — per agent, before promoting to prod</h2>
+  <p class="sub">The enabler: because agents build in <b>dev sandboxes first</b>, most outputs are <b>deterministically checkable</b> — read the created object back (or execute it) and diff it against the intended spec. Agents fall into four eval types, and the strategy differs by type.</p>
+
+  <div class="grid4">
+    <div class="feat"><span class="tag">Type A</span><h4>Config / deterministic</h4><p>Audience-rule · Experimentation · Outbound · In-product → checkable ~100% via sandbox read-back / execution.</p></div>
+    <div class="feat"><span class="tag">Type B</span><h4>Extraction</h4><p>SOT ingestion · attribute-discovery → precision/recall vs labeled gold + fabrication checks.</p></div>
+    <div class="feat"><span class="tag">Type C</span><h4>Generative (hybrid)</h4><p>Creative → deterministic constraints + judged quality/fidelity.</p></div>
+    <div class="feat"><span class="tag">Type D</span><h4>Meta / evaluator</h4><p>Validation agent → calibration against human labels.</p></div>
+  </div>
+
+  <table style="font-size:11px">
+    <tr><th>Agent</th><th>Type</th><th>Ground truth</th><th>Key metrics &amp; pass bar</th></tr>
+    <tr><td class="k">SOT ingestion</td><td>Extraction</td><td>Historical SOT docs with human-labeled gold briefs (incl. messy / ambiguous / incomplete)</td><td>Field-level P/R/F1 · schema-validity 100% · missing/conflict-detection recall (weighted) · <b>fabrication ≈ 0</b> (require grounding to a doc span)</td></tr>
+    <tr><td class="k">Creative</td><td>Generative</td><td>Figma designs → expected artifacts + brand / accessibility rules + token schema</td><td><b>Hard constraints 100%</b> (SMS char, push length, valid HTML, valid tokens, a11y) · Figma fidelity + tone (LLM-judge + human) · Marketo asset read-back · 0 PII / 0 hallucinated offers</td></tr>
+    <tr><td class="k">Audience / data</td><td>Extraction + config</td><td>Audience intents → gold attributes + gold rule expressions (data-analyst validated)</td><td>Attribute-discovery P/R · <b>rule correctness by execution</b> (sandbox membership vs expected) · <b>consent / suppression 100%</b> · no out-of-scope / PII attributes</td></tr>
+    <tr><td class="k">Experimentation</td><td>Config (stat)</td><td>SOT experiment specs → gold IXP configs (DS-validated)</td><td>Config match (arms, allocation, metrics) · <b>statistical validity by recompute</b> (flag underpowered — 100%) · variant→arm mapping · ixp_validate passes</td></tr>
+    <tr><td class="k">Validation + HITL gate</td><td>Meta</td><td>Campaigns with <b>planted defects</b> + known-good + legal-labeled policy cases</td><td>Defect-detection recall (recall-critical) · policy agreement w/ legal (P/R/F1) · false-positive rate (over-flag fatigue) · SOT-consistency · confidence calibration</td></tr>
+    <tr><td class="k">Outbound campaign</td><td>Config</td><td>Briefs → gold Marketo campaign configs</td><td><b>Sandbox read-back diff:</b> audience bound · assets attached · flow / schedule / timezone · variant mapping · no duplicate sends · ma_validate · caps respected → near-100% match</td></tr>
+    <tr><td class="k">In-product campaign</td><td>Config</td><td>Briefs → gold in-product configs</td><td><b>Staging read-back diff:</b> placement · targeting binding · creative binding · <b>frequency / priority</b> · priority-conflict handling · validate passes → near-100% match</td></tr>
+    <tr><td class="k">Orchestrator</td><td>Plan / trajectory</td><td>Golden SOTs → expected task DAGs</td><td>Valid-plan rate · correct sequencing / routing · failure / retry handling · budget adherence</td></tr>
+  </table>
+
+  <h3>Cross-cutting principles</h3>
+  <ul class="tight">
+    <li><b>Two eval passes per agent:</b> offline golden-set eval <i>and</i> sandbox-execution verification (read back / run the created object).</li>
+    <li><b>Component + end-to-end:</b> eval each agent in isolation <i>and</i> in the full pipeline; <b>weight early-stage errors higher</b> — an SOT-ingestion miss propagates everywhere.</li>
+    <li><b>Tool-call eval for all:</b> right tool, right args, error handling. <b>Recall-weighting</b> wherever a miss is costly (consent, defects, missing SOT fields, underpowered experiments).</li>
+    <li><b>Promotion gate = eval bar cleared per task class + HITL.</b> An agent doesn't reach prod until its own eval passes.</li>
+  </ul>
+  <div class="note"><b>Say it as:</b> "Config agents I grade by executing in the sandbox and diffing against spec; extraction agents by precision/recall plus a near-zero fabrication bar; the generative agent by hard constraints plus judged quality; and the validator itself by calibration against human labels — with early-pipeline agents held to the strictest bar because their errors cascade."</div>
 </div>
 
 <div class="card">
