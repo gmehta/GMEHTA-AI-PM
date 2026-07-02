@@ -280,16 +280,30 @@ svg{width:100%;height:auto;display:block;min-width:860px}
 <div class="feat"><span class="tag">Type D</span><h4>Meta / evaluator</h4><p>Validation agent → calibration against human labels.</p></div>
 </div>
 
+<h3>Eval techniques — the toolbox</h3>
 <table style="font-size:11px">
-<tr><th>Agent</th><th>Type</th><th>Ground truth</th><th>Key metrics &amp; pass bar</th></tr>
-<tr><td class="k">SOT ingestion</td><td>Extraction</td><td>Historical SOT docs with human-labeled gold briefs (incl. messy / ambiguous / incomplete)</td><td>Field-level P/R/F1 · schema-validity 100% · missing/conflict-detection recall (weighted) · <b>fabrication ≈ 0</b> (require grounding to a doc span)</td></tr>
-<tr><td class="k">Creative</td><td>Generative</td><td>Figma designs → expected artifacts + brand / accessibility rules + token schema</td><td><b>Hard constraints 100%</b> (SMS char, push length, valid HTML, valid tokens, a11y) · Figma fidelity + tone (LLM-judge + human) · Marketo asset read-back · 0 PII / 0 hallucinated offers</td></tr>
-<tr><td class="k">Audience / data</td><td>Extraction + config</td><td>Audience intents → gold attributes + gold rule expressions (data-analyst validated)</td><td>Attribute-discovery P/R · <b>rule correctness by execution</b> (sandbox membership vs expected) · <b>consent / suppression 100%</b> · no out-of-scope / PII attributes</td></tr>
-<tr><td class="k">Experimentation</td><td>Config (stat)</td><td>SOT experiment specs → gold IXP configs (DS-validated)</td><td>Config match (arms, allocation, metrics) · <b>statistical validity by recompute</b> (flag underpowered — 100%) · variant→arm mapping · ixp_validate passes</td></tr>
-<tr><td class="k">Validation + HITL gate</td><td>Meta</td><td>Campaigns with <b>planted defects</b> + known-good + legal-labeled policy cases</td><td>Defect-detection recall (recall-critical) · policy agreement w/ legal (P/R/F1) · false-positive rate (over-flag fatigue) · SOT-consistency · confidence calibration</td></tr>
-<tr><td class="k">Outbound campaign</td><td>Config</td><td>Briefs → gold Marketo campaign configs</td><td><b>Sandbox read-back diff:</b> audience bound · assets attached · flow / schedule / timezone · variant mapping · no duplicate sends · ma_validate · caps respected → near-100% match</td></tr>
-<tr><td class="k">In-product campaign</td><td>Config</td><td>Briefs → gold in-product configs</td><td><b>Staging read-back diff:</b> placement · targeting binding · creative binding · <b>frequency / priority</b> · priority-conflict handling · validate passes → near-100% match</td></tr>
-<tr><td class="k">Orchestrator</td><td>Plan / trajectory</td><td>Golden SOTs → expected task DAGs</td><td>Valid-plan rate · correct sequencing / routing · failure / retry handling · budget adherence</td></tr>
+<tr><th>Technique</th><th>What it is</th></tr>
+<tr><td class="k">Programmatic / deterministic</td><td>Code diffs the output against a spec or schema — config-match, char / token counts, consent checks. No model, no human.</td></tr>
+<tr><td class="k">Sandbox execution</td><td>Create the object in the sandbox, then read it back or execute it and diff vs expected (audience membership, ma_validate).</td></tr>
+<tr><td class="k">LOOCV (reference-based)</td><td>Hold out each labeled example, predict it from the rest, score precision / recall / F1 vs the actual. Golden set = the campaign knowledge graph.</td></tr>
+<tr><td class="k">LLM-as-judge</td><td>A model grades quality / fidelity / tone where there's no crisp ground truth.</td></tr>
+<tr><td class="k">HITL / SME review</td><td>Human experts (lawyers, data analysts, designers) label the gold set and grade subjective quality.</td></tr>
+<tr><td class="k">Statistical recompute</td><td>Independently recompute power / sample-size to flag invalid or underpowered experiments.</td></tr>
+<tr><td class="k">Calibration</td><td>Measure the evaluator's agreement with human labels — used to eval the Validation agent itself.</td></tr>
+<tr><td class="k">Adversarial / red-team</td><td>Planted defects and injection attempts to test detection.</td></tr>
+</table>
+
+<h3>Per-agent eval — type, technique, ground truth, metrics</h3>
+<table style="font-size:11px">
+<tr><th>Agent</th><th>Type</th><th>Technique(s)</th><th>Ground truth</th><th>Key metrics &amp; pass bar</th></tr>
+<tr><td class="k">SOT ingestion</td><td>Extraction</td><td><b>LOOCV</b> (reference) + programmatic schema + LLM-judge (semantic fields)</td><td>Historical SOT docs with human-labeled gold briefs</td><td>Field-level P/R/F1 · schema-validity 100% · missing/conflict recall (weighted) · <b>fabrication ≈ 0</b></td></tr>
+<tr><td class="k">Creative</td><td>Generative</td><td><b>Programmatic</b> (hard constraints) + <b>LLM-judge</b> (fidelity/tone) + <b>HITL</b> design review + sandbox read-back</td><td>Figma designs → expected artifacts + brand / a11y rules + token schema</td><td>Hard constraints 100% · Figma fidelity + tone · Marketo asset read-back · 0 PII / 0 hallucinated offers</td></tr>
+<tr><td class="k">Audience / data</td><td>Extraction + config</td><td><b>LOOCV</b> (predict attributes vs actual) + <b>sandbox execution</b> (membership) + programmatic consent</td><td>Audience intents → gold attributes + gold rule expressions (analyst-validated)</td><td>Attribute-discovery P/R · rule correctness by execution · <b>consent 100%</b> · no out-of-scope attributes</td></tr>
+<tr><td class="k">Experimentation</td><td>Config (stat)</td><td><b>Programmatic</b> config-match + <b>statistical recompute</b> + HITL (DS gold)</td><td>SOT experiment specs → gold IXP configs (DS-validated)</td><td>Config match · statistical validity — flag underpowered (100%) · variant→arm · ixp_validate</td></tr>
+<tr><td class="k">Validation + HITL gate</td><td>Meta</td><td><b>Calibration</b> vs human labels + <b>adversarial</b> (planted defects)</td><td>Campaigns with planted defects + known-good + legal-labeled cases</td><td>Defect-detection recall · policy agreement (P/R/F1) · false-positive rate · confidence calibration</td></tr>
+<tr><td class="k">Outbound campaign</td><td>Config</td><td><b>Sandbox execution</b> (read-back diff) · programmatic</td><td>Briefs → gold Marketo campaign configs</td><td>Read-back diff: audience · assets · flow/schedule · no dup sends · ma_validate → near-100% match</td></tr>
+<tr><td class="k">In-product campaign</td><td>Config</td><td><b>Sandbox execution</b> (staging read-back diff) · programmatic</td><td>Briefs → gold in-product configs</td><td>Read-back diff: placement · targeting · creative · frequency/priority · validate → near-100% match</td></tr>
+<tr><td class="k">Orchestrator</td><td>Plan / trajectory</td><td><b>Programmatic</b> plan-vs-DAG (trajectory eval)</td><td>Golden SOTs → expected task DAGs</td><td>Valid-plan rate · correct sequencing / routing · failure/retry handling · budget adherence</td></tr>
 </table>
 
 <h3>Cross-cutting principles</h3>
