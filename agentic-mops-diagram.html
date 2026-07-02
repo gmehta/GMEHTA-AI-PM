@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgenticMOps — Reference Architecture</title>
+<style>
+:root{color-scheme:light;--bg:#f6f7fb;--card:#fff;--ink:#15172b;--muted:#5f6480;--line:#e6e7f0;--ac:#4c2bd9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 18px 56px}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.4px;color:#1c1147}
+.lead{color:var(--muted);font-size:13.5px;margin:0 0 14px;max-width:820px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin:0 0 6px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(0,0,0,.12)}
+.diagram{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:8px;box-shadow:0 1px 2px rgba(21,23,43,.05)}
+svg{width:100%;height:auto;display:block;min-width:860px}
+.host{overflow-x:auto}
+.agent{cursor:pointer}
+.agent rect{transition:filter .12s,stroke-width .12s}
+.agent:hover rect{filter:brightness(.96)}
+.agent.sel rect{stroke-width:3.4}
+.detail{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin-top:14px;box-shadow:0 1px 2px rgba(21,23,43,.05)}
+.detail h3{margin:0 0 6px;font-size:15px;color:#2c1a86}
+.detail .row{font-size:13px;margin:6px 0}
+.detail b{color:#2c1a86}
+.detail .tools{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:#1f2340;background:#f4f2fb;border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-top:4px;line-height:1.6}
+.hint{font-size:12px;color:var(--muted);margin-top:2px}
+.foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>AgenticMOps — Multi-Agent Reference Architecture</h1>
+  <p class="lead">A strategy Source-of-Truth doc flows in; an orchestrator plans and sequences specialist agents that build creative, audience, experiment, and campaigns across systems; a human approves at the gate. Evaluation, observability &amp; governance wrap every layer. <b>Click any agent</b> to see its skills &amp; tool calls.</p>
+  <div class="legend">
+    <span><i class="sw" style="background:#eef0f4"></i>Input</span>
+    <span><i class="sw" style="background:#ece4ff"></i>Orchestration</span>
+    <span><i class="sw" style="background:#e8f0ff"></i>Agents</span>
+    <span><i class="sw" style="background:#fff3d6"></i>Human gate</span>
+    <span><i class="sw" style="background:#e6f6ec"></i>Target systems</span>
+    <span><i class="sw" style="background:#f4efff"></i>Shared services</span>
+  </div>
+
+  <div class="diagram"><div class="host">
+  <svg viewBox="0 0 1040 580" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AgenticMOps architecture">
+    <defs><marker id="ah" markerWidth="9" markerHeight="9" refX="6.5" refY="3" orient="auto"><path d="M0,0 L6.5,3 L0,6 z" fill="#9aa3af"/></marker></defs>
+
+    <!-- INPUT -->
+    <g>
+      <rect x="356" y="20" width="150" height="42" rx="9" fill="#eef0f4" stroke="#b9c0cc"/>
+      <text x="431" y="46" text-anchor="middle" font-size="12.5" font-weight="700" fill="#15172b">Strategy team</text>
+      <rect x="540" y="20" width="164" height="42" rx="9" fill="#eef0f4" stroke="#b9c0cc"/>
+      <text x="622" y="41" text-anchor="middle" font-size="12.5" font-weight="700" fill="#15172b">Source-of-Truth doc</text>
+      <text x="622" y="55" text-anchor="middle" font-size="10" fill="#5f6480">the brief</text>
+      <line x1="506" y1="41" x2="536" y2="41" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+      <line x1="622" y1="62" x2="622" y2="106" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    </g>
+
+    <!-- FABRIC FRAME -->
+    <rect x="16" y="88" width="1008" height="470" rx="16" fill="none" stroke="#4c2bd9" stroke-width="2" stroke-dasharray="7 5"/>
+    <rect x="32" y="79" width="430" height="20" rx="10" fill="#4c2bd9"/>
+    <text x="46" y="93" font-size="11" font-weight="700" fill="#fff">Evaluation · Observability · Governance — wraps every layer</text>
+
+    <!-- ORCHESTRATOR -->
+    <rect x="280" y="110" width="480" height="48" rx="11" fill="#ece4ff" stroke="#7c5cff" stroke-width="1.8"/>
+    <g class="agent" data-id="orch">
+      <rect x="280" y="110" width="480" height="48" rx="11" fill="transparent" stroke="transparent"/>
+      <text x="520" y="130" text-anchor="middle" font-size="13" font-weight="800" fill="#2c1a86">Orchestrator / Control plane</text>
+      <text x="520" y="146" text-anchor="middle" font-size="10.5" fill="#5f6480">plans · sequences · holds versioned state · enforces policy in the harness</text>
+    </g>
+
+    <!-- CONTROL BUS -->
+    <line x1="520" y1="158" x2="520" y2="190" stroke="#c9c2ea" stroke-width="1.6"/>
+    <line x1="95" y1="190" x2="947" y2="190" stroke="#c9c2ea" stroke-width="1.6"/>
+    <line x1="95" y1="190" x2="95" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="237" y1="190" x2="237" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="379" y1="190" x2="379" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="521" y1="190" x2="521" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="663" y1="190" x2="663" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="805" y1="190" x2="805" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+    <line x1="947" y1="190" x2="947" y2="208" stroke="#c9c2ea" stroke-width="1.4" marker-end="url(#ah)"/>
+
+    <!-- AGENT PIPELINE (horizontal flow arrows) -->
+    <line x1="154" y1="243" x2="176" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    <line x1="296" y1="243" x2="318" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    <line x1="438" y1="243" x2="460" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    <line x1="580" y1="243" x2="602" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    <line x1="722" y1="243" x2="744" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+    <line x1="864" y1="243" x2="886" y2="243" stroke="#9aa3af" stroke-width="1.6" marker-end="url(#ah)"/>
+
+    <!-- agent nodes -->
+    <g class="agent" data-id="sot"><rect x="36" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="95" y="238" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">SOT ingestion</text><text x="95" y="254" text-anchor="middle" font-size="9.5" fill="#5f6480">doc → brief</text></g>
+    <g class="agent" data-id="creative"><rect x="178" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="237" y="238" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">Creative</text><text x="237" y="254" text-anchor="middle" font-size="9.5" fill="#5f6480">Figma → email/SMS/push</text></g>
+    <g class="agent" data-id="audience"><rect x="320" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="379" y="238" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">Audience</text><text x="379" y="254" text-anchor="middle" font-size="9.5" fill="#5f6480">attributes → segment</text></g>
+    <g class="agent" data-id="exp"><rect x="462" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="521" y="238" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">Experimentation</text><text x="521" y="254" text-anchor="middle" font-size="9.5" fill="#5f6480">design from SOT</text></g>
+    <g class="agent" data-id="gate"><rect x="604" y="210" width="118" height="66" rx="10" fill="#fff3d6" stroke="#d9a300" stroke-width="2"/><text x="663" y="234" text-anchor="middle" font-size="12" font-weight="800" fill="#8a6100">Validation</text><text x="663" y="249" text-anchor="middle" font-size="9.5" fill="#8a6100">synthetic-user + HITL gate</text></g>
+    <g class="agent" data-id="outbound"><rect x="746" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="805" y="234" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">Outbound</text><text x="805" y="249" text-anchor="middle" font-size="9.5" fill="#5f6480">campaign (Marketo)</text></g>
+    <g class="agent" data-id="inproduct"><rect x="888" y="210" width="118" height="66" rx="10" fill="#e8f0ff" stroke="#3b6fd4" stroke-width="1.8"/><text x="947" y="234" text-anchor="middle" font-size="12" font-weight="800" fill="#1c2b52">In-product</text><text x="947" y="249" text-anchor="middle" font-size="9.5" fill="#5f6480">campaign (display)</text></g>
+
+    <!-- creative also authors the creative inside Marketo -->
+    <path d="M237,276 V298 H758 V338" fill="none" stroke="#3b6fd4" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ah)"/>
+    <text x="470" y="293" text-anchor="middle" font-size="9.5" fill="#3b6fd4">Creative also authors the email / SMS / push assets inside Marketo</text>
+
+    <!-- down arrows to target systems -->
+    <line x1="379" y1="276" x2="379" y2="338" stroke="#9aa3af" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="521" y1="276" x2="521" y2="338" stroke="#9aa3af" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="805" y1="276" x2="805" y2="338" stroke="#9aa3af" stroke-width="1.5" marker-end="url(#ah)"/>
+    <line x1="947" y1="276" x2="947" y2="338" stroke="#9aa3af" stroke-width="1.5" marker-end="url(#ah)"/>
+
+    <!-- TARGET SYSTEMS -->
+    <rect x="304" y="340" width="150" height="50" rx="10" fill="#e6f6ec" stroke="#17924a" stroke-width="1.6"/>
+    <text x="379" y="362" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f5c30">Adobe B2B CDP</text>
+    <text x="379" y="376" text-anchor="middle" font-size="9.5" fill="#5f6480">audience store</text>
+    <rect x="446" y="340" width="150" height="50" rx="10" fill="#e6f6ec" stroke="#17924a" stroke-width="1.6"/>
+    <text x="521" y="362" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f5c30">Experimentation platform</text>
+    <text x="521" y="376" text-anchor="middle" font-size="9.5" fill="#5f6480">A/B service</text>
+    <rect x="730" y="340" width="150" height="50" rx="10" fill="#e6f6ec" stroke="#17924a" stroke-width="1.6"/>
+    <text x="805" y="362" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f5c30">Marketo</text>
+    <text x="805" y="376" text-anchor="middle" font-size="9.5" fill="#5f6480">marketing automation</text>
+    <rect x="872" y="340" width="148" height="50" rx="10" fill="#e6f6ec" stroke="#17924a" stroke-width="1.6"/>
+    <text x="946" y="362" text-anchor="middle" font-size="11.5" font-weight="700" fill="#0f5c30">In-product campaign tool</text>
+    <text x="946" y="376" text-anchor="middle" font-size="9.5" fill="#5f6480">in-app display</text>
+
+    <!-- SHARED SERVICES -->
+    <rect x="36" y="418" width="970" height="120" rx="12" fill="#f4efff" stroke="#d9cdf5" stroke-width="1.4"/>
+    <text x="50" y="438" font-size="11.5" font-weight="800" fill="#4c2bd9">SHARED SERVICES — every agent calls into these</text>
+    <g font-size="11" fill="#2c1a86">
+      <rect x="50" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="125" y="473" text-anchor="middle">Model gateway (LLMs)</text>
+      <rect x="214" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="289" y="473" text-anchor="middle">Knowledge graph</text>
+      <rect x="378" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="453" y="473" text-anchor="middle">Vector store</text>
+      <rect x="542" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="617" y="473" text-anchor="middle">Data catalog</text>
+      <rect x="706" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="781" y="473" text-anchor="middle">Template library</text>
+      <rect x="856" y="452" width="150" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="931" y="473" text-anchor="middle">Experiment / holdout</text>
+      <rect x="50" y="494" width="314" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="207" y="515" text-anchor="middle">Data contracts — validated at every agent handoff</text>
+      <rect x="378" y="494" width="314" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="535" y="515" text-anchor="middle">Immutable state snapshots — audit &amp; replay</text>
+      <rect x="706" y="494" width="300" height="34" rx="8" fill="#fff" stroke="#d9cdf5"/><text x="856" y="515" text-anchor="middle">Least-privilege tools per agent</text>
+    </g>
+  </svg>
+  </div></div>
+
+  <div class="detail" id="detail">
+    <h3>Click an agent to see its skills &amp; tool calls</h3>
+    <p class="hint">The diagram is the high-level design; clicking a box gives you the depth to talk through (skills = reusable playbooks; tools = the discrete calls the agent makes).</p>
+  </div>
+
+  <p class="foot">Commercial platforms named (Adobe B2B CDP · Marketo · Figma); internal systems abstracted (experimentation platform, in-product campaign tool). Every setup / publish / schedule tool is HITL-gated.</p>
+</div>
+
+<script>
+var D={
+ orch:{t:"Orchestrator / Control plane",s:"plan-decomposition · routing · state-management · policy-enforcement",x:"create_run · write_state / get_state · route_task · emit_trace"},
+ sot:{t:"SOT ingestion agent",s:"doc-retrieval · structured-extraction · ambiguity-detection",x:"fetch_sot_doc · parse_document · extract_brief → {objective, audience, channels, offer, experiment, kpis, schedule} · validate_brief_schema · flag_for_human"},
+ creative:{t:"Creative agent (Figma → email / SMS / push, authored in Marketo)",s:"asset-discovery · creative-extraction · channel-generation · token-mapping · brand + accessibility check · Marketo asset authoring",x:"figma_get_nodes · export_images · render_email_html · compose_sms · compose_push · map_personalization_tokens · check_brand_style / check_accessibility · upload_asset · ma_create_email · ma_create_sms · ma_create_push  →  builds the creative inside Marketo"},
+ audience:{t:"Audience / data agent (→ Adobe B2B CDP)",s:"attribute-discovery · criteria-derivation · consent + suppression · size-estimation",x:"search_data_catalog · get_attribute_profile · build_audience_rule · estimate_segment_size · apply_consent_suppression · cdp_create_segment · cdp_activate_segment"},
+ exp:{t:"Experimentation agent",s:"design-translation · variant → arm mapping · power / sample-size · guardrail-metrics",x:"design_experiment · power_analysis · exp_create · exp_add_variant · exp_set_metrics · exp_set_allocation · exp_validate"},
+ gate:{t:"Validation + HITL gate",s:"synthetic-user E2E validation · policy-check · pre-flight consistency vs SOT",x:"run_policy_checks · run_synthetic_users · readiness_report · request_human_approval"},
+ outbound:{t:"Outbound campaign agent (Marketo)",s:"program-assembly · audience-binding · asset-binding (links Creative's Marketo assets) · flow / schedule · variant-binding",x:"ma_create_program · ma_sync_audience · ma_create_campaign · ma_set_audience · ma_map_variants · ma_validate · ma_schedule (HITL)"},
+ inproduct:{t:"In-product campaign agent (display)",s:"placement-mapping · targeting-binding · creative-binding · frequency / priority",x:"ip_create_campaign · ip_set_placement · ip_bind_audience · ip_attach_creative · ip_set_frequency_priority · ip_validate · ip_publish (HITL)"}
+};
+var box=document.getElementById('detail');
+document.querySelectorAll('.agent').forEach(function(g){
+  g.addEventListener('click',function(){
+    document.querySelectorAll('.agent').forEach(function(x){x.classList.remove('sel')});
+    g.classList.add('sel');
+    var d=D[g.getAttribute('data-id')];
+    box.innerHTML='<h3>'+d.t+'</h3>'+
+      '<div class="row"><b>Skills:</b> '+d.s+'</div>'+
+      '<div class="row"><b>Tool calls:</b></div><div class="tools">'+d.x+'</div>';
+  });
+});
+</script>
+</body>
+</html>
