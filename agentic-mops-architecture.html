@@ -241,6 +241,35 @@ svg{width:100%;height:auto;display:block;min-width:860px}
 </div>
 
 <div class="card">
+  <h2>Guardrails — where each one lives</h2>
+  <p class="sub">Guardrails are a layer, not a component. The rule: they live in the <b>harness</b> (orchestration code) and the <b>tool / MCP layer</b> — deterministic code — <b>never in the prompt</b>. Rely on the prompt for safety and you're one jailbreak from a production incident.</p>
+
+  <h3>What counts as a guardrail</h3>
+  <div class="grid3">
+    <div class="feat"><span class="tag">Resource / loop</span><h4>Stop runaway</h4><p>max tool calls · max reasoning steps (loop cap) · agent-hop / recursion depth · token + cost ceiling · timeouts · concurrency caps</p></div>
+    <div class="feat"><span class="tag">Resilience</span><h4>Survive dependencies</h4><p>circuit breakers · retries + backoff · rate limits · fallbacks / graceful degradation · idempotency keys</p></div>
+    <div class="feat"><span class="tag">Input</span><h4>Guard what goes in</h4><p>prompt-injection detection &amp; sanitization (incl. tool outputs re-entering context) · PII redaction · moderation · input schema validation</p></div>
+    <div class="feat"><span class="tag">Output</span><h4>Guard what comes out</h4><p>schema / format validation · groundedness &amp; citation checks · policy &amp; compliance (brand / legal / reg) · DLP / PII-leak · confidence thresholds</p></div>
+    <div class="feat"><span class="tag">Action / authz</span><h4>Guard what it does</h4><p>least-privilege tool scoping · read-vs-write separation · allow / deny lists · human approval on irreversible actions · dry-run · spend / volume caps · rollback (saga)</p></div>
+    <div class="feat"><span class="tag">Data / consent</span><h4>Guard the data</h4><p>data contracts at handoffs · consent + suppression + frequency caps · attribute / PII access scoping · context-window hygiene · kill switch</p></div>
+  </div>
+
+  <h3>Where each lives in this design</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Layer</th><th>Guardrails implemented here</th></tr>
+    <tr><td class="k">Orchestrator / harness</td><td>max steps &amp; max tool calls · loop caps · token + cost ceiling · run / agent timeouts · concurrency limits · scope constraints · escalation rules · kill switch · policy enforcement</td></tr>
+    <tr><td class="k">Tool layer / MCP</td><td>circuit breakers · rate limits · retries + backoff · per-tool timeouts · idempotency keys · least-privilege scoping · allow / deny lists · I/O validation at the tool boundary · secrets scoping</td></tr>
+    <tr><td class="k">Around each LLM call</td><td>input: injection / PII / moderation checks · output: schema validation · groundedness / citations · PII-leak / DLP · confidence thresholds</td></tr>
+    <tr><td class="k">Agent handoffs (data contracts)</td><td>typed-field + confidence-threshold validation · reject or route-to-remediation so bad output can't propagate downstream</td></tr>
+    <tr><td class="k">Specialist agents (domain)</td><td>Audience: consent + suppression + frequency + segment-size caps · Compliance: brand / legal / regulatory + disclosures · Outbound &amp; In-product: send-volume &amp; spend caps, schedule windows, dedupe</td></tr>
+    <tr><td class="k">Validation + HITL gate</td><td>dry-run / synthetic-user simulation · pre-flight consistency vs SOT · confidence-based routing · hard human-approval stop before any publish / send / schedule</td></tr>
+    <tr><td class="k">Shared services</td><td>model gateway: token budgets, rate limits, model allow-list · data catalog: attribute access scoping + consent basis</td></tr>
+    <tr><td class="k">Observability plane</td><td>anomaly / drift / budget monitors that trip guardrails (auto-throttle, open circuit, pause) · every trip logged to the audit trail</td></tr>
+  </table>
+  <p class="note"><b>Say it as:</b> "Guardrails are a layer. The harness owns resource &amp; policy limits, the tool / MCP layer owns resilience &amp; authorization, data contracts own the handoffs, the HITL gate is the hard stop on irreversible actions — and the prompt owns none of them."</p>
+</div>
+
+<div class="card">
   <h2>Production patterns applied</h2>
   <p class="sub">The same industry-standard reliability patterns that take an agentic system from demo to real traffic.</p>
   <div class="grid5">
