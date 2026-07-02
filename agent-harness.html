@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>The Harness: What Holds a Team of Agents Together — Gaurav Mehta</title>
-<meta name="description" content="One model with a few tools is an agent. Getting a group of them to work as a single system takes a harness. An interactive walk through the five layers and ten components of a multi-agent agent harness.">
+<title>The Multi-Agent Agent Harness — Interactive Diagram · Gaurav Mehta</title>
+<meta name="description" content="An interactive reference diagram of a multi-agent agent harness: five layers, ten components, and one request traced through all seven steps.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400&display=swap" rel="stylesheet">
@@ -21,7 +21,7 @@
     --accent-ok: oklch(0.58 0.13 42);
     --serif: 'Source Serif 4', Georgia, serif;
     --mono: 'IBM Plex Mono', ui-monospace, monospace;
-    --maxw: 720px;
+    --maxw: 760px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:var(--serif);-webkit-font-smoothing:antialiased;}
@@ -36,24 +36,17 @@
   .topbar .back{color:var(--ink-faint);text-decoration:none;border-bottom:1px solid transparent;transition:border-color .2s;}
   .topbar .back:hover{border-color:var(--accent-ok);}
 
-  /* ---- article shell ---- */
+  /* ---- shell ---- */
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px 90px;}
-  .kicker{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ok);margin:44px 0 20px;}
-  h1{font-size:40px;line-height:1.12;font-weight:700;letter-spacing:-0.02em;margin:0 0 16px;}
-  .dek{font-size:21px;line-height:1.5;color:var(--ink-soft);font-weight:400;margin:0 0 30px;letter-spacing:-0.006em;}
-  .byline{display:flex;align-items:center;gap:12px;padding:20px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 0 40px;}
-  .avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;font-size:14px;flex-shrink:0;}
-  .byline .who{font-weight:600;font-size:15px;line-height:1.3;}
-  .byline .meta{font-family:var(--mono);font-size:12px;color:var(--ink-faint);margin-top:2px;}
-  p{font-size:19px;line-height:1.68;margin:0 0 22px;letter-spacing:-0.003em;}
-  h2{font-size:26px;font-weight:600;line-height:1.2;margin:52px 0 16px;letter-spacing:-0.012em;}
-  .layer-h{display:flex;align-items:baseline;gap:12px;margin:52px 0 14px;}
-  .layer-h .n{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--accent-ok);}
-  .layer-h h2{margin:0;}
+  .kicker{font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent-ok);margin:44px 0 18px;}
+  h1{font-size:34px;line-height:1.14;font-weight:700;letter-spacing:-0.018em;margin:0 0 14px;}
+  .dek{font-size:19px;line-height:1.5;color:var(--ink-soft);font-weight:400;margin:0 0 20px;letter-spacing:-0.006em;}
+  .essay-link{font-family:var(--mono);font-size:13px;color:var(--ink-faint);margin:0 0 8px;line-height:1.6;}
+  .essay-link a{color:var(--accent-ok);text-decoration:none;border-bottom:1px solid oklch(0.78 0.06 42);}
 
   /* ---- diagram module ---- */
-  .diagram-wrap{margin:38px -14px 20px;}
-  @media(max-width:640px){.diagram-wrap{margin:32px 0 20px;}}
+  .diagram-wrap{margin:30px -14px 20px;}
+  @media(max-width:640px){.diagram-wrap{margin:26px 0 20px;}}
   .diagram{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 22px 20px;box-shadow:0 1px 0 var(--line-soft);}
   .d-eyebrow{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px;}
   .d-eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
@@ -89,21 +82,11 @@
   .panel-inner{animation:hfade .35s ease;}
   .d-foot{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);margin-top:14px;line-height:1.5;}
   .cap{font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:center;margin:14px 0 0;line-height:1.5;}
-
-  /* ---- workflow list ---- */
-  ol.flow{list-style:none;counter-reset:step;padding:0;margin:0 0 30px;border-top:1px solid var(--line);}
-  ol.flow li{display:grid;grid-template-columns:44px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid var(--line);align-items:baseline;}
-  ol.flow .sn{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--accent-ok);}
-  ol.flow .st{font-size:18px;line-height:1.55;}
-  ol.flow .st strong{font-weight:600;}
-
-  .endnote{margin-top:44px;padding-top:26px;border-top:1px solid var(--line);font-family:var(--mono);font-size:12.5px;line-height:1.6;color:var(--ink-faint);}
-  .endnote a{color:var(--accent-ok);text-decoration:none;border-bottom:1px solid oklch(0.78 0.06 42);}
+  .cap a{color:var(--accent-ok);text-decoration:none;border-bottom:1px solid oklch(0.78 0.06 42);}
 
   @media(max-width:640px){
-    h1{font-size:31px;}
-    .dek{font-size:18px;}
-    p,ol.flow .st{font-size:17px;}
+    h1{font-size:27px;}
+    .dek{font-size:17px;}
     .chip{min-width:0;flex:1 1 140px;}
   }
 </style>
@@ -116,22 +99,10 @@
 </div>
 
 <div class="wrap">
-  <div class="kicker">Gaurav's Substack · Part Two</div>
-  <h1>The Harness: What Holds a Team of Agents Together</h1>
-  <p class="dek">One model with a few tools is an agent. Getting a group of them to work as a single system takes a harness. Here is what lives inside it.</p>
-
-  <div class="byline">
-    <div class="avatar">GM</div>
-    <div>
-      <div class="who">Gaurav Mehta</div>
-      <div class="meta">Jul 1, 2026 · 6 min read</div>
-    </div>
-  </div>
-
-  <p>Last time I wrote about the gap between an agent demo and an agent you can actually run in production. Memory, retrieval, guardrails, evaluation, observability, governance. All the parts that never show up in the demo but decide whether the thing holds up.</p>
-  <p>This piece goes one level down, into a single part of that picture that quietly does most of the work: the harness.</p>
-  <p>A quick definition. The harness is the code around the model. Not the model itself, and not the tools it calls, but the driver code in between that decides what runs, in what order, with what context, and whether the result can be trusted. With one agent you can get away with a thin harness. When an orchestrator is handing work to a dozen specialized sub-agents, the harness is most of the system. It is the difference between a pile of clever agents and a team that actually finishes the job.</p>
-  <p>I have been building this out for a multi-agent setup, where one orchestrator routes tasks to sub-agents that each carry their own skills and tools. Here is how I have come to think about it, in five layers. The diagram below is live, so press play and watch a request move through the whole thing, or click any box to see what it does.</p>
+  <div class="kicker">Interactive Reference Architecture</div>
+  <h1>The Multi-Agent Agent Harness</h1>
+  <p class="dek">The driver code that wraps the models. Five layers, ten components, and one request that has to move cleanly through all of them. Press play to trace a request, or click any box to see what it does.</p>
+  <p class="essay-link">Read the full essay: <a href="https://gauravrsmehta.substack.com/p/the-harness-what-holds-a-team-of">The Harness: What Holds a Team of Agents Together →</a></p>
 
   <div class="diagram-wrap">
     <div class="diagram" id="diagram">
@@ -148,51 +119,7 @@
       <div class="panel"><div class="panel-inner" id="panel"></div></div>
       <div class="d-foot">Click any box for what it does. Press play to trace a request through all seven steps.</div>
     </div>
-    <p class="cap">The multi-agent harness. Five layers, ten components. Press play to trace a single request through all seven steps.</p>
-  </div>
-
-  <div class="layer-h"><span class="n">01</span><h2>Orchestration and routing</h2></div>
-  <p>This is the control layer. It decides what happens and which model does it.</p>
-  <p>At its center is a loop. The orchestrator reasons about the request, takes an action, observes the result, and goes again. That much is standard. What changes in a multi-agent system is that the loop also has to track other loops. When the orchestrator hands a task to a sub-agent, that sub-agent runs its own reason-act-observe cycle, and the orchestrator has to know which of those are running, which are paused, and what each one is waiting on.</p>
-  <p>Two pieces sit next to the loop. A model router picks the right model for each agent, because you do not want your most expensive model doing simple triage. And a registry defines the sub-agents that exist: what each one is for, what it expects as input, and what it is allowed to touch.</p>
-
-  <div class="layer-h"><span class="n">02</span><h2>Capabilities: tools and skills</h2></div>
-  <p>Here is a distinction that took me a while to appreciate. There is a difference between knowing how to think about a task and being able to act on it. Skills are the first. Tools are the second.</p>
-  <p>A skill is a procedure, a standard operating procedure written out in full. The catch is that if you paste every procedure into the prompt, you drown the agent before it starts. So you split it in two. A catalog holds just the names and short descriptions, light enough to keep around all the time. The full instructions live in a library, and they only get injected into the agent's context once it picks that skill off the catalog. The agent discovers what it needs, then loads it. Nothing more.</p>
-  <p>Tools are the other half. These are the functions an agent can actually run: an API call, a database query, a bit of code. A tool registry holds them and, just as important, scopes them, so a given tool is only available to the agents that should have it. Protocols like MCP are how that wiring gets done in practice.</p>
-
-  <div class="layer-h"><span class="n">03</span><h2>State and memory</h2></div>
-  <p>Agents that work together have to pass things between them, and that hand-off is trickier than it sounds.</p>
-  <p>When the orchestrator sends a task down to a sub-agent, someone has to package the right context to go with it. The relevant documents, the results of a retrieval query, whatever state matters for that specific job. And when the sub-agent finishes, someone has to pull out its answer and carry it back up without dragging the entire transcript along, or you blow the token budget in a couple of hops. That packing and unpacking is a real job, and it belongs to this layer.</p>
-
-  <div class="layer-h"><span class="n">04</span><h2>Governance and reliability</h2></div>
-  <p>This is the layer that keeps an autonomous loop from doing something you cannot take back.</p>
-  <p>The most useful idea here is verification that happens outside the model. An agent will tell you, with total confidence, that it wrote the file. Verify is the code that actually checks the file is there. If the check fails, you do not just stop, you feed the failure back to the agent so it can try to fix its own mistake. That one habit, proving success with code instead of trusting the model's word, catches a surprising amount.</p>
-  <p>Around that sit the guardrails: hard limits on how many times a loop can run, caps on how much it can spend, and validation on what goes in and what comes out. None of it is glamorous. All of it is what lets you sleep.</p>
-
-  <div class="layer-h"><span class="n">05</span><h2>Operations</h2></div>
-  <p>The last layer is visibility. Every decision the orchestrator makes, every skill it injects, every tool a sub-agent fires, every metric, all of it gets logged across the whole graph. When something goes wrong in a multi-agent run, and it will, tracing is the only thing that lets you answer the question that actually matters: what did this agent see, and why did it decide that?</p>
-
-  <h2>Putting it together</h2>
-  <p>None of these layers is interesting on its own. The point is how a single request moves through all of them. Here is the pattern, start to finish.</p>
-
-  <ol class="flow">
-    <li><span class="sn">01</span><span class="st"><strong>Task assignment.</strong> The orchestrator takes in a complex request and opens its loop.</span></li>
-    <li><span class="sn">02</span><span class="st"><strong>Discovery.</strong> It checks the skill catalog and the sub-agent registry to see what can help.</span></li>
-    <li><span class="sn">03</span><span class="st"><strong>Routing.</strong> The model router spins up the right specialized sub-agent.</span></li>
-    <li><span class="sn">04</span><span class="st"><strong>Context load.</strong> The context manager injects the state that sub-agent needs.</span></li>
-    <li><span class="sn">05</span><span class="st"><strong>Execution.</strong> The sub-agent pulls its procedure from the skill library and acts through the tool registry.</span></li>
-    <li><span class="sn">06</span><span class="st"><strong>Validation.</strong> The harness runs a verify check, inside the guardrails, on whatever came back.</span></li>
-    <li><span class="sn">07</span><span class="st"><strong>Return.</strong> The verified result is logged through observability and handed back to the orchestrator, which decides what happens next.</span></li>
-  </ol>
-  <p>Seven steps, and the agents themselves are really only in charge of one of them. The rest is harness.</p>
-
-  <h2>Why this matters</h2>
-  <p>If you take one thing from this, it is that the intelligence is not the hard part anymore. The models are good and getting better every few months. The hard part is everything that surrounds them: the routing, the context you pass, the checks you run, the trail you leave behind.</p>
-  <p>A demo skips all of it and still looks great. A production system cannot, and that is exactly why the harness is where I spend most of my time. Map your own system against these five layers and be honest about which one is thinnest. That is usually the one about to give you a bad week.</p>
-
-  <div class="endnote">
-    I build agentic systems for a living and keep mapping this architecture as I go. If you found this useful, part one covers the wider anatomy: <a href="https://gauravrsmehta.substack.com/p/beyond-the-demo-whats-actually-inside">Beyond the Demo</a>.
+    <p class="cap">Five layers, ten components. Press play to trace a single request through all seven steps — or read the full essay on <a href="https://gauravrsmehta.substack.com/p/the-harness-what-holds-a-team-of">Substack</a>.</p>
   </div>
 </div>
 
