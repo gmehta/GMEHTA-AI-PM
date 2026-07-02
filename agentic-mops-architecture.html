@@ -276,6 +276,81 @@ svg{width:100%;height:auto;display:block;min-width:860px}
 </div>
 
 <div class="card">
+  <h2>Measuring success — the metrics sheet</h2>
+  <p class="sub">Extends the general AI-PM frame (business · quality · adoption · latency · alignment · iteration) with the three planes a <b>multi-agent platform</b> adds: trajectory/process, the human-in-the-loop autonomy loop, and cost + safety as first-class. <b>Scale baseline (QuickBooks, from historical data):</b> ~3,000 campaigns over 5 years (~600/yr, ~11.5/wk), each touching ~6 systems and 10–20 people before prod.</p>
+  <p class="sub"><b style="color:#0a7d33">M</b> = measured / derived from QuickBooks history · others are illustrative targets — swap in your measured values.</p>
+
+  <h3>1 · Business / Alignment</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value</th></tr>
+    <tr><td class="k">Cycle time (assembly)</td><td>brief → prod-ready build</td><td>6 weeks → ~30 min at ~80% first-pass accuracy <b style="color:#0a7d33">M</b></td></tr>
+    <tr><td class="k">End-to-end incl. review</td><td>assembly + HITL approval</td><td>weeks → hours</td></tr>
+    <tr><td class="k">Throughput</td><td>campaigns shipped</td><td>~10 / week (QuickBooks); 3,000 over 5 yrs <b style="color:#0a7d33">M</b></td></tr>
+    <tr><td class="k">Headcount leverage</td><td>people per campaign</td><td>10–20 people across 6 systems → 1 operator + agents <b style="color:#0a7d33">M</b></td></tr>
+    <tr><td class="k">Cost per campaign</td><td>loaded human cost vs agent</td><td>~10 person-weeks → operator review + compute</td></tr>
+    <tr><td class="k">Conversion / revenue lift</td><td>vs manual holdout</td><td>neutral-to-positive (target)</td></tr>
+  </table>
+
+  <h3>2 · Quality / Value (per-agent + end-to-end)</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value / target</th></tr>
+    <tr><td class="k">First-pass accuracy (E2E)</td><td>% assembled correct pre-human</td><td>~80% <b style="color:#0a7d33">M</b></td></tr>
+    <tr><td class="k">SOT-extraction F1</td><td>brief field accuracy</td><td>~0.92</td></tr>
+    <tr><td class="k">Creative hard-constraint compliance</td><td>char / tokens / accessibility</td><td>100%</td></tr>
+    <tr><td class="k">Audience membership P / R</td><td>segment correctness (sandbox)</td><td>~96% / ~94%</td></tr>
+    <tr><td class="k">Experiment statistical validity</td><td>valid + powered configs</td><td>100%</td></tr>
+    <tr><td class="k">Config-match (Outbound / In-product)</td><td>sandbox read-back diff</td><td>~98–99%</td></tr>
+    <tr><td class="k">Fabrication rate</td><td>fields asserted w/ no source</td><td>&lt;1%</td></tr>
+    <tr><td class="k">Defect-escape rate</td><td>defects reaching prod</td><td>&lt;2%, trending 0</td></tr>
+  </table>
+
+  <h3>3 · Trajectory / Process (multi-agent)</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value / target</th></tr>
+    <tr><td class="k">Tool-call accuracy</td><td>right tool + right args</td><td>~98%</td></tr>
+    <tr><td class="k">Valid-plan rate</td><td>orchestrator produces valid DAG</td><td>~99%</td></tr>
+    <tr><td class="k">Step success rate</td><td>per-agent stage success</td><td>tracked per agent</td></tr>
+    <tr><td class="k">Replan / loop rate</td><td>runs needing a replan</td><td>&lt;10%</td></tr>
+    <tr><td class="k">Steps / tool-calls per run</td><td>efficiency of the path</td><td>baseline + budget cap</td></tr>
+  </table>
+
+  <h3>4 · Autonomy / HITL <span style="font-weight:400;color:var(--muted);font-size:12px">— the plane that decides when to remove the human</span></h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value / target</th></tr>
+    <tr><td class="k">Human override rate</td><td>% outputs edited by the human</td><td>~20% → trending down <b style="color:#0a7d33">M</b></td></tr>
+    <tr><td class="k">Edit-delta</td><td>avg % of output changed at the gate</td><td>tracked (highest-signal data)</td></tr>
+    <tr><td class="k">First-pass approval rate</td><td>approved w/o major change</td><td>~80%</td></tr>
+    <tr><td class="k">% zero-touch-eligible task classes</td><td>earned autonomy</td><td>0 → ~30% of low-risk in 12 mo (target)</td></tr>
+    <tr><td class="k">Escalation rate</td><td>runs escalated to senior approver</td><td>tracked</td></tr>
+    <tr><td class="k">Time-to-approval</td><td>HITL gate latency</td><td>days → ~hours</td></tr>
+  </table>
+
+  <h3>5 · Safety / Trust</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value / target</th></tr>
+    <tr><td class="k">Consent / suppression compliance</td><td>non-consented sends</td><td>100% (hard requirement)</td></tr>
+    <tr><td class="k">Policy-violation escape rate</td><td>violations reaching prod</td><td>~0</td></tr>
+    <tr><td class="k">Guardrail-trip rate</td><td>how often guardrails fire</td><td>tracked (leading indicator)</td></tr>
+    <tr><td class="k">Hallucination / fabrication rate</td><td>unsupported content</td><td>&lt;1%</td></tr>
+    <tr><td class="k">Prod incidents / PII-leaks</td><td>safety failures</td><td>0</td></tr>
+  </table>
+
+  <h3>6 · Cost / Efficiency · 7 · System health · 8 · Drift</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Metric</th><th>Measures</th><th>Value / target</th></tr>
+    <tr><td class="k">Cost per successful campaign</td><td>agent compute per output</td><td>~$ low double digits (illustrative)</td></tr>
+    <tr><td class="k">Tokens per run · model-routing savings</td><td>efficiency</td><td>tracked · ~30% via routing (illustrative)</td></tr>
+    <tr><td class="k">Assembly latency · uptime</td><td>speed &amp; availability</td><td>~30 min · 99.5%</td></tr>
+    <tr><td class="k">Tool error rate · breaker trips</td><td>dependency health</td><td>tracked</td></tr>
+    <tr><td class="k">Quality drift vs golden</td><td>silent decay per release</td><td>within ±2%</td></tr>
+    <tr><td class="k">Model-version regression rate</td><td>quality loss on upgrades</td><td>tracked (gate blocks regressions)</td></tr>
+    <tr><td class="k">New-model integration time</td><td>platform agility</td><td>days (via the eval harness)</td></tr>
+  </table>
+
+  <div class="note"><b>Say it as:</b> "I'd anchor on the business number — 6-week, 10-person, 6-system builds compressed to a 30-minute assembly a single operator approves. Then quality per-agent, trajectory for the path, and the HITL override / edit-delta trend, because that's how I earn the right to remove the human — plus cost and safety as first-class. Aggregate accuracy alone hides which agent broke and whether we're getting more autonomous."</div>
+</div>
+
+<div class="card">
   <h2>Guardrails — where each one lives</h2>
   <p class="sub">Guardrails are a layer, not a component. The rule: they live in the <b>harness</b> (orchestration code) and the <b>tool / MCP layer</b> — deterministic code — <b>never in the prompt</b>. Rely on the prompt for safety and you're one jailbreak from a production incident.</p>
 
