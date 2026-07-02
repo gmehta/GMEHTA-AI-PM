@@ -270,6 +270,45 @@ svg{width:100%;height:auto;display:block;min-width:860px}
 </div>
 
 <div class="card">
+  <h2>Access &amp; promotion — RBAC</h2>
+  <p class="sub">Internal, but not everyone can create — and nothing an agent builds goes live without a human. The model rests on <b>two identity planes</b> and a <b>sandbox → prod</b> promotion boundary.</p>
+
+  <h3>Two identity planes</h3>
+  <div class="grid2">
+    <div class="feat"><span class="tag">Human RBAC</span><h4>Which people can do what</h4><p>Trigger a run · approve / validate · promote to prod · override · admin. Enforced at the orchestrator + each target system's own RBAC.</p></div>
+    <div class="feat"><span class="tag">Agent RBAC</span><h4>The agent's own machine identity</h4><p>Each agent runs under its own scoped service identity — <b>not</b> the user's. Enforced at the tool / MCP layer with short-lived, per-run scoped tokens.</p></div>
+  </div>
+
+  <h3>Agent RBAC — three rules</h3>
+  <ul class="tight">
+    <li><b>Per-agent least privilege (isolation):</b> Audience agent → Adobe B2B CDP only; Outbound → Marketo only; etc. No monolithic all-tools agent.</li>
+    <li><b>On-behalf-of intersection:</b> an agent's effective rights = intersection(agent's grant, the triggering user's grant). It can never do something the initiating human couldn't — no escalation through the agent.</li>
+    <li><b>Sandbox-only write, never prod:</b> agents create in dev sandboxes of Adobe B2B CDP, Marketo, IXP, and Campaign Manager; they hold no prod-write token.</li>
+  </ul>
+
+  <h3>Sandbox → prod — think GitOps: the agent opens the PR, the human merges</h3>
+  <ul class="tight">
+    <li>Agents build the campaign / segment / experiment in the <b>dev sandbox</b> → low blast radius.</li>
+    <li>Validation agent runs synthetic-user / dry-run in the sandbox; the agent emits the prod change as a <b>versioned config / diff</b>.</li>
+    <li><b>HITL gate:</b> a human reviews the sandbox artifacts + eval results.</li>
+    <li>On approve, a <b>promotion service</b> applies the change to prod under the <b>approver's</b> identity — atomic, reversible (saga), audit-logged. The agent never holds prod-write.</li>
+  </ul>
+
+  <h3>Human roles — who's allowed to what</h3>
+  <table style="font-size:11.5px">
+    <tr><th>Role</th><th>Trigger run</th><th>Create in sandbox</th><th>Approve / validate</th><th>Promote to prod</th></tr>
+    <tr><td class="k">Requester / Author <span style="font-weight:400;color:var(--muted)">(Strategy, Mktg Ops)</span></td><td>✓</td><td>✓ (their runs)</td><td>—</td><td>—</td></tr>
+    <tr><td class="k">Domain approver <span style="font-weight:400;color:var(--muted)">(Legal, Brand, Finance / Deal Desk)</span></td><td>—</td><td>—</td><td>✓ (their domain)</td><td>—</td></tr>
+    <tr><td class="k">Publisher / Ops <span style="font-weight:400;color:var(--muted)">(holds prod role)</span></td><td>—</td><td>—</td><td>maybe</td><td>✓</td></tr>
+    <tr><td class="k">Platform admin</td><td colspan="4">Configures agents, scopes, guardrails, model access — not day-to-day campaign approval</td></tr>
+    <tr><td class="k">Auditor</td><td colspan="4">Read-only across everything (observability + audit trail)</td></tr>
+  </table>
+
+  <div class="note warn"><b>Separation of duties:</b> creator ≠ promoter (4-eyes on high spend). <b>Risk-based routing:</b> bigger audience / higher spend / regulated content → more senior or multi-party approval. <b>Data-scoped:</b> PII / regulated segments need higher clearance — the Audience agent is scoped to the attributes the requester is cleared for, plus consent basis.</div>
+  <div class="note"><b>Say it as:</b> "Two identity planes — humans and agents. Agents are least-privilege, sandbox-only, and bounded by the triggering user's rights. Promotion to prod is a separate, human-authorized action with 4-eyes on high-risk changes — enforced in the harness and MCP, never the prompt, and fully audited."</div>
+</div>
+
+<div class="card">
   <h2>Production patterns applied</h2>
   <p class="sub">The same industry-standard reliability patterns that take an agentic system from demo to real traffic.</p>
   <div class="grid5">
